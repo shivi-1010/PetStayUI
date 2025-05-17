@@ -123,7 +123,7 @@
                   <li class="divider"></li>
                   <li>
                     <!-- <a href="#0"> <i class="lni lni-exit"></i> Sign Out </a> -->
-<a href="https://YOUR_COGNITO_DOMAIN.auth.us-east-1.amazoncognito.com/logout?client_id=YOUR_APP_CLIENT_ID&logout_uri=http://localhost:5501/landing.html"> 
+<a href="https://petstay-admin-login.auth.us-east-1.amazoncognito.com/logout?client_id=7bl4u04925q35pshgkk6h5rkc5&logout_uri=https://master.dcglvmmzr1w5.amplifyapp.com/index.html">
   <i class="lni lni-exit"></i> Sign Out 
 </a>
 
@@ -603,7 +603,7 @@ Amplify.default.configure({
         })
         .catch(err => {
             console.log("Not logged in, redirecting to Cognito Login...");
-window.location.href = "https://petstay-admin-login.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=http://localhost:5501/index.html";
+window.location.href = "https://petstay-admin-login.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https://master.dcglvmmzr1w5.amplifyapp.com/admin_dashboard.html";
         });
 </script>
 
