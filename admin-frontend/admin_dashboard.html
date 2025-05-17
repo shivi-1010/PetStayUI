@@ -586,29 +586,29 @@
 
   <script src="assets/js/dashboard-dummy-data.js"></script>
 
-  <script>
+<script src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
+<script>
     Amplify.default.configure({
-      Auth: {
-        region: 'us-east-1',
-        userPoolId: 'us-east-1_sS3D9GHIP',
-        userPoolWebClientId: '7bl4u04925q35pshgkk6h5rkc5'
-      }
+        Auth: {
+            region: 'us-east-1',
+            userPoolId: 'us-east-1_sS3D9GHIP',
+            userPoolWebClientId: '7bl4u04925q35pshgkk6h5rkc5'
+        }
     });
-
 
     // Check login session on page load
     Amplify.Auth.currentAuthenticatedUser()
-      .then(user => {
-        console.log("Logged in as:", user.username);
-        // Update UI if you want to show logged-in email or username
-        document.querySelector('.profile-box h6').innerText = user.username;
-        document.querySelector('.profile-box p').innerText = 'Admin';
-      })
-      .catch(err => {
-        console.log("Not logged in, redirecting to Cognito Login...");
-        window.location.href = "https://petstay-admin-login.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https://master.dcglvmmzr1w5.amplifyapp.com/admin_dashboard.html";
-      });
-  </script>
+        .then(user => {
+            console.log("Logged in as:", user.username);
+            document.querySelector('.profile-box h6').innerText = user.username;
+            document.querySelector('.profile-box p').innerText = 'Admin';
+        })
+        .catch(err => {
+            console.log("Not logged in, redirecting to Cognito Login...");
+            window.location.href = "https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https://master.dcglvvmmzr1w5.amplifyapp.com/admin_dashboard.html";
+        });
+</script>
+
 
 
 
