@@ -5,7 +5,7 @@ document.getElementById('left-button').addEventListener('click', function() {
 
 // Redirect to Admin Dashboard page
 document.getElementById('right-button').addEventListener('click', function() {
-  window.location.href = 'index.html'; // Admin Dashboard page
+  window.location.href = 'admin_dashboard.html'; // Admin Dashboard page
 });
 
 // Hover effect for left side
