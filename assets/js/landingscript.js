@@ -4,8 +4,13 @@ document.getElementById('left-button').addEventListener('click', function() {
 });
 
 // Redirect to Admin Dashboard page
-document.getElementById('right-button').addEventListener('click', function() {
-  window.location.href = '/admin-frontend/admin_dashboard.html';
+// document.getElementById('right-button').addEventListener('click', function() {
+//   window.location.href = '/admin-frontend/admin_dashboard.html';
+// });
+
+
+document.getElementById("right-button").addEventListener("click", function () {
+  window.location.href = "https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https://master.dcglvvmmzr1w5.amplifyapp.com/admin_dashboard.html";
 });
 
 
@@ -19,6 +24,8 @@ left.addEventListener("mouseleave", () => content.classList.remove("hover-left")
 
 right.addEventListener("mouseenter", () => content.classList.add("hover-right"));
 right.addEventListener("mouseleave", () => content.classList.remove("hover-right"));
+
+
 
 // // Optional: remove this if no PWA
 // if ("serviceWorker" in navigator) {
