@@ -9,7 +9,8 @@ Amplify.default.configure({
       scope: ['email', 'openid'],
       redirectSignIn: 'https://master.dcglvvmmzr1w5.amplifyapp.com/admin_dashboard.html',
       redirectSignOut: 'https://master.dcglvvmmzr1w5.amplifyapp.com/index.html',
-      responseType: 'token' 
+      responseType: 'token', 
+    
     }
   }
 });
@@ -29,7 +30,7 @@ Amplify.default.Auth.currentSession()
   })
   .catch(err => {
     console.log("Not logged in, redirecting to Cognito Login...");
-    window.location.href = "https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https://master.dcglvvmmzr1w5.amplifyapp.com/admin_dashboard.html";
+window.location.href = "https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https%3A%2F%2Fmaster.dcglvmmzr1w5.amplifyapp.com%2Fadmin_dashboard.html";
   });
 
 // Logout function (safe & global)
