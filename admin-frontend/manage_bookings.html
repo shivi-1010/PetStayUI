@@ -15,39 +15,9 @@
   <link rel="stylesheet" href="/assets/css/fullcalendar.css" />
   <link rel="stylesheet" href="/assets/css/main.css" />
   <script src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
+<script src="/assets/js/auth-check.js"></script>
 
-  <script>
-   Amplify.default.configure({
-  Auth: {
-    region: 'us-east-1',
-    userPoolId: 'us-east-1_sS3D9GHIP',
-    userPoolWebClientId: '7bl4u04925q35pshgkk6h5rkc5'
-  }
-});
 
-Amplify.default.Auth.currentAuthenticatedUser()
-  .then(user => {
-    console.log("Logged in as:", user.username);
-    document.addEventListener('DOMContentLoaded', function () {
-      document.getElementById('adminEmail').innerText = user.attributes.email;
-      document.getElementById('adminEmailDropdown').innerText = user.attributes.email;
-    });
-  })
-  .catch(err => {
-    console.log("Not logged in, redirecting to Cognito Login...");
-    window.location.href = "https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https://master.dcglvvmmzr1w5.amplifyapp.com/admin_dashboard.html";
-  });
-
-function signOutUser() {
-  Amplify.default.Auth.signOut({ global: true })
-    .then(() => {
-      console.log("Signed out successfully");
-      window.location.href = 'https://master.dcglvvmmzr1w5.amplifyapp.com/index.html';
-    })
-    .catch(err => console.log('Error during signout', err));
-}
-
-</script>
 </head>
 
 <body>
