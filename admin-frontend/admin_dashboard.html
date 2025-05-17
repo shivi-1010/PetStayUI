@@ -16,8 +16,7 @@
   <link rel="stylesheet" href="/assets/css/main.css" />
   <script src="/assets/js/Chart.min.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
-<script src="/assets/js/auth-check.js"></script>
+
 
 
 
@@ -102,7 +101,7 @@
           <img src="/assets/images/profile/profile-image.png" alt="" />
         </div>
         <div>
-          <h6 class="fw-500" id="adminEmail">Loading...</h6>
+<h6 class="fw-500 email-placeholder" id="adminEmail">Loading...</h6>
           <p>Admin</p>
         </div>
       </div>
@@ -116,9 +115,8 @@
         </div>
         <div class="content">
           <h4 class="text-sm">Admin</h4>
-          <a id="adminEmailDropdown"
-            class="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs"
-            href="#">Loading...</a>
+       <a id="adminEmailDropdown" class="email-placeholder text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs" href="#">Loading...</a>
+
         </div>
       </div>
     </li>
@@ -584,7 +582,8 @@
   </script>
 
   <script src="assets/js/dashboard-dummy-data.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
+<script src="/assets/js/auth-check.js"></script>
 </body>
 
 </html>
