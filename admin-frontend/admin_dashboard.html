@@ -14,9 +14,42 @@
   <link rel="stylesheet" href="/assets/css/materialdesignicons.min.css" rel="stylesheet" type="text/css" />
   <link rel="stylesheet" href="/assets/css/fullcalendar.css" />
   <link rel="stylesheet" href="/assets/css/main.css" />
-  <script src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
-
   <script src="/assets/js/Chart.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
+<script>
+   Amplify.default.configure({
+  Auth: {
+    region: 'us-east-1',
+    userPoolId: 'us-east-1_sS3D9GHIP',
+    userPoolWebClientId: '7bl4u04925q35pshgkk6h5rkc5'
+  }
+});
+
+Amplify.default.Auth.currentAuthenticatedUser()
+  .then(user => {
+    console.log("Logged in as:", user.username);
+    document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('adminEmail').innerText = user.attributes.email;
+      document.getElementById('adminEmailDropdown').innerText = user.attributes.email;
+    });
+  })
+  .catch(err => {
+    console.log("Not logged in, redirecting to Cognito Login...");
+    window.location.href = "https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https://master.dcglvvmmzr1w5.amplifyapp.com/admin_dashboard.html";
+  });
+
+function signOutUser() {
+  Amplify.default.Auth.signOut({ global: true })
+    .then(() => {
+      console.log("Signed out successfully");
+      window.location.href = 'https://master.dcglvvmmzr1w5.amplifyapp.com/index.html';
+    })
+    .catch(err => console.log('Error during signout', err));
+}
+
+</script>
+
 
 
 </head>
@@ -91,57 +124,46 @@
           <div class="col-lg-7 col-md-7 col-6">
             <div class="header-right">
 
-              <div class="profile-box ml-15">
-                <button class="dropdown-toggle bg-transparent border-0" type="button" id="profile"
-                  data-bs-toggle="dropdown" aria-expanded="false">
-                  <div class="profile-info">
-                    <div class="info">
-                      <div class="image">
-                        <img src="/assets/images/profile/profile-image.png" alt="" />
-                      </div>
-                      <div>
-                        <h6 class="fw-500">Adam Joe</h6>
-                        <p>Admin</p>
-                      </div>
-                    </div>
-                  </div>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profile">
-                  <li>
-                    <div class="author-info flex items-center !p-1">
-                      <div class="image">
-                        <img src="/assets/images/profile/profile-image.png" alt="image">
-                      </div>
-                      <div class="content">
-                        <h4 class="text-sm">Adam Joe</h4>
-                        <a class="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs"
-                          href="#">Email@gmail.com</a>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="divider"></li>
-
-                  <li class="divider"></li>
-                  <li>
-                    <!-- <a href="#0"> <i class="lni lni-exit"></i> Sign Out </a> -->
-                    <!-- <a href="https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/logout?client_id=7bl4u04925q35pshgkk6h5rkc5&logout_uri=https://master.dcglvvmmzr1w5.amplifyapp.com/index.html">
-  <i class="lni lni-exit"></i> Sign Out
-</a> -->
-
-                    <!-- In your dropdown -->
-              <!-- <a href="javascript:void(0)" onclick="signOutUser()">
-  <i class="lni lni-exit"></i> Sign Out
-</a> -->
-
-<a href="https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/logout?client_id=7bl4u04925q35pshgkk6h5rkc5&logout_uri=https://master.dcglvvmmzr1w5.amplifyapp.com/index.html">
-  <i class="lni lni-exit"></i> Sign Out
-</a>
+           <div class="profile-box ml-15">
+  <button class="dropdown-toggle bg-transparent border-0" type="button" id="profile"
+    data-bs-toggle="dropdown" aria-expanded="false">
+    <div class="profile-info">
+      <div class="info">
+        <div class="image">
+          <img src="/assets/images/profile/profile-image.png" alt="" />
+        </div>
+        <div>
+          <h6 class="fw-500" id="adminEmail">Loading...</h6>
+          <p>Admin</p>
+        </div>
+      </div>
+    </div>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profile">
+    <li>
+      <div class="author-info flex items-center !p-1">
+        <div class="image">
+          <img src="/assets/images/profile/profile-image.png" alt="image">
+        </div>
+        <div class="content">
+          <h4 class="text-sm">Admin</h4>
+          <a id="adminEmailDropdown"
+            class="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs"
+            href="#">Loading...</a>
+        </div>
+      </div>
+    </li>
+    <li class="divider"></li>
+    <li>
+      <a href="javascript:void(0);" onclick="signOutUser()">
+        <i class="lni lni-exit"></i> Sign Out
+      </a>
+    </li>
+  </ul>
+</div>
 
 
-
-                  </li>
-                </ul>
-              </div>
+              
             </div>
           </div>
         </div>
@@ -593,40 +615,6 @@
   </script>
 
   <script src="assets/js/dashboard-dummy-data.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
-<script>
-    Amplify.default.configure({
-      Auth: {
-        region: 'us-east-1',
-        userPoolId: 'us-east-1_sS3D9GHIP',
-        userPoolWebClientId: '7bl4u04925q35pshgkk6h5rkc5'
-      }
-    });
-
-    Amplify.default.Auth.currentAuthenticatedUser()
-      .then(user => {
-        console.log("Logged in as:", user.username);
-        document.querySelector('.profile-box h6').innerText = user.username;
-        document.querySelector('.profile-box p').innerText = 'Admin';
-      })
-      .catch(err => {
-        console.log("Not logged in, redirecting to Cognito Login...");
-        window.location.href = "https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https://master.dcglvvmmzr1w5.amplifyapp.com/admin_dashboard.html";
-      });
-
-    function signOutUser() {
-      Amplify.default.Auth.signOut({ global: true })
-        .then(() => {
-          console.log("Signed out successfully");
-          window.location.href = 'https://master.dcglvvmmzr1w5.amplifyapp.com/index.html';
-        })
-        .catch(err => console.log('Error during signout', err));
-    }
-</script>
-
-
-
 
 </body>
 

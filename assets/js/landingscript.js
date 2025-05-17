@@ -10,7 +10,7 @@ document.getElementById('left-button').addEventListener('click', function() {
 
 
 document.getElementById("right-button").addEventListener("click", function () {
-  window.location.href = "https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=code&scope=email+openid&redirect_uri=https://master.dcglvvmmzr1w5.amplifyapp.com/admin_dashboard.html";
+  window.location.href = "https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https://master.dcglvvmmzr1w5.amplifyapp.com/admin_dashboard.html";
 });
 
 
