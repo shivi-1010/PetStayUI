@@ -7,8 +7,8 @@ fetch('assets/data/dashboard-metrics.json')
     document.querySelector('#newBookings').textContent = data.newBookings;
   });
 const petImageMap = {
-  dog: "assets/images/pets/golden-retriever-dog.jpg",
-  cat: "assets/images/pets/persian-cat.jpg"
+  dog: "/assets/images/pets/golden-retriever-dog.jpg",
+  cat: "/assets/images/pets/persian-cat.jpg"
 };
 
 fetch('assets/data/current-guests.json')
@@ -18,7 +18,7 @@ fetch('assets/data/current-guests.json')
     tableBody.innerHTML = ''; // Clear existing rows
 
     guests.forEach(guest => {
-      const petImage = petImageMap[guest.species.toLowerCase()] || "assets/images/pets/default-placeholder.jpg";
+      const petImage = petImageMap[guest.species.toLowerCase()] || "/assets/images/pets/default-placeholder.jpg";
       const row = `
         <tr>
           <td><input class="form-check-input" type="checkbox" /></td>

@@ -5,41 +5,42 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/x-icon" />
+  <link rel="shortcut icon" href="/assets/images/favicon.svg" type="image/x-icon" />
   <title>PetStay Admin Panel</title>
 
   <!-- ========== All CSS files linkup ========= -->
-  <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="assets/css/lineicons.css" rel="stylesheet" type="text/css" />
-  <link rel="stylesheet" href="assets/css/materialdesignicons.min.css" rel="stylesheet" type="text/css" />
-  <link rel="stylesheet" href="assets/css/fullcalendar.css" />
-  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/css/lineicons.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="/assets/css/materialdesignicons.min.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="/assets/css/fullcalendar.css" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
   <script src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
 
-  <script src="assets/js/Chart.min.js"></script>
-
+  <script src="/assets/js/Chart.min.js"></script>
 
 
 </head>
 
 <body>
   <!-- ======== Preloader =========== -->
-  <div id="preloader">
+  <!-- <div id="preloader">
     <div class="spinner"></div>
-  </div>
+  </div> -->
   <!-- ======== Preloader =========== -->
 
   <!-- ======== sidebar-nav start =========== -->
   <aside class="sidebar-nav-wrapper">
     <div class="navbar-logo">
-      <a href="index.html">
-        <img src="assets/images/logo/ASnT5o01.svg" alt="PetHostelFlow" />
+      <a href="/admin-frontend/admin_dashboard.html">
+
+        <img src="/assets/images/logo/ASnT5o01.svg" alt="PetHostelFlow" />
       </a>
     </div>
     <nav class="sidebar-nav">
       <ul>
         <li class="nav-item">
-          <a href="index.html">
+          <a href="/admin-frontend/admin_dashboard.html">
+
             <span class="icon">
               <i class="lni lni-dashboard"></i>
             </span>
@@ -47,7 +48,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="bookings.html">
+          <a href="/admin-frontend/manage_bookings.html">
             <span class="icon">
               <i class="lni lni-calendar"></i>
             </span>
@@ -96,7 +97,7 @@
                   <div class="profile-info">
                     <div class="info">
                       <div class="image">
-                        <img src="assets/images/profile/profile-image.png" alt="" />
+                        <img src="/assets/images/profile/profile-image.png" alt="" />
                       </div>
                       <div>
                         <h6 class="fw-500">Adam Joe</h6>
@@ -109,7 +110,7 @@
                   <li>
                     <div class="author-info flex items-center !p-1">
                       <div class="image">
-                        <img src="assets/images/profile/profile-image.png" alt="image">
+                        <img src="/assets/images/profile/profile-image.png" alt="image">
                       </div>
                       <div class="content">
                         <h4 class="text-sm">Adam Joe</h4>
@@ -123,10 +124,10 @@
                   <li class="divider"></li>
                   <li>
                     <!-- <a href="#0"> <i class="lni lni-exit"></i> Sign Out </a> -->
-<a href="https://petstay-admin-login.auth.us-east-1.amazoncognito.com/logout?client_id=7bl4u04925q35pshgkk6h5rkc5&logout_uri=https://master.dcglvmmzr1w5.amplifyapp.com/index.html">
-  <i class="lni lni-exit"></i> Sign Out 
-</a>
-
+                    <a
+                      href="https://petstay-admin-login.auth.us-east-1.amazoncognito.com/logout?client_id=7bl4u04925q35pshgkk6h5rkc5&logout_uri=https://master.dcglvmmzr1w5.amplifyapp.com/index.html">
+                      <i class="lni lni-exit"></i> Sign Out
+                    </a>
 
                   </li>
                 </ul>
@@ -242,7 +243,7 @@
               <table class="table top-selling-table">
                 <thead>
                   <tr>
-                    
+
                     <th>
                       <h6 class="text-sm text-medium">Pet Name</h6>
                     </th>
@@ -269,7 +270,7 @@
                     <td>
                       <div class="product">
                         <div class="image">
-                          <img src="assets/images/pets/golden-retriever-dog.jpg" alt="Max" />
+                          <img src="/assets/images/pets/golden-retriever-dog.jpg" alt="Max" />
                         </div>
                         <p class="text-sm">Max (Golden Retriever)</p>
                       </div>
@@ -289,11 +290,11 @@
                     <td><span class="status-btn success-btn">Checked In</span></td>
                   </tr>
                   <tr>
-                   
+
                     <td>
                       <div class="product">
                         <div class="image">
-                          <img src="assets/images/pets/persian cat.jpg" alt="Luna" />
+                          <img src="/assets/images/pets/persian cat.jpg" alt="Luna" />
                         </div>
                         <p class="text-sm">Luna (Persian Cat)</p>
                       </div>
@@ -313,11 +314,11 @@
                     <td><span class="status-btn warning-btn">Upcoming</span></td>
                   </tr>
                   <tr>
-                  
+
                     <td>
                       <div class="product">
                         <div class="image">
-                          <img src="assets/images/pets/french-bulldog-774834.jpg" alt="Buddy" />
+                          <img src="/assets/images/pets/french-bulldog-774834.jpg" alt="Buddy" />
                         </div>
                         <p class="text-sm">Buddy (French Bulldog)</p>
                       </div>
@@ -353,84 +354,84 @@
             </div>
           </div> -->
 
-<div class="row">
-  <div class="col-lg-6">
-    <div class="card-style mb-30">
-      <div class="title d-flex flex-wrap align-items-center justify-content-between">
-        <div class="left">
-          <h6 class="text-medium mb-2">Booking Status</h6>
-        </div>
-        <div class="right">
-          <div class="select-style-1 mb-2">
-            <div class="select-position select-sm">
-              <select class="bg-ligh">
-                <option value="">Last 6 Months</option>
-                <option value="">Last 3 Months</option>
-                <option value="">Last Year</option>
-              </select>
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="card-style mb-30">
+              <div class="title d-flex flex-wrap align-items-center justify-content-between">
+                <div class="left">
+                  <h6 class="text-medium mb-2">Booking Status</h6>
+                </div>
+                <div class="right">
+                  <div class="select-style-1 mb-2">
+                    <div class="select-position select-sm">
+                      <select class="bg-ligh">
+                        <option value="">Last 6 Months</option>
+                        <option value="">Last 3 Months</option>
+                        <option value="">Last Year</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="chart">
+                <canvas id="BookingStatusPieChart" style="width: 100%; height: 400px;"></canvas>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-      <div class="chart">
-        <canvas id="BookingStatusPieChart" style="width: 100%; height: 400px;"></canvas>
-      </div>
-    </div>
-  </div>
 
-  <!-- Pet Species Bar Chart -->
-  <div class="col-lg-6">
-    <div class="card-style mb-30">
-      <div class="title d-flex flex-wrap align-items-center justify-content-between">
-        <div class="left">
-          <h6 class="text-medium mb-2">Pet Species Stats</h6>
-        </div>
-        <div class="right">
-          <div class="select-style-1 mb-2">
-            <div class="select-position select-sm">
-              <select class="bg-ligh">
-                <option value="">Last 6 Months</option>
-                <option value="">Last 3 Months</option>
-                <option value="">Last Year</option>
-              </select>
+          <!-- Pet Species Bar Chart -->
+          <div class="col-lg-6">
+            <div class="card-style mb-30">
+              <div class="title d-flex flex-wrap align-items-center justify-content-between">
+                <div class="left">
+                  <h6 class="text-medium mb-2">Pet Species Stats</h6>
+                </div>
+                <div class="right">
+                  <div class="select-style-1 mb-2">
+                    <div class="select-position select-sm">
+                      <select class="bg-ligh">
+                        <option value="">Last 6 Months</option>
+                        <option value="">Last 3 Months</option>
+                        <option value="">Last Year</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="chart">
+                <div id="legend4" class="mb-20">
+                  <ul class="legend3 d-flex flex-wrap gap-3 align-items-center">
+                    <li>
+                      <div class="d-flex">
+                        <span class="bg-color primary-bg"> </span>
+                        <div class="text">
+                          <p class="text-sm text-success">
+                            <span class="text-dark">Dogs</span> +25.55%
+                            <i class="lni lni-arrow-up"></i>
+                          </p>
+                          <h2>3456</h2>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="d-flex">
+                        <span class="bg-color danger-bg"></span>
+                        <div class="text">
+                          <p class="text-sm text-danger">
+                            <span class="text-dark">Cats</span> -2.05%
+                            <i class="lni lni-arrow-down"></i>
+                          </p>
+                          <h2>3456</h2>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <canvas id="PetSpeciesChart" style="width: 100%; height: 400px;"></canvas>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="chart">
-        <div id="legend4" class="mb-20">
-          <ul class="legend3 d-flex flex-wrap gap-3 align-items-center">
-            <li>
-              <div class="d-flex">
-                <span class="bg-color primary-bg"> </span>
-                <div class="text">
-                  <p class="text-sm text-success">
-                    <span class="text-dark">Dogs</span> +25.55%
-                    <i class="lni lni-arrow-up"></i>
-                  </p>
-                  <h2>3456</h2>
-                </div>
-              </div>
-            </li>
-            <li>
-              <div class="d-flex">
-                <span class="bg-color danger-bg"></span>
-                <div class="text">
-                  <p class="text-sm text-danger">
-                    <span class="text-dark">Cats</span> -2.05%
-                    <i class="lni lni-arrow-down"></i>
-                  </p>
-                  <h2>3456</h2>
-                </div>
-              </div>
-            </li>
-          </ul>
-        </div>
-        <canvas id="PetSpeciesChart" style="width: 100%; height: 400px;"></canvas>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 
@@ -488,124 +489,124 @@
       calendarMini.render();
     });
 
- const ctxSpecies = document.getElementById("PetSpeciesChart").getContext("2d");
-const petSpeciesChart = new Chart(ctxSpecies, {
-  type: "bar",
-  data: {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-    datasets: [
-      {
-        label: "Dogs",
-        backgroundColor: "#365CF5",
-        borderColor: "transparent",
-        borderRadius: 20,
-        barThickness: 20,
-        maxBarThickness: 20,
-        data: [600, 700, 750, 800, 850, 900], // Dog Stats
+    const ctxSpecies = document.getElementById("PetSpeciesChart").getContext("2d");
+    const petSpeciesChart = new Chart(ctxSpecies, {
+      type: "bar",
+      data: {
+        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+        datasets: [
+          {
+            label: "Dogs",
+            backgroundColor: "#365CF5",
+            borderColor: "transparent",
+            borderRadius: 20,
+            barThickness: 20,
+            maxBarThickness: 20,
+            data: [600, 700, 750, 800, 850, 900], // Dog Stats
+          },
+          {
+            label: "Cats",
+            backgroundColor: "#d50100",
+            borderColor: "transparent",
+            borderRadius: 20,
+            barThickness: 20,
+            maxBarThickness: 20,
+            data: [500, 550, 600, 580, 620, 640], // Cat Stats
+          },
+        ],
       },
-      {
-        label: "Cats",
-        backgroundColor: "#d50100",
-        borderColor: "transparent",
-        borderRadius: 20,
-        barThickness: 20,
-        maxBarThickness: 20,
-        data: [500, 550, 600, 580, 620, 640], // Cat Stats
-      },
-    ],
-  },
-  options: {
-    plugins: {
-      tooltip: {
-        backgroundColor: "#F3F6F8",
-        titleColor: "#8F92A1",
-        bodyColor: "#171717",
-        bodyFont: { weight: "bold", size: 16 },
-        displayColors: false,
-        padding: { x: 30, y: 10 },
-        bodyAlign: "center",
-        titleAlign: "center",
-        enabled: true,
-      },
-      legend: { display: false },
-    },
-    layout: { padding: { top: 0 } },
-    responsive: true,
-    scales: {
-      y: {
-        grid: { display: false },
-        ticks: { padding: 35, max: 1000, min: 0 },
-      },
-      x: {
-        grid: { display: false, color: "rgba(143, 146, 161, .1)" },
-        ticks: { padding: 20 },
-      },
-    },
-  },
-});
-
-  const ctxBookingStatus = document.getElementById("BookingStatusPieChart").getContext("2d");
-const bookingStatusPieChart = new Chart(ctxBookingStatus, {
-  type: "pie",
-  data: {
-    labels: ["Pending", "Confirmed", "Checked-in", "Cancelled"],
-    datasets: [{
-      data: [10, 60, 20, 10],
-      backgroundColor: ["#FFC107", "#28A745", "#007BFF", "#DC3545"],
-      borderWidth: 2,
-    }],
-  },
-  options: {
-    plugins: {
-      legend: {
-        position: "bottom",
-        labels: {
-          boxWidth: 20,
-          padding: 20,
+      options: {
+        plugins: {
+          tooltip: {
+            backgroundColor: "#F3F6F8",
+            titleColor: "#8F92A1",
+            bodyColor: "#171717",
+            bodyFont: { weight: "bold", size: 16 },
+            displayColors: false,
+            padding: { x: 30, y: 10 },
+            bodyAlign: "center",
+            titleAlign: "center",
+            enabled: true,
+          },
+          legend: { display: false },
+        },
+        layout: { padding: { top: 0 } },
+        responsive: true,
+        scales: {
+          y: {
+            grid: { display: false },
+            ticks: { padding: 35, max: 1000, min: 0 },
+          },
+          x: {
+            grid: { display: false, color: "rgba(143, 146, 161, .1)" },
+            ticks: { padding: 20 },
+          },
         },
       },
-      tooltip: {
-        backgroundColor: "#F3F6F8",
-        bodyColor: "#171717",
-        titleColor: "#8F92A1",
-        bodyFont: { size: 14 },
-        displayColors: true,
-        padding: { x: 20, y: 10 },
+    });
+
+    const ctxBookingStatus = document.getElementById("BookingStatusPieChart").getContext("2d");
+    const bookingStatusPieChart = new Chart(ctxBookingStatus, {
+      type: "pie",
+      data: {
+        labels: ["Pending", "Confirmed", "Checked-in", "Cancelled"],
+        datasets: [{
+          data: [10, 60, 20, 10],
+          backgroundColor: ["#FFC107", "#28A745", "#007BFF", "#DC3545"],
+          borderWidth: 2,
+        }],
       },
-    },
-    responsive: true,
-    maintainAspectRatio: false,
-  },
-});
+      options: {
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              boxWidth: 20,
+              padding: 20,
+            },
+          },
+          tooltip: {
+            backgroundColor: "#F3F6F8",
+            bodyColor: "#171717",
+            titleColor: "#8F92A1",
+            bodyFont: { size: 14 },
+            displayColors: true,
+            padding: { x: 20, y: 10 },
+          },
+        },
+        responsive: true,
+        maintainAspectRatio: false,
+      },
+    });
 
 
   </script>
 
   <script src="assets/js/dashboard-dummy-data.js"></script>
-  
-<script>
-Amplify.default.configure({
-    Auth: {
+
+  <script>
+    Amplify.default.configure({
+      Auth: {
         region: 'us-east-1',
         userPoolId: 'us-east-1_sS3D9GHIP',
         userPoolWebClientId: '7bl4u04925q35pshgkk6h5rkc5'
-    }
-});
+      }
+    });
 
 
     // Check login session on page load
     Amplify.Auth.currentAuthenticatedUser()
-        .then(user => {
-            console.log("Logged in as:", user.username);
-            // Update UI if you want to show logged-in email or username
-            document.querySelector('.profile-box h6').innerText = user.username;
-            document.querySelector('.profile-box p').innerText = 'Admin';
-        })
-        .catch(err => {
-            console.log("Not logged in, redirecting to Cognito Login...");
-window.location.href = "https://petstay-admin-login.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https://master.dcglvmmzr1w5.amplifyapp.com/admin_dashboard.html";
-        });
-</script>
+      .then(user => {
+        console.log("Logged in as:", user.username);
+        // Update UI if you want to show logged-in email or username
+        document.querySelector('.profile-box h6').innerText = user.username;
+        document.querySelector('.profile-box p').innerText = 'Admin';
+      })
+      .catch(err => {
+        console.log("Not logged in, redirecting to Cognito Login...");
+        window.location.href = "https://petstay-admin-login.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https://master.dcglvmmzr1w5.amplifyapp.com/admin_dashboard.html";
+      });
+  </script>
 
 
 
