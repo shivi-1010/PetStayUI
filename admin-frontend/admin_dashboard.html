@@ -594,8 +594,8 @@
 
   <script src="assets/js/dashboard-dummy-data.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
-  <script>
+<script src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
+<script>
     Amplify.default.configure({
       Auth: {
         region: 'us-east-1',
@@ -604,8 +604,7 @@
       }
     });
 
-    // Check login session on page load
-    Amplify.Auth.currentAuthenticatedUser()
+    Amplify.default.Auth.currentAuthenticatedUser()
       .then(user => {
         console.log("Logged in as:", user.username);
         document.querySelector('.profile-box h6').innerText = user.username;
@@ -616,18 +615,15 @@
         window.location.href = "https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https://master.dcglvvmmzr1w5.amplifyapp.com/admin_dashboard.html";
       });
 
-    // ✅ Clean Sign Out using Amplify SDK
     function signOutUser() {
-      Amplify.Auth.signOut({ global: true })
+      Amplify.default.Auth.signOut({ global: true })
         .then(() => {
           console.log("Signed out successfully");
           window.location.href = 'https://master.dcglvvmmzr1w5.amplifyapp.com/index.html';
         })
         .catch(err => console.log('Error during signout', err));
     }
-  </script>
-
-
+</script>
 
 
 
