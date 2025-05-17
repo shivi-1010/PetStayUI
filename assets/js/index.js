@@ -12,7 +12,7 @@ document.getElementById('left-button').addEventListener('click', function() {
 
 // Redirect to Admin Login (Cognito Hosted UI)
 document.getElementById("right-button").addEventListener("click", function () {
-  window.location.href = "https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https://master.dcglvvmmzr1w5.amplifyapp.com/admin_dashboard.html";
+  window.location.href = "https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid+profile&redirect_uri=https%3A%2F%2Fmaster.dcglvvmmzr1w5.amplifyapp.com%2Fadmin-frontend%2Fadmin_dashboard.html";
 });
 
 
