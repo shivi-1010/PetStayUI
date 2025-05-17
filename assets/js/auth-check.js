@@ -9,17 +9,18 @@ Amplify.default.configure({
       scope: ['email', 'openid'],
       redirectSignIn: 'https://master.dcglvvmmzr1w5.amplifyapp.com/admin_dashboard.html',
       redirectSignOut: 'https://master.dcglvvmmzr1w5.amplifyapp.com/index.html',
-      responseType: 'code' // Use code flow as per your settings
+      responseType: 'token' 
     }
   }
 });
 
-// Check session on load
-Amplify.default.Auth.currentAuthenticatedUser()
-  .then(user => {
-    console.log("Logged in as:", user.username);
+
+// Check session on load using currentSession 
+Amplify.default.Auth.currentSession()
+  .then(session => {
+    console.log("Logged in with token:", session.getIdToken().getJwtToken());
     document.addEventListener('DOMContentLoaded', function () {
-      const email = user.attributes.email;
+      const email = session.getIdToken().payload.email;
       const emailHeader = document.getElementById('adminEmail');
       const emailDropdown = document.getElementById('adminEmailDropdown');
       if (emailHeader) emailHeader.innerText = email;
@@ -27,11 +28,11 @@ Amplify.default.Auth.currentAuthenticatedUser()
     });
   })
   .catch(err => {
-    console.log("Not logged in, redirecting...");
-    Amplify.default.Auth.federatedSignIn(); // Will auto-redirect using hosted UI
+    console.log("Not logged in, redirecting to Cognito Login...");
+    window.location.href = "https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/login?client_id=7bl4u04925q35pshgkk6h5rkc5&response_type=token&scope=email+openid&redirect_uri=https://master.dcglvvmmzr1w5.amplifyapp.com/admin_dashboard.html";
   });
 
-// Logout function (safe)
+// Logout function (safe & global)
 function signOutUser() {
   Amplify.default.Auth.signOut({ global: true })
     .then(() => {
