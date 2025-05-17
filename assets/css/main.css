@@ -6065,3 +6065,9 @@ h6,
   background-color: #d4edda;
   color: #155724;
 }
+
+.email-placeholder {
+  color: #bbb;
+  font-style: italic;
+  opacity: 0.8;
+}
