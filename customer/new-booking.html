@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Booking | PetStay</title>
+  <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="../assets/css/customer.css" />
+</head>
+<body>
+
+<div class="booking-wrapper">
+  <main class="main-wrapper">
+    <section class="tab-components">
+      <div class="container">
+        <div class="title-wrapper text-center pt-4">
+          <h2>Book Your Pet With Us !</h2>
+          <p> A new pet stay reservation</p>
+        </div>
+
+        <div class="form-elements-wrapper mt-4">
+          <div class="card-style">
+            <form action="booking-success.html" method="POST">
+
+              <!-- Owner Information -->
+              <h5 class="mb-3">🐾 Owner Information</h5>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="input-style-1">
+                    <label>Owner Name</label>
+                    <input type="text" name="ownerName" placeholder="Owner Name" required />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="input-style-1">
+                    <label>Email Address</label>
+                    <input type="email" name="email" placeholder="owner@example.com" required />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="input-style-1">
+                    <label>Phone Number</label>
+                    <input type="tel" name="phone" placeholder="+1 234 567 8900" required />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pet Information -->
+              <h5 class="mt-4 mb-3">🐶 Pet Information</h5>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="input-style-1">
+                    <label>Pet Name</label>
+                    <input type="text" name="petName" placeholder="Pet Name" required />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="select-style-1">
+                    <label>Pet Species</label>
+                    <div class="select-position">
+                      <select name="petSpecies" required>
+                        <option value="">Select Species</option>
+                        <option>Dog</option>
+                        <option>Cat</option>
+                       
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="input-style-1">
+                    <label>Pet Breed</label>
+                    <input type="text" name="petBreed" placeholder="Pet Breed" />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="input-style-1">
+                    <label>Pet Age</label>
+                    <input type="number" name="petAge" placeholder="Pet Age" min="0" required />
+                  </div>
+                </div>
+                <!-- <div class="col-md-4">
+                  <div class="select-style-1">
+                    <label>Vaccinated</label>
+                    <div class="select-position">
+                      <select name="vaccinated" required>
+                        <option value="">Select</option>
+                        <option>Yes</option>
+                        <option>No</option>
+                      </select>
+                    </div>
+                  </div>
+                </div> -->
+              </div>
+
+              <!-- Booking Details -->
+              <h5 class="mt-4 mb-3">📅 Booking Details</h5>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="input-style-1">
+                    <label>Check-In Date</label>
+                    <input type="date" name="checkInDate" required />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="input-style-1">
+                    <label>Check-Out Date</label>
+                    <input type="date" name="checkOutDate" required />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="input-style-1">
+                    <label>Time of Arrival</label>
+                    <input type="time" name="arrivalTime" required />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Special Instructions
+              <div class="input-style-1 mt-3">
+                <label>Special Instructions</label>
+                <textarea name="specialInstructions" rows="3" placeholder="Any dietary, medical, or special needs?"></textarea>
+              </div> -->
+
+              <!-- Submit Button -->
+              <div class="text-center mt-4">
+                <button type="submit" class="main-btn primary-btn btn-hover">Book Now</button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="../assets/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

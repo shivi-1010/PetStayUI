@@ -1,0 +1,22 @@
+[
+  {
+    "petName": "Max",
+    "species": "dog",
+    "breed": "Golden Retriever",
+    "owner": "John Smith",
+    "room": "102",
+    "dateIn": "2025-05-12",
+    "daysLeft": 3,
+    "status": "Checked In"
+  },
+  {
+    "petName": "Luna",
+    "species": "cat",
+    "breed": "Persian Cat",
+    "owner": "Emily Brown",
+    "room": "205",
+    "dateIn": "2025-05-14",
+    "daysLeft": 1,
+    "status": "Upcoming"
+  }
+]

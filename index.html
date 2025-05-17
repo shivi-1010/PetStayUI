@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/x-icon" />
+  <title>PetStay Admin Panel</title>
+
+  <!-- ========== All CSS files linkup ========= -->
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="assets/css/lineicons.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="assets/css/materialdesignicons.min.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="assets/css/fullcalendar.css" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <script src="assets/js/Chart.min.js"></script>
+
+</head>
+
+<body>
+  <!-- ======== Preloader =========== -->
+  <div id="preloader">
+    <div class="spinner"></div>
+  </div>
+  <!-- ======== Preloader =========== -->
+
+  <!-- ======== sidebar-nav start =========== -->
+  <aside class="sidebar-nav-wrapper">
+    <div class="navbar-logo">
+      <a href="index.html">
+        <img src="assets/images/logo/ASnT5o01.svg" alt="PetHostelFlow" />
+      </a>
+    </div>
+    <nav class="sidebar-nav">
+      <ul>
+        <li class="nav-item">
+          <a href="index.html">
+            <span class="icon">
+              <i class="lni lni-dashboard"></i>
+            </span>
+            <span class="text">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="bookings.html">
+            <span class="icon">
+              <i class="lni lni-calendar"></i>
+            </span>
+            <span class="text">Bookings</span>
+          </a>
+        </li>
+
+
+
+      </ul>
+    </nav>
+  </aside>
+  <!-- ======== sidebar-nav end =========== -->
+
+
+  <div class="overlay"></div>
+  <!-- ======== sidebar-nav end =========== -->
+
+  <!-- ======== main-wrapper start =========== -->
+  <main class="main-wrapper">
+    <!-- ========== header start ========== -->
+    <header class="header">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-5 col-md-5 col-6">
+            <div class="header-left d-flex align-items-center">
+              <div class="menu-toggle-btn mr-15">
+                <button id="menu-toggle" class="main-btn primary-btn btn-hover">
+                  <i class="lni lni-chevron-left me-2"></i> Menu
+                </button>
+              </div>
+              <!-- <div class="header-search d-none d-md-flex">
+                <form action="#">
+                  <input type="text" placeholder="Search..." />
+                  <button><i class="lni lni-search-alt"></i></button>
+                </form>
+              </div> -->
+            </div>
+          </div>
+          <div class="col-lg-7 col-md-7 col-6">
+            <div class="header-right">
+
+              <div class="profile-box ml-15">
+                <button class="dropdown-toggle bg-transparent border-0" type="button" id="profile"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  <div class="profile-info">
+                    <div class="info">
+                      <div class="image">
+                        <img src="assets/images/profile/profile-image.png" alt="" />
+                      </div>
+                      <div>
+                        <h6 class="fw-500">Adam Joe</h6>
+                        <p>Admin</p>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profile">
+                  <li>
+                    <div class="author-info flex items-center !p-1">
+                      <div class="image">
+                        <img src="assets/images/profile/profile-image.png" alt="image">
+                      </div>
+                      <div class="content">
+                        <h4 class="text-sm">Adam Joe</h4>
+                        <a class="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs"
+                          href="#">Email@gmail.com</a>
+                      </div>
+                    </div>
+                  </li>
+                  <li class="divider"></li>
+
+                  <li class="divider"></li>
+                  <li>
+                    <a href="#0"> <i class="lni lni-exit"></i> Sign Out </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <!-- ========== header end ========== -->
+
+    <!-- ========== section start ========== -->
+    <section class="section">
+      <div class="container-fluid">
+        <!-- ========== title-wrapper start ========== -->
+        <div class="title-wrapper pt-30">
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <div class="title">
+                <h2>PetStay Dashboard</h2>
+              </div>
+            </div>
+            <!-- end col -->
+            <div class="col-md-6">
+              <div class="breadcrumb-wrapper">
+                <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                      <a href="#0">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                      PetStay
+                    </li>
+                  </ol>
+                </nav>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+        <!-- ========== title-wrapper end ========== -->
+        <div class="row">
+          <div class="col-xl-3 col-lg-4 col-sm-6">
+            <div class="icon-card mb-30">
+              <div class="icon purple">
+                <i class="lni lni-cart-full"></i>
+              </div>
+              <div class="content">
+                <h6 class="mb-10">Current Guests</h6>
+                <h3 class="text-bold mb-10" id="currentGuests">24</h3>
+
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-3 col-lg-4 col-sm-6">
+            <div class="icon-card mb-30">
+              <div class="icon success">
+                <i class="lni lni-dollar"></i>
+              </div>
+              <div class="content">
+                <h6 class="mb-10">Check-ins Today</h6>
+                <h3 class="text-bold mb-10" id="checkinsToday">8</h3>
+
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-3 col-lg-4 col-sm-6">
+            <div class="icon-card mb-30">
+              <div class="icon primary">
+                <i class="lni lni-credit-cards"></i>
+              </div>
+              <div class="content">
+                <h6 class="mb-10">Available Slots</h6>
+                <h3 class="text-bold mb-10" id="availableRooms">12</h3>
+
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-3 col-lg-4 col-sm-6">
+            <div class="icon-card mb-30">
+              <div class="icon orange">
+                <i class="lni lni-user"></i>
+              </div>
+              <div class="content">
+                <h6 class="mb-10" id="newBookings">Total Bookings</h6>
+                <h3 class="text-bold mb-10" id="newBookingsCount">5</h3>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-12">
+          <div class="card-style mb-30">
+            <div class="title d-flex flex-wrap justify-content-between align-items-center">
+              <div class="left">
+                <h6 class="text-medium mb-30">Current Guests</h6>
+              </div>
+              <div class="right">
+                <div class="select-style-1">
+                  <div class="select-position select-sm">
+                    <select class="light-bg">
+                      <option value="">Today</option>
+                      <option value="">Weekly</option>
+                      <option value="">Monthly</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table top-selling-table">
+                <thead>
+                  <tr>
+                    
+                    <th>
+                      <h6 class="text-sm text-medium">Pet Name</h6>
+                    </th>
+                    <th class="min-width">
+                      <h6 class="text-sm text-medium">Owner</h6>
+                    </th>
+                    <th class="min-width">
+                      <h6 class="text-sm text-medium">Room No.</h6>
+                    </th>
+                    <th class="min-width">
+                      <h6 class="text-sm text-medium">Date In</h6>
+                    </th>
+                    <th class="min-width">
+                      <h6 class="text-sm text-medium">Days Left</h6>
+                    </th>
+                    <th class="min-width">
+                      <h6 class="text-sm text-medium">Status</h6>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="currentGuestsTable">
+                  <tr>
+                    <!-- <td><input class="form-check-input" type="checkbox" /></td> -->
+                    <td>
+                      <div class="product">
+                        <div class="image">
+                          <img src="assets/images/pets/golden-retriever-dog.jpg" alt="Max" />
+                        </div>
+                        <p class="text-sm">Max (Golden Retriever)</p>
+                      </div>
+                    </td>
+                    <td>
+                      <p class="text-sm">John Smith</p>
+                    </td>
+                    <td>
+                      <p class="text-sm">102</p>
+                    </td>
+                    <td>
+                      <p class="text-sm">2025-05-12</p>
+                    </td>
+                    <td>
+                      <p class="text-sm">3 days</p>
+                    </td>
+                    <td><span class="status-btn success-btn">Checked In</span></td>
+                  </tr>
+                  <tr>
+                   
+                    <td>
+                      <div class="product">
+                        <div class="image">
+                          <img src="assets/images/pets/persian cat.jpg" alt="Luna" />
+                        </div>
+                        <p class="text-sm">Luna (Persian Cat)</p>
+                      </div>
+                    </td>
+                    <td>
+                      <p class="text-sm">Emily Brown</p>
+                    </td>
+                    <td>
+                      <p class="text-sm">205</p>
+                    </td>
+                    <td>
+                      <p class="text-sm">2025-05-14</p>
+                    </td>
+                    <td>
+                      <p class="text-sm">1 day</p>
+                    </td>
+                    <td><span class="status-btn warning-btn">Upcoming</span></td>
+                  </tr>
+                  <tr>
+                  
+                    <td>
+                      <div class="product">
+                        <div class="image">
+                          <img src="assets/images/pets/french-bulldog-774834.jpg" alt="Buddy" />
+                        </div>
+                        <p class="text-sm">Buddy (French Bulldog)</p>
+                      </div>
+                    </td>
+                    <td>
+                      <p class="text-sm">Michael Lee</p>
+                    </td>
+                    <td>
+                      <p class="text-sm">304</p>
+                    </td>
+                    <td>
+                      <p class="text-sm">2025-05-10</p>
+                    </td>
+                    <td>
+                      <p class="text-sm">5 days</p>
+                    </td>
+                    <td><span class="status-btn success-btn">Checked In</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- 
+        <div class="row">
+          <div class="col-lg-5">
+            <div class="card-style calendar-card mb-30">
+              <h6 class="text-medium mb-20">Check-in Calendar</h6>
+              <div id="calendar-mini"></div>
+            </div>
+          </div> -->
+
+<div class="row">
+  <div class="col-lg-6">
+    <div class="card-style mb-30">
+      <div class="title d-flex flex-wrap align-items-center justify-content-between">
+        <div class="left">
+          <h6 class="text-medium mb-2">Booking Status</h6>
+        </div>
+        <div class="right">
+          <div class="select-style-1 mb-2">
+            <div class="select-position select-sm">
+              <select class="bg-ligh">
+                <option value="">Last 6 Months</option>
+                <option value="">Last 3 Months</option>
+                <option value="">Last Year</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="chart">
+        <canvas id="BookingStatusPieChart" style="width: 100%; height: 400px;"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pet Species Bar Chart -->
+  <div class="col-lg-6">
+    <div class="card-style mb-30">
+      <div class="title d-flex flex-wrap align-items-center justify-content-between">
+        <div class="left">
+          <h6 class="text-medium mb-2">Pet Species Stats</h6>
+        </div>
+        <div class="right">
+          <div class="select-style-1 mb-2">
+            <div class="select-position select-sm">
+              <select class="bg-ligh">
+                <option value="">Last 6 Months</option>
+                <option value="">Last 3 Months</option>
+                <option value="">Last Year</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="chart">
+        <div id="legend4" class="mb-20">
+          <ul class="legend3 d-flex flex-wrap gap-3 align-items-center">
+            <li>
+              <div class="d-flex">
+                <span class="bg-color primary-bg"> </span>
+                <div class="text">
+                  <p class="text-sm text-success">
+                    <span class="text-dark">Dogs</span> +25.55%
+                    <i class="lni lni-arrow-up"></i>
+                  </p>
+                  <h2>3456</h2>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div class="d-flex">
+                <span class="bg-color danger-bg"></span>
+                <div class="text">
+                  <p class="text-sm text-danger">
+                    <span class="text-dark">Cats</span> -2.05%
+                    <i class="lni lni-arrow-down"></i>
+                  </p>
+                  <h2>3456</h2>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <canvas id="PetSpeciesChart" style="width: 100%; height: 400px;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+      </div>
+
+
+
+    </section>
+    <!-- ========== section end ========== -->
+
+    <!-- ========== footer start =========== -->
+    <footer class="footer">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-6 order-last order-md-first">
+            <div class="copyright text-center text-md-start">
+              <p class="text-sm">
+                Designed and Developed by AWSome Squad - FRONTEND TEAM
+
+              </p>
+            </div>
+          </div>
+          <!-- <div class="col-md-6">
+            <div class="terms d-flex justify-content-center justify-content-md-end">
+              <a href="#0" class="text-sm">Term & Conditions</a>
+              <a href="#0" class="text-sm ml-15">Privacy & Policy</a>
+            </div>
+          </div> -->
+        </div>
+      </div>
+    </footer>
+  </main>
+  <!-- ======== main-wrapper end =========== -->
+
+  <!-- ========= All Javascript files linkup ======== -->
+  <script src="assets/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/moment.min.js"></script>
+  <script src="assets/js/fullcalendar.js"></script>
+  <script src="assets/js/jvectormap.min.js"></script>
+  <script src="assets/js/main.js"></script>
+
+
+
+  <script>
+
+    // ====== calendar activation
+    document.addEventListener("DOMContentLoaded", function () {
+      var calendarMiniEl = document.getElementById("calendar-mini");
+      var calendarMini = new FullCalendar.Calendar(calendarMiniEl, {
+        initialView: "dayGridMonth",
+        headerToolbar: {
+          end: "today prev,next",
+        },
+      });
+      calendarMini.render();
+    });
+
+ const ctxSpecies = document.getElementById("PetSpeciesChart").getContext("2d");
+const petSpeciesChart = new Chart(ctxSpecies, {
+  type: "bar",
+  data: {
+    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+    datasets: [
+      {
+        label: "Dogs",
+        backgroundColor: "#365CF5",
+        borderColor: "transparent",
+        borderRadius: 20,
+        barThickness: 20,
+        maxBarThickness: 20,
+        data: [600, 700, 750, 800, 850, 900], // Dog Stats
+      },
+      {
+        label: "Cats",
+        backgroundColor: "#d50100",
+        borderColor: "transparent",
+        borderRadius: 20,
+        barThickness: 20,
+        maxBarThickness: 20,
+        data: [500, 550, 600, 580, 620, 640], // Cat Stats
+      },
+    ],
+  },
+  options: {
+    plugins: {
+      tooltip: {
+        backgroundColor: "#F3F6F8",
+        titleColor: "#8F92A1",
+        bodyColor: "#171717",
+        bodyFont: { weight: "bold", size: 16 },
+        displayColors: false,
+        padding: { x: 30, y: 10 },
+        bodyAlign: "center",
+        titleAlign: "center",
+        enabled: true,
+      },
+      legend: { display: false },
+    },
+    layout: { padding: { top: 0 } },
+    responsive: true,
+    scales: {
+      y: {
+        grid: { display: false },
+        ticks: { padding: 35, max: 1000, min: 0 },
+      },
+      x: {
+        grid: { display: false, color: "rgba(143, 146, 161, .1)" },
+        ticks: { padding: 20 },
+      },
+    },
+  },
+});
+
+  const ctxBookingStatus = document.getElementById("BookingStatusPieChart").getContext("2d");
+const bookingStatusPieChart = new Chart(ctxBookingStatus, {
+  type: "pie",
+  data: {
+    labels: ["Pending", "Confirmed", "Checked-in", "Cancelled"],
+    datasets: [{
+      data: [10, 60, 20, 10],
+      backgroundColor: ["#FFC107", "#28A745", "#007BFF", "#DC3545"],
+      borderWidth: 2,
+    }],
+  },
+  options: {
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          boxWidth: 20,
+          padding: 20,
+        },
+      },
+      tooltip: {
+        backgroundColor: "#F3F6F8",
+        bodyColor: "#171717",
+        titleColor: "#8F92A1",
+        bodyFont: { size: 14 },
+        displayColors: true,
+        padding: { x: 20, y: 10 },
+      },
+    },
+    responsive: true,
+    maintainAspectRatio: false,
+  },
+});
+
+
+  </script>
+
+  <script src="assets/js/dashboard-dummy-data.js"></script>
+  
+
+</body>
+
+</html>
