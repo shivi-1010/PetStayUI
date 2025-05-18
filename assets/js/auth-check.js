@@ -1,6 +1,5 @@
 console.log("✅ auth-check.js loaded");
 
-// Get the Amplify object safely from the global CDN namespace
 const Amplify = window.aws_amplify?.Amplify;
 
 if (!Amplify || typeof Amplify.configure !== 'function') {
@@ -21,21 +20,27 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
     }
   });
 
+  const initAuthCheck = () => {
+    console.log("⏳ Checking authentication...");
+    // Give Amplify some time to process URL tokens (after OAuth redirect)
+    setTimeout(() => {
+      Amplify.Auth.currentAuthenticatedUser()
+        .then(user => {
+          console.log("✅ Authenticated:", user.username);
+          const email = user.attributes.email;
+          updateAdminEmail(email);
+        })
+        .catch(err => {
+          console.warn("❌ Not authenticated:", err);
+          window.location.href = '/index.html';
+        });
+    }, 300); // 300ms delay is usually safe; can adjust as needed
+  };
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initAuthCheck);
   } else {
     initAuthCheck();
-  }
-
-  function initAuthCheck() {
-    Amplify.Auth.currentAuthenticatedUser()
-      .then(user => {
-        const email = user.attributes.email;
-        updateAdminEmail(email);
-      })
-      .catch(() => {
-        window.location.href = '/index.html';
-      });
   }
 
   function updateAdminEmail(email) {
@@ -47,14 +52,14 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
     console.log("🔒 Attempting to sign out...");
     Amplify.Auth.signOut({ global: true })
       .then(() => {
-        window.location.href =
-          'https://us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com/logout' +
-          '?client_id=7bl4u04925q35pshgkk6h5rkc5' +
-          '&logout_uri=https%3A%2F%2Fmaster.dcglvvmmzr1w5.amplifyapp.com%2Findex.html';
+        const logoutUrl = new URL(`https://${Amplify.configure().Auth.oauth.domain}/logout`);
+        logoutUrl.searchParams.append('client_id', Amplify.configure().Auth.userPoolWebClientId);
+        logoutUrl.searchParams.append('logout_uri', Amplify.configure().Auth.oauth.redirectSignOut);
+        window.location.href = logoutUrl.toString();
       })
       .catch(err => {
         console.error("❌ Error during sign out:", err);
-        window.location.href = 'https://master.dcglvvmmzr1w5.amplifyapp.com/index.html';
+        window.location.href = Amplify.configure().Auth.oauth.redirectSignOut;
       });
   };
 
