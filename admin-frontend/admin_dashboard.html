@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
   <link rel="stylesheet" href="/assets/css/lineicons.css" rel="stylesheet" type="text/css" />
   <link rel="stylesheet" href="/assets/css/materialdesignicons.min.css" rel="stylesheet" type="text/css" />
-  <link rel="stylesheet" href="/assets/css/fullcalendar.css" />
+  <!-- <link rel="stylesheet" href="/assets/css/fullcalendar.css" /> -->
   <link rel="stylesheet" href="/assets/css/main.css" />
   <script src="/assets/js/Chart.min.js"></script>
 
@@ -464,122 +464,122 @@
   <!-- ========= All Javascript files linkup ======== -->
   <script src="/assets/js/bootstrap.bundle.min.js"></script>
   <script src="/assets/js/moment.min.js"></script>
-  <script src="/assets/js/fullcalendar.js"></script>
+  <!-- <script src="/assets/js/fullcalendar.js"></script> -->
   <script src="/assets/js/jvectormap.min.js"></script>
   <script src="/assets/js/main.js"></script>
+<!-- ✅ Load Amplify first -->
+<script src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
 
+<!-- ✅ Then run your own scripts -->
+<script>
+  console.log("✅ Amplify loaded:", typeof Amplify !== 'undefined');
 
+  // Wait until DOM and Amplify are both ready
+  window.addEventListener("DOMContentLoaded", function () {
+    console.log("✅ DOM loaded");
 
-  <script>
-
-    // ====== calendar activation
-    document.addEventListener("DOMContentLoaded", function () {
-      var calendarMiniEl = document.getElementById("calendar-mini");
-      var calendarMini = new FullCalendar.Calendar(calendarMiniEl, {
-        initialView: "dayGridMonth",
-        headerToolbar: {
-          end: "today prev,next",
+    // Safe chart rendering
+    const ctxSpecies = document.getElementById("PetSpeciesChart")?.getContext("2d");
+    if (ctxSpecies) {
+      new Chart(ctxSpecies, {
+        type: "bar",
+        data: {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+          datasets: [
+            {
+              label: "Dogs",
+              backgroundColor: "#365CF5",
+              borderColor: "transparent",
+              borderRadius: 20,
+              barThickness: 20,
+              maxBarThickness: 20,
+              data: [600, 700, 750, 800, 850, 900],
+            },
+            {
+              label: "Cats",
+              backgroundColor: "#d50100",
+              borderColor: "transparent",
+              borderRadius: 20,
+              barThickness: 20,
+              maxBarThickness: 20,
+              data: [500, 550, 600, 580, 620, 640],
+            },
+          ],
         },
-      });
-      calendarMini.render();
-    });
-
-    const ctxSpecies = document.getElementById("PetSpeciesChart").getContext("2d");
-    const petSpeciesChart = new Chart(ctxSpecies, {
-      type: "bar",
-      data: {
-        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-        datasets: [
-          {
-            label: "Dogs",
-            backgroundColor: "#365CF5",
-            borderColor: "transparent",
-            borderRadius: 20,
-            barThickness: 20,
-            maxBarThickness: 20,
-            data: [600, 700, 750, 800, 850, 900], // Dog Stats
+        options: {
+          plugins: {
+            tooltip: {
+              backgroundColor: "#F3F6F8",
+              titleColor: "#8F92A1",
+              bodyColor: "#171717",
+              bodyFont: { weight: "bold", size: 16 },
+              displayColors: false,
+              padding: { x: 30, y: 10 },
+              bodyAlign: "center",
+              titleAlign: "center",
+              enabled: true,
+            },
+            legend: { display: false },
           },
-          {
-            label: "Cats",
-            backgroundColor: "#d50100",
-            borderColor: "transparent",
-            borderRadius: 20,
-            barThickness: 20,
-            maxBarThickness: 20,
-            data: [500, 550, 600, 580, 620, 640], // Cat Stats
-          },
-        ],
-      },
-      options: {
-        plugins: {
-          tooltip: {
-            backgroundColor: "#F3F6F8",
-            titleColor: "#8F92A1",
-            bodyColor: "#171717",
-            bodyFont: { weight: "bold", size: 16 },
-            displayColors: false,
-            padding: { x: 30, y: 10 },
-            bodyAlign: "center",
-            titleAlign: "center",
-            enabled: true,
-          },
-          legend: { display: false },
-        },
-        layout: { padding: { top: 0 } },
-        responsive: true,
-        scales: {
-          y: {
-            grid: { display: false },
-            ticks: { padding: 35, max: 1000, min: 0 },
-          },
-          x: {
-            grid: { display: false, color: "rgba(143, 146, 161, .1)" },
-            ticks: { padding: 20 },
-          },
-        },
-      },
-    });
-
-    const ctxBookingStatus = document.getElementById("BookingStatusPieChart").getContext("2d");
-    const bookingStatusPieChart = new Chart(ctxBookingStatus, {
-      type: "pie",
-      data: {
-        labels: ["Pending", "Confirmed", "Checked-in", "Cancelled"],
-        datasets: [{
-          data: [10, 60, 20, 10],
-          backgroundColor: ["#FFC107", "#28A745", "#007BFF", "#DC3545"],
-          borderWidth: 2,
-        }],
-      },
-      options: {
-        plugins: {
-          legend: {
-            position: "bottom",
-            labels: {
-              boxWidth: 20,
-              padding: 20,
+          layout: { padding: { top: 0 } },
+          responsive: true,
+          scales: {
+            y: {
+              grid: { display: false },
+              ticks: { padding: 35, max: 1000, min: 0 },
+            },
+            x: {
+              grid: { display: false, color: "rgba(143, 146, 161, .1)" },
+              ticks: { padding: 20 },
             },
           },
-          tooltip: {
-            backgroundColor: "#F3F6F8",
-            bodyColor: "#171717",
-            titleColor: "#8F92A1",
-            bodyFont: { size: 14 },
-            displayColors: true,
-            padding: { x: 20, y: 10 },
-          },
         },
-        responsive: true,
-        maintainAspectRatio: false,
-      },
-    });
+      });
+    }
 
+    const ctxBookingStatus = document.getElementById("BookingStatusPieChart")?.getContext("2d");
+    if (ctxBookingStatus) {
+      new Chart(ctxBookingStatus, {
+        type: "pie",
+        data: {
+          labels: ["Pending", "Confirmed", "Checked-in", "Cancelled"],
+          datasets: [{
+            data: [10, 60, 20, 10],
+            backgroundColor: ["#FFC107", "#28A745", "#007BFF", "#DC3545"],
+            borderWidth: 2,
+          }],
+        },
+        options: {
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: {
+                boxWidth: 20,
+                padding: 20,
+              },
+            },
+            tooltip: {
+              backgroundColor: "#F3F6F8",
+              bodyColor: "#171717",
+              titleColor: "#8F92A1",
+              bodyFont: { size: 14 },
+              displayColors: true,
+              padding: { x: 20, y: 10 },
+            },
+          },
+          responsive: true,
+          maintainAspectRatio: false,
+        },
+      });
+    }
 
-  </script>
+    // ✅ Now load your auth logic
+    const script = document.createElement("script");
+    script.src = "/assets/js/auth-check.js";
+    document.body.appendChild(script);
+  });
+</script>
 
-  <!-- <script src="assets/js/dashboard-dummy-data.js"></script> -->
-  <script src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
-<script src="/assets/js/auth-check.js"></script>
 </body>
 
 </html>
