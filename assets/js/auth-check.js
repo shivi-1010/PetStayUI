@@ -44,22 +44,16 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
 }
 
 
-async function checkUser(retries = 5) {
+async function checkUser() {
   try {
     const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
     console.log("✅ Authenticated as:", user.username);
     updateAdminEmail(user.attributes.email);
   } catch (err) {
-    console.warn("⏳ User not authenticated yet. Retrying...", retries);
-    if (retries > 0) {
-      setTimeout(() => checkUser(retries - 1), 1000);
-    }
+    console.warn("❌ Could not fetch authenticated user:", err);
   }
 }
 
-
-    // Trigger token parsing if URL contains tokens
-    Auth.currentSession().catch(() => { });
 
     // Listen for auth events
     Hub.listen('auth', (data) => {
@@ -97,9 +91,6 @@ window.signOutUser = function () {
       window.location.replace(redirectSignOut);
     });
 };
-
-
-
     // DOM ready
     document.addEventListener('DOMContentLoaded', () => {
       const signOutEl = document.getElementById("signOutBtn");
