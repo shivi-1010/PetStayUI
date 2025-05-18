@@ -25,64 +25,62 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
 
   if (!Auth || !Hub) {
     console.error("❌ Amplify.Auth or Amplify.Hub is missing. Cannot proceed.");
-    return;
-  }
-
-  function updateAdminEmail(email) {
-    const emailElements = document.querySelectorAll('#adminEmail, #adminEmailDropdown');
-    emailElements.forEach(el => el.textContent = email);
-  }
-
-  async function checkUser() {
-    try {
-      const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
-      console.log("✅ Authenticated as:", user.username);
-      updateAdminEmail(user.attributes.email);
-    } catch (err) {
-      console.warn("⏳ User not authenticated yet. Waiting for auth event...");
-    }
-  }
-
-  // Trigger token parsing if URL contains tokens
-  Auth.currentSession().catch(() => {});
-
-  // Listen for auth events
-  Hub.listen('auth', (data) => {
-    const { payload } = data;
-    if (payload.event === 'signIn') {
-      console.log("🔔 Auth event: signIn");
-      checkUser();
-    } else if (payload.event === 'signOut') {
-      console.log("🔔 Auth event: signOut");
-    }
-  });
-
-  // Sign out logic
-  window.signOutUser = function () {
-    console.log("🔒 Attempting to sign out...");
-    Auth.signOut({ global: true })
-      .then(() => {
-        const { domain, userPoolWebClientId, redirectSignOut } = Amplify.configure().Auth.oauth;
-        const logoutUrl = new URL(`https://${domain}/logout`);
-        logoutUrl.searchParams.append('client_id', userPoolWebClientId);
-        logoutUrl.searchParams.append('logout_uri', redirectSignOut);
-        window.location.href = logoutUrl.toString();
-      })
-      .catch(err => {
-        console.error("❌ Error during sign out:", err);
-        window.location.href = Amplify.configure().Auth.oauth.redirectSignOut;
-      });
-  };
-
-  // DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-  checkUser();
-  const signOutEl = document.getElementById("signOutBtn");
-  if (signOutEl) {
-    console.log("✅ Sign out button found, attaching handler");
-    signOutEl.addEventListener("click", window.signOutUser);
   } else {
-    console.warn("⚠️ Sign out button NOT found");
-  }
-});
+    function updateAdminEmail(email) {
+      const emailElements = document.querySelectorAll('#adminEmail, #adminEmailDropdown');
+      emailElements.forEach(el => el.textContent = email);
+    }
 
+    async function checkUser() {
+      try {
+        const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
+        console.log("✅ Authenticated as:", user.username);
+        updateAdminEmail(user.attributes.email);
+      } catch (err) {
+        console.warn("⏳ User not authenticated yet. Waiting for auth event...");
+      }
+    }
+
+    // Trigger token parsing if URL contains tokens
+    Auth.currentSession().catch(() => {});
+
+    // Listen for auth events
+    Hub.listen('auth', (data) => {
+      const { payload } = data;
+      if (payload.event === 'signIn') {
+        console.log("🔔 Auth event: signIn");
+        checkUser();
+      } else if (payload.event === 'signOut') {
+        console.log("🔔 Auth event: signOut");
+      }
+    });
+
+    // Sign out logic
+    window.signOutUser = function () {
+      console.log("🔒 Attempting to sign out...");
+      Auth.signOut({ global: true })
+        .catch(err => {
+          console.error("❌ Error during sign out:", err);
+        })
+        .finally(() => {
+          const { domain, userPoolWebClientId, redirectSignOut } = Amplify.configure().Auth.oauth;
+          const logoutUrl = new URL(`https://${domain}/logout`);
+          logoutUrl.searchParams.append('client_id', userPoolWebClientId);
+          logoutUrl.searchParams.append('logout_uri', redirectSignOut);
+          window.location.href = logoutUrl.toString();
+        });
+    };
+
+    // DOM ready
+    document.addEventListener('DOMContentLoaded', () => {
+      checkUser();
+      const signOutEl = document.getElementById("signOutBtn");
+      if (signOutEl) {
+        console.log("✅ Sign out button found, attaching handler");
+        signOutEl.addEventListener("click", window.signOutUser);
+      } else {
+        console.warn("⚠️ Sign out button NOT found");
+      }
+    });
+  }
+}
