@@ -4,25 +4,25 @@ const Amplify = window.aws_amplify?.Amplify || window.Amplify;
 const Auth = window.aws_amplify?.Auth || window.Amplify?.Auth;
 const Hub = window.aws_amplify?.Hub || window.Amplify?.Hub;
 
+const amplifyAuthConfig = {
+  region: 'us-east-1',
+  userPoolId: 'us-east-1_HgoMAkakG',
+  userPoolWebClientId: 'd9cmu6gjb0aj5hcjak6tv72a9',
+  oauth: {
+    domain: 'us-east-1hgomakakg.auth.us-east-1.amazoncognito.com',
+    scope: ['email', 'openid', 'phone'],
+    redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/admin_dashboard.html',
+    redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
+    responseType: 'code',
+  }
+};
+
 if (!Amplify || typeof Amplify.configure !== 'function') {
   console.error("❌ Amplify not available or misconfigured.");
 } else if (!Auth || !Hub) {
   console.error("❌ Amplify.Auth or Amplify.Hub is missing. Cannot proceed.");
 } else {
-  Amplify.configure({
-    Auth: {
-      region: 'us-east-1',
-      userPoolId: 'us-east-1_sS3D9GHlP',
-      userPoolWebClientId: 'd9cmu6gjb0aj5hcjak6tv72a9',
-      oauth: {
-        domain: 'us-east-1hgomakakg.auth.us-east-1.amazoncognito.com',
-        scope: ['email', 'openid', 'phone'],
-        redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/admin_dashboard.html',
-        redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
-        responseType: 'code',
-      }
-    }
-  });
+  Amplify.configure({ Auth: amplifyAuthConfig });
 
   function updateAdminEmail(email) {
     const fallback = email || "Not signed in";
@@ -52,11 +52,13 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
       updateAdminEmail("Not signed in");
 
       // Redirect to login if not authenticated
-      const { domain, userPoolWebClientId, redirectSignIn } = Amplify.configure().Auth.oauth;
+      const { domain, redirectSignIn } = amplifyAuthConfig.oauth;
+      const clientId = amplifyAuthConfig.userPoolWebClientId;
+
       const loginUrl = new URL(`https://${domain}/login`);
-      loginUrl.searchParams.set('client_id', userPoolWebClientId);
+      loginUrl.searchParams.set('client_id', clientId);
       loginUrl.searchParams.set('response_type', 'code');
-   loginUrl.searchParams.set('scope', 'email openid phone'); 
+      loginUrl.searchParams.set('scope', 'email openid phone');
       loginUrl.searchParams.set('redirect_uri', redirectSignIn);
       console.log("🔁 Redirecting to login page...");
       window.location.replace(loginUrl.toString());
@@ -83,9 +85,11 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
         return Auth.signOut({ global: true }).then(() => idToken);
       })
       .then(idToken => {
-        const { domain, userPoolWebClientId, redirectSignOut } = Amplify.configure().Auth.oauth;
+        const { domain, redirectSignOut } = amplifyAuthConfig.oauth;
+        const clientId = amplifyAuthConfig.userPoolWebClientId;
+
         const logoutUrl = new URL(`https://${domain}/logout`);
-        logoutUrl.searchParams.append('client_id', userPoolWebClientId);
+        logoutUrl.searchParams.append('client_id', clientId);
         logoutUrl.searchParams.append('logout_uri', redirectSignOut);
         logoutUrl.searchParams.append('id_token_hint', idToken);
         console.log("🚀 Redirecting to:", logoutUrl.toString());
@@ -93,8 +97,7 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
       })
       .catch(err => {
         console.error("❌ Sign out failed:", err);
-        const fallback = Amplify.configure().Auth.oauth.redirectSignOut;
-        window.location.replace(fallback);
+        window.location.replace(amplifyAuthConfig.oauth.redirectSignOut);
       });
   };
 
