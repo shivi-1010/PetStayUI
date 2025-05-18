@@ -1,34 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Redirecting...</title>
-    <script src="https://unpkg.com/aws-amplify@4.3.26/dist/aws-amplify.min.js"></script>
-    <script src="auth-check.js"></script>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        text-align: center;
-        padding-top: 80px;
-      }
-    </style>
-  </head>
-  <body>
-    <p>🔐 Logging you in... Please wait.</p>
+<head>
+  <meta charset="UTF-8" />
+  <title>Redirecting...</title>
+  <script src="https://unpkg.com/aws-amplify@4.3.26/dist/aws-amplify.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 80px;
+    }
+  </style>
+</head>
+<body>
+  <p>🔐 Logging you in... Please wait.</p>
 
-    <script>
-      function waitForCodeToClearAndRedirect() {
-        const hasCode = window.location.search.includes("code=");
-        if (!hasCode) {
-          console.log("✅ OAuth code cleared, redirecting to dashboard...");
-          window.location.href = "admin_dashboard.html?from=cognito";
-        } else {
-          console.log("⏳ Waiting for Amplify to process code...");
-          setTimeout(waitForCodeToClearAndRedirect, 500);
+  <script>
+    const amplifyAuthConfig = {
+      Auth: {
+        region: 'us-east-1',
+        userPoolId: 'us-east-1_I0PzIIZGM',
+        userPoolWebClientId: '4jfnrkopa8cb7r30i0i25gar8k',
+        oauth: {
+          domain: 'us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com',
+          scope: ['email', 'openid', 'phone'],
+          redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html',
+          redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
+          responseType: 'code',
+        },
+      }
+    };
+
+    Amplify.configure(amplifyAuthConfig);
+
+    async function completeLoginAndRedirect() {
+      try {
+        if (window.location.search.includes('code=')) {
+          console.log("🔁 Found OAuth code, signing in...");
+          await Amplify.Auth.federatedSignIn();
+          console.log("✅ Sign-in complete, redirecting...");
         }
+      } catch (err) {
+        console.error("❌ OAuth sign-in failed:", err);
       }
 
-      waitForCodeToClearAndRedirect();
-    </script>
-  </body>
+      // Wait for Amplify to finalize session
+      setTimeout(() => {
+        window.location.href = 'admin_dashboard.html?from=cognito';
+      }, 1500);
+    }
+
+    completeLoginAndRedirect();
+  </script>
+</body>
 </html>
