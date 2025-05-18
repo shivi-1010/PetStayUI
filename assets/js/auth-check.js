@@ -73,20 +73,32 @@ async function checkUser(retries = 5) {
     });
 
     // Sign out logic
-    window.signOutUser = function () {
-      console.log("🔒 Attempting to sign out...");
-      Auth.signOut({ global: true })
-        .catch(err => {
-          console.error("❌ Error during sign out:", err);
-        })
-        .finally(() => {
-          const { domain, userPoolWebClientId, redirectSignOut } = Amplify.configure().Auth.oauth;
-          const logoutUrl = new URL(`https://${domain}/logout`);
-          logoutUrl.searchParams.append('client_id', userPoolWebClientId);
-          logoutUrl.searchParams.append('logout_uri', redirectSignOut);
-          window.location.replace(logoutUrl.toString());
-        });
-    };
+window.signOutUser = function () {
+  console.log("🔒 Attempting to sign out...");
+
+  Auth.currentSession()
+    .then(session => {
+      const idToken = session.getIdToken().getJwtToken();
+      return Auth.signOut({ global: true }).then(() => idToken);
+    })
+    .then(idToken => {
+      const { domain, userPoolWebClientId, redirectSignOut } = Amplify.configure().Auth.oauth;
+      const logoutUrl = new URL(`https://${domain}/logout`);
+      logoutUrl.searchParams.append('client_id', userPoolWebClientId);
+      logoutUrl.searchParams.append('logout_uri', redirectSignOut);
+      logoutUrl.searchParams.append('id_token_hint', idToken); // Important for implicit flow
+      console.log("🚀 Redirecting to Cognito logout:", logoutUrl.toString());
+      window.location.replace(logoutUrl.toString());
+    })
+    .catch(err => {
+      console.error("❌ Error during sign out:", err);
+      // fallback redirect
+      const { redirectSignOut } = Amplify.configure().Auth.oauth;
+      window.location.replace(redirectSignOut);
+    });
+};
+
+
 
     // DOM ready
     document.addEventListener('DOMContentLoaded', () => {
