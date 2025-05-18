@@ -56,7 +56,7 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
       const loginUrl = new URL(`https://${domain}/login`);
       loginUrl.searchParams.set('client_id', userPoolWebClientId);
       loginUrl.searchParams.set('response_type', 'code');
-      loginUrl.searchParams.set('scope', 'email openid profile');
+   loginUrl.searchParams.set('scope', 'email openid phone'); 
       loginUrl.searchParams.set('redirect_uri', redirectSignIn);
       console.log("🔁 Redirecting to login page...");
       window.location.replace(loginUrl.toString());
