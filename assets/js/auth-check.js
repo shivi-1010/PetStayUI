@@ -1,6 +1,6 @@
 console.log("✅ auth-check.js loaded");
 
-const Amplify = window.aws_amplify?.Amplify;
+const Amplify = window.aws_amplify?.Amplify || window.Amplify;
 
 if (!Amplify || typeof Amplify.configure !== 'function') {
   console.error("❌ Amplify not available or misconfigured.");
@@ -20,8 +20,13 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
     }
   });
 
-  const Auth = Amplify.Auth;
-  const Hub = Amplify.Hub;
+  const Auth = Amplify?.Auth;
+  const Hub = Amplify?.Hub;
+
+  if (!Auth || !Hub) {
+    console.error("❌ Amplify.Auth or Amplify.Hub is missing. Cannot proceed.");
+    return;
+  }
 
   function updateAdminEmail(email) {
     const emailElements = document.querySelectorAll('#adminEmail, #adminEmailDropdown');
@@ -34,14 +39,14 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
       console.log("✅ Authenticated as:", user.username);
       updateAdminEmail(user.attributes.email);
     } catch (err) {
-      console.warn("⏳ User not authenticated yet. Waiting for auth event.");
+      console.warn("⏳ User not authenticated yet. Waiting for auth event...");
     }
   }
 
-  // Parse tokens from URL (important after Cognito redirect)
-  Auth.currentSession().catch(() => {}); // Triggers token parsing
+  // Trigger token parsing if URL contains tokens
+  Auth.currentSession().catch(() => {});
 
-  // Listen for auth events (login success, etc.)
+  // Listen for auth events
   Hub.listen('auth', (data) => {
     const { payload } = data;
     if (payload.event === 'signIn') {
@@ -69,9 +74,15 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
       });
   };
 
-  // Set up once DOM is loaded
-  document.addEventListener('DOMContentLoaded', () => {
-    checkUser(); // safe to call even if user not yet loaded
-    document.getElementById("signOutBtn")?.addEventListener("click", window.signOutUser);
-  });
-}
+  // DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  checkUser();
+  const signOutEl = document.getElementById("signOutBtn");
+  if (signOutEl) {
+    console.log("✅ Sign out button found, attaching handler");
+    signOutEl.addEventListener("click", window.signOutUser);
+  } else {
+    console.warn("⚠️ Sign out button NOT found");
+  }
+});
+
