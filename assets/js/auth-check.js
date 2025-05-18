@@ -75,7 +75,9 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
       const { domain, redirectSignIn } = amplifyAuthConfig.oauth;
       const clientId = amplifyAuthConfig.userPoolWebClientId;
 
-      const loginUrl = new URL(`https://${domain}/login`);
+      // const loginUrl = new URL(`https://${domain}/login`);
+      const loginUrl = new URL(`https://${domain}/oauth2/authorize`);
+
       loginUrl.searchParams.set('client_id', clientId);
       loginUrl.searchParams.set('response_type', 'code');
       loginUrl.searchParams.set('scope', 'email openid phone');
