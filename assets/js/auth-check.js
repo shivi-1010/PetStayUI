@@ -28,26 +28,38 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
   if (!Auth || !Hub) {
     console.error("❌ Amplify.Auth or Amplify.Hub is missing. Cannot proceed.");
   } else {
-   function updateAdminEmail(email) {
-  const emailElements = document.querySelectorAll('#adminEmail, #adminEmailDropdown');
-  emailElements.forEach(el => {
-    el.innerHTML = email;
-  });
+  function updateAdminEmail(email) {
+  const emailEl = document.getElementById('adminEmail');
+  if (emailEl) {
+    // Remove spinner if present
+    const spinner = emailEl.querySelector('.spinner-border');
+    if (spinner) spinner.remove();
+    emailEl.textContent = email;
+  }
+
+  const dropdownEl = document.getElementById('adminEmailDropdown');
+  if (dropdownEl) {
+    dropdownEl.textContent = email;
+  }
 }
 
 
-    async function checkUser() {
-      try {
-        const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
-        console.log("✅ Authenticated as:", user.username);
-        updateAdminEmail(user.attributes.email);
-      } catch (err) {
-        console.warn("⏳ User not authenticated yet. Waiting for auth event...");
-      }
+async function checkUser(retries = 5) {
+  try {
+    const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
+    console.log("✅ Authenticated as:", user.username);
+    updateAdminEmail(user.attributes.email);
+  } catch (err) {
+    console.warn("⏳ User not authenticated yet. Retrying...", retries);
+    if (retries > 0) {
+      setTimeout(() => checkUser(retries - 1), 1000);
     }
+  }
+}
+
 
     // Trigger token parsing if URL contains tokens
-    Auth.currentSession().catch(() => {});
+    Auth.currentSession().catch(() => { });
 
     // Listen for auth events
     Hub.listen('auth', (data) => {
@@ -61,24 +73,23 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
     });
 
     // Sign out logic
-   window.signOutUser = function () {
-  console.log("🔒 Attempting to sign out...");
-  Auth.signOut({ global: true })
-    .catch(err => {
-      console.error("❌ Error during sign out:", err);
-    })
-    .finally(() => {
-      const { domain, userPoolWebClientId, redirectSignOut } = Amplify.configure().Auth.oauth;
-      const logoutUrl = new URL(`https://${domain}/logout`);
-      logoutUrl.searchParams.append('client_id', userPoolWebClientId);
-      logoutUrl.searchParams.append('logout_uri', redirectSignOut);
-      window.location.replace(logoutUrl.toString()); 
-    });
-};
+    window.signOutUser = function () {
+      console.log("🔒 Attempting to sign out...");
+      Auth.signOut({ global: true })
+        .catch(err => {
+          console.error("❌ Error during sign out:", err);
+        })
+        .finally(() => {
+          const { domain, userPoolWebClientId, redirectSignOut } = Amplify.configure().Auth.oauth;
+          const logoutUrl = new URL(`https://${domain}/logout`);
+          logoutUrl.searchParams.append('client_id', userPoolWebClientId);
+          logoutUrl.searchParams.append('logout_uri', redirectSignOut);
+          window.location.replace(logoutUrl.toString());
+        });
+    };
 
     // DOM ready
     document.addEventListener('DOMContentLoaded', () => {
-      checkUser();
       const signOutEl = document.getElementById("signOutBtn");
       if (signOutEl) {
         console.log("✅ Sign out button found, attaching handler");
@@ -87,5 +98,6 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
         console.warn("⚠️ Sign out button NOT found");
       }
     });
+
   }
 }
