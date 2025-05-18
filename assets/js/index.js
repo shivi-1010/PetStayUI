@@ -14,7 +14,7 @@ document.getElementById('left-button')?.addEventListener('click', () => {
 
 // Redirect to Admin Login via Cognito Hosted UI
 document.getElementById('right-button')?.addEventListener('click', () => {
-  const clientId = '7bl4u04925q35pshgkk6h5rkc5';
+  const clientId = '5bupuv4hbea64uvljbr6kjtihg';
   const domain = 'us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com';
   const redirectUri = encodeURIComponent('https://master.dcglvvmmzr1w5.amplifyapp.com/admin-frontend/admin_dashboard.html');
 

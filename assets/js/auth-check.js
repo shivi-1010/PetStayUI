@@ -13,13 +13,13 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
     Auth: {
       region: 'us-east-1',
       userPoolId: 'us-east-1_sS3D9GHIP',
-      userPoolWebClientId: '7bl4u04925q35pshgkk6h5rkc5',
+      userPoolWebClientId: '5bupuv4hbea64uvljbr6kjtihg',
       oauth: {
         domain: 'us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com',
         scope: ['email', 'openid', 'profile'],
         redirectSignIn: 'https://master.dcglvvmmzr1w5.amplifyapp.com/admin-frontend/admin_dashboard.html',
         redirectSignOut: 'https://master.dcglvvmmzr1w5.amplifyapp.com/index.html',
-        responseType: 'token',
+        responseType: 'code',
       }
     }
   });
@@ -39,24 +39,29 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
     }
   }
 
-async function checkUser() {
-  try {
-    const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
-    console.log("✅ Raw user object:", user);
+  async function checkUser() {
+    try {
+      const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
+      console.log("✅ Raw user object:", user);
 
-    const attributes = await Auth.userAttributes(user);
-    const emailAttr = attributes.find(attr => attr.Name === 'email');
-    const email = emailAttr?.Value || "Email not available";
+      const email = user.attributes?.email || "Email not available";
+      console.log("📧 Email from ID token:", email);
+      updateAdminEmail(email);
+    } catch (err) {
+      console.warn("❌ Could not fetch authenticated user:", err);
+      updateAdminEmail("Not signed in");
 
-    console.log("📧 Email from userAttributes:", email);
-    updateAdminEmail(email);
-  } catch (err) {
-    console.warn("❌ Could not fetch authenticated user:", err);
-    updateAdminEmail("Not signed in");
+      // Redirect to login if not authenticated
+      const { domain, userPoolWebClientId, redirectSignIn } = Amplify.configure().Auth.oauth;
+      const loginUrl = new URL(`https://${domain}/login`);
+      loginUrl.searchParams.set('client_id', userPoolWebClientId);
+      loginUrl.searchParams.set('response_type', 'code');
+      loginUrl.searchParams.set('scope', 'email openid profile');
+      loginUrl.searchParams.set('redirect_uri', redirectSignIn);
+      console.log("🔁 Redirecting to login page...");
+      window.location.replace(loginUrl.toString());
+    }
   }
-}
-
-
 
   Hub.listen('auth', (data) => {
     const { payload } = data;
@@ -68,31 +73,30 @@ async function checkUser() {
     }
   });
 
-window.signOutUser = function () {
-  console.log("➡️ Sign out triggered");
+  window.signOutUser = function () {
+    console.log("➡️ Sign out triggered");
 
-  Auth.currentSession()
-    .then(session => {
-      console.log("🪪 Session found");
-      const idToken = session.getIdToken().getJwtToken();
-      return Auth.signOut({ global: true }).then(() => idToken);
-    })
-    .then(idToken => {
-      const { domain, userPoolWebClientId, redirectSignOut } = Amplify.configure().Auth.oauth;
-      const logoutUrl = new URL(`https://${domain}/logout`);
-      logoutUrl.searchParams.append('client_id', userPoolWebClientId);
-      logoutUrl.searchParams.append('logout_uri', redirectSignOut);
-      logoutUrl.searchParams.append('id_token_hint', idToken);
-      console.log("🚀 Redirecting to:", logoutUrl.toString());
-      window.location.replace(logoutUrl.toString());
-    })
-.catch(err => {
-  console.error("❌ Sign out failed:", err);
-  const fallback = 'https://master.dcglvvmmzr1w5.amplifyapp.com/index.html';
-  window.location.replace(fallback);
-});
-
-};
+    Auth.currentSession()
+      .then(session => {
+        console.log("🪪 Session found");
+        const idToken = session.getIdToken().getJwtToken();
+        return Auth.signOut({ global: true }).then(() => idToken);
+      })
+      .then(idToken => {
+        const { domain, userPoolWebClientId, redirectSignOut } = Amplify.configure().Auth.oauth;
+        const logoutUrl = new URL(`https://${domain}/logout`);
+        logoutUrl.searchParams.append('client_id', userPoolWebClientId);
+        logoutUrl.searchParams.append('logout_uri', redirectSignOut);
+        logoutUrl.searchParams.append('id_token_hint', idToken);
+        console.log("🚀 Redirecting to:", logoutUrl.toString());
+        window.location.replace(logoutUrl.toString());
+      })
+      .catch(err => {
+        console.error("❌ Sign out failed:", err);
+        const fallback = Amplify.configure().Auth.oauth.redirectSignOut;
+        window.location.replace(fallback);
+      });
+  };
 
   document.addEventListener('DOMContentLoaded', () => {
     checkUser();
@@ -104,7 +108,7 @@ window.signOutUser = function () {
         signOutEl.addEventListener("click", window.signOutUser);
       } else {
         console.warn("⚠️ Sign out button NOT found, retrying...");
-        setTimeout(retryAttachSignOut, 300); // Try again in 300ms
+        setTimeout(retryAttachSignOut, 300);
       }
     };
 
