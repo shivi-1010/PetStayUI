@@ -20,41 +20,47 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
     }
   });
 
-  const initAuthCheck = () => {
-    console.log("⏳ Checking authentication...");
-    // Give Amplify some time to process URL tokens (after OAuth redirect)
-    setTimeout(() => {
-      Amplify.Auth.currentAuthenticatedUser()
-        .then(user => {
-          console.log("✅ Authenticated:", user.username);
-          const email = user.attributes.email;
-          updateAdminEmail(email);
-        })
-        .catch(err => {
-          console.warn("❌ Not authenticated:", err);
-          window.location.href = '/index.html';
-        });
-    }, 300); // 300ms delay is usually safe; can adjust as needed
-  };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initAuthCheck);
-  } else {
-    initAuthCheck();
-  }
+  const Auth = Amplify.Auth;
+  const Hub = Amplify.Hub;
 
   function updateAdminEmail(email) {
     const emailElements = document.querySelectorAll('#adminEmail, #adminEmailDropdown');
     emailElements.forEach(el => el.textContent = email);
   }
 
+  async function checkUser() {
+    try {
+      const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
+      console.log("✅ Authenticated as:", user.username);
+      updateAdminEmail(user.attributes.email);
+    } catch (err) {
+      console.warn("⏳ User not authenticated yet. Waiting for auth event.");
+    }
+  }
+
+  // Parse tokens from URL (important after Cognito redirect)
+  Auth.currentSession().catch(() => {}); // Triggers token parsing
+
+  // Listen for auth events (login success, etc.)
+  Hub.listen('auth', (data) => {
+    const { payload } = data;
+    if (payload.event === 'signIn') {
+      console.log("🔔 Auth event: signIn");
+      checkUser();
+    } else if (payload.event === 'signOut') {
+      console.log("🔔 Auth event: signOut");
+    }
+  });
+
+  // Sign out logic
   window.signOutUser = function () {
     console.log("🔒 Attempting to sign out...");
-    Amplify.Auth.signOut({ global: true })
+    Auth.signOut({ global: true })
       .then(() => {
-        const logoutUrl = new URL(`https://${Amplify.configure().Auth.oauth.domain}/logout`);
-        logoutUrl.searchParams.append('client_id', Amplify.configure().Auth.userPoolWebClientId);
-        logoutUrl.searchParams.append('logout_uri', Amplify.configure().Auth.oauth.redirectSignOut);
+        const { domain, userPoolWebClientId, redirectSignOut } = Amplify.configure().Auth.oauth;
+        const logoutUrl = new URL(`https://${domain}/logout`);
+        logoutUrl.searchParams.append('client_id', userPoolWebClientId);
+        logoutUrl.searchParams.append('logout_uri', redirectSignOut);
         window.location.href = logoutUrl.toString();
       })
       .catch(err => {
@@ -63,7 +69,9 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
       });
   };
 
+  // Set up once DOM is loaded
   document.addEventListener('DOMContentLoaded', () => {
+    checkUser(); // safe to call even if user not yet loaded
     document.getElementById("signOutBtn")?.addEventListener("click", window.signOutUser);
   });
 }

@@ -94,7 +94,9 @@
                         <img src="/assets/images/profile/profile-image.png" alt="" />
                       </div>
                       <div>
-                        <h6 class="fw-500" id="adminEmail">Loading...</h6>
+                        <h6 class="fw-500" id="adminEmail">
+                          <span class="spinner-border spinner-border-sm" role="status"></span>
+                        </h6>
                         <p>Admin</p>
                       </div>
                     </div>
@@ -211,9 +213,10 @@
 
                         <td>
                           <div class="action">
-                            <button class="text-primary" title="View Details">
+                            <button class="text-primary" title="View Details" aria-label="View Booking Details">
                               <i class="lni lni-eye"></i>
                             </button>
+
                             <button class="text-danger" title="Cancel Booking">
                               <i class="lni lni-trash-can"></i>
                             </button>
@@ -319,11 +322,12 @@
   <script src="/assets/js/Chart.min.js"></script>
   <script src="/assets/js/dynamic-pie-chart.js"></script>
   <script src="/assets/js/moment.min.js"></script>
-  <!-- <script src="/assets/js/fullcalendar.js"></script> -->
   <script src="/assets/js/jvectormap.min.js"></script>
   <script src="/assets/js/world-merc.js"></script>
   <script src="/assets/js/polyfill.js"></script>
   <script src="/assets/js/main.js"></script>
+
+
   <script>
     const amplifyScript = document.createElement('script');
     amplifyScript.src = "https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js";
