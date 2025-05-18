@@ -14,11 +14,10 @@
 <body>
   <p>🔐 Logging you in... Please wait.</p>
 
-  <!-- ✅ Defer loading until DOM is ready -->
-  <script src="https://cdn.jsdelivr.net/npm/aws-amplify@4.3.26/dist/aws-amplify.min.js" defer></script>
+  <!-- ✅ Use unpkg CDN -->
+  <script src="https://unpkg.com/aws-amplify@4.3.26/dist/aws-amplify.min.js"></script>
 
   <script>
-    // Wait until page and Amplify have loaded
     window.addEventListener("load", async () => {
       const waitForAmplify = () =>
         new Promise((resolve, reject) => {
@@ -31,7 +30,7 @@
           setTimeout(() => {
             clearInterval(interval);
             reject(new Error("Amplify script failed to load."));
-          }, 5000); // max wait time: 5 sec
+          }, 5000);
         });
 
       try {
