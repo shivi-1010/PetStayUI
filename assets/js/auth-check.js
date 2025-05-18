@@ -42,19 +42,20 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
 async function checkUser() {
   try {
     const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
-    console.log("✅ User object:", user);
-    if (user.attributes?.email) {
-      console.log("📧 Email:", user.attributes.email);
-      updateAdminEmail(user.attributes.email);
-    } else {
-      console.warn("⚠️ Email not found");
-      updateAdminEmail("Email not available");
-    }
+    console.log("✅ Raw user object:", user);
+
+    const attributes = await Auth.userAttributes(user);
+    const emailAttr = attributes.find(attr => attr.Name === 'email');
+    const email = emailAttr?.Value || "Email not available";
+
+    console.log("📧 Email from userAttributes:", email);
+    updateAdminEmail(email);
   } catch (err) {
-    console.warn("❌ User not authenticated:", err);
+    console.warn("❌ Could not fetch authenticated user:", err);
     updateAdminEmail("Not signed in");
   }
 }
+
 
 
   Hub.listen('auth', (data) => {
