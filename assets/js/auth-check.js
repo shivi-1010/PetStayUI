@@ -24,20 +24,26 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
 } else {
   Amplify.configure({ Auth: amplifyAuthConfig });
 
-  function updateAdminEmail(email) {
-    const fallback = email || "Not signed in";
-    const emailEl = document.getElementById('adminEmail');
-    if (emailEl) {
-      const spinner = emailEl.querySelector('.spinner-border');
-      if (spinner) spinner.remove();
-      emailEl.textContent = fallback;
-    }
-
-    const dropdownEl = document.getElementById('adminEmailDropdown');
-    if (dropdownEl) {
-      dropdownEl.textContent = fallback;
-    }
+function updateAdminEmail(email) {
+  console.log("🧩 updateAdminEmail called with:", email);
+  
+  const fallback = email || "Not signed in";
+  const emailEl = document.getElementById('adminEmail');
+  if (emailEl) {
+    const spinner = emailEl.querySelector('.spinner-border');
+    if (spinner) spinner.remove();
+    emailEl.textContent = fallback;
+    console.log("📩 Email set in adminEmail span:", fallback);
+  } else {
+    console.warn("⚠️ Element #adminEmail not found in DOM");
   }
+
+  const dropdownEl = document.getElementById('adminEmailDropdown');
+  if (dropdownEl) {
+    dropdownEl.textContent = fallback;
+  }
+}
+
 
   async function checkUser() {
     try {
@@ -49,6 +55,13 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
       updateAdminEmail(email);
     } catch (err) {
       console.warn("❌ Could not fetch authenticated user:", err);
+
+      if (err === 'not authenticated' || err.name === 'NoCurrentUser') {
+        console.warn("⚠️ No session found — user is not signed in.");
+      } else {
+        console.error("🔴 Unexpected auth error:", err);
+      }
+
       updateAdminEmail("Not signed in");
 
       // Redirect to login if not authenticated
@@ -102,19 +115,22 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
   };
 
   document.addEventListener('DOMContentLoaded', () => {
-    checkUser();
+    // 🔁 Delay to allow session to initialize
+    setTimeout(() => {
+      checkUser();
 
-    const retryAttachSignOut = () => {
-      const signOutEl = document.getElementById("signOutBtn");
-      if (signOutEl) {
-        console.log("✅ Sign out button found, attaching handler");
-        signOutEl.addEventListener("click", window.signOutUser);
-      } else {
-        console.warn("⚠️ Sign out button NOT found, retrying...");
-        setTimeout(retryAttachSignOut, 300);
-      }
-    };
+      const retryAttachSignOut = () => {
+        const signOutEl = document.getElementById("signOutBtn");
+        if (signOutEl) {
+          console.log("✅ Sign out button found, attaching handler");
+          signOutEl.addEventListener("click", window.signOutUser);
+        } else {
+          console.warn("⚠️ Sign out button NOT found, retrying...");
+          setTimeout(retryAttachSignOut, 300);
+        }
+      };
 
-    retryAttachSignOut();
+      retryAttachSignOut();
+    }, 500);
   });
 }
