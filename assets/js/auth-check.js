@@ -22,7 +22,29 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
 } else if (!Auth || !Hub) {
   console.error("❌ Amplify.Auth or Amplify.Hub is missing. Cannot proceed.");
 } else {
-  Amplify.configure({ Auth: amplifyAuthConfig });
+Amplify.configure({ Auth: amplifyAuthConfig });
+Auth.configure(amplifyAuthConfig);
+
+if (window.location.search.includes("code=")) {
+  console.log("🔁 Found OAuth code in URL, completing sign-in...");
+  Auth.federatedSignIn()
+    .then(() => {
+      console.log("✅ Federated sign-in complete, checking user...");
+      return checkUser();
+    })
+    .catch(err => {
+      console.error("❌ OAuth token exchange failed:", err);
+    });
+} else {
+  Auth.currentSession()
+    .then(session => {
+      console.log("✅ Session exists:", session);
+      checkUser();
+    })
+    .catch(err => {
+      console.warn("ℹ️ No active session yet:", err.message);
+    });
+}
 
   function updateAdminEmail(email) {
     console.log("🧩 updateAdminEmail called with:", email);

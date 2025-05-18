@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="refresh" content="0; URL=admin_dashboard.html?from=cognito" />
+  <!-- <meta http-equiv="refresh" content="0; URL=admin_dashboard.html?from=cognito" /> -->
+
+
   <title>Redirecting...</title>
   <style>
     body {
@@ -14,5 +16,22 @@
 </head>
 <body>
   <p>Redirecting to your dashboard...</p>
+  <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Redirecting...</title>
+  </head>
+  <body>
+    <p>Redirecting to dashboard...</p>
+
+    <script>
+      // Give Amplify time to complete token exchange
+      setTimeout(() => {
+        window.location.href = "admin_dashboard.html?from=cognito";
+      }, 2000); // 2 seconds delay
+    </script>
+
+    
 </body>
 </html>
