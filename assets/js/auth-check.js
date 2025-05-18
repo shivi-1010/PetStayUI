@@ -1,3 +1,4 @@
+import { Amplify } from 'aws-amplify';
 console.log("✅ auth-check.js loaded");
 
 Amplify.configure({
