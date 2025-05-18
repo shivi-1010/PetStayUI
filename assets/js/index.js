@@ -18,7 +18,8 @@ document.getElementById('right-button')?.addEventListener('click', () => {
   const domain = 'us-east-1hgomakakg.auth.us-east-1.amazoncognito.com'; 
   const redirectUri = encodeURIComponent('https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/admin_dashboard.html');
 
-  const loginUrl = `https://${domain}/login?client_id=${clientId}&response_type=code&scope=email+openid+profile&redirect_uri=${redirectUri}`;
+  const loginUrl = `https://${domain}/login?client_id=${clientId}&response_type=code&scope=email+openid+phone&redirect_uri=${redirectUri}`;
+
 
   window.location.href = loginUrl;
 });
