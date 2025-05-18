@@ -49,50 +49,58 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
   console.log("✅ Amplify configured successfully");
   console.log("🔄 Checking user authentication status...");
 
-  async function checkUser(retry = false) {
-    try {
-      const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
-      console.log("✅ Raw user object:", user);
+async function checkUser(retry = false) {
+  const urlParams = new URLSearchParams(window.location.search); // ✅ moved here so both try & catch can use it
 
-      const attributes = await Auth.userAttributes(user);
-      console.log("🔍 Full user attributes:", attributes);
+  try {
+    const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
+    console.log("✅ Raw user object:", user);
 
-      const emailAttr = attributes.find(attr => attr.Name === "email");
-      const email = emailAttr ? emailAttr.Value : user.getUsername() || "Email not available";
+    const attributes = await Auth.userAttributes(user);
+    console.log("🔍 Full user attributes:", attributes);
 
-      console.log("📧 Email from user attributes:", email);
-      updateAdminEmail(email);
-    } catch (err) {
-      console.warn("❌ Could not fetch authenticated user:", err.name, err.message);
+    const emailAttr = attributes.find(attr => attr.Name === "email");
+    const email = emailAttr ? emailAttr.Value : user.getUsername() || "Email not available";
 
-      if (!retry) {
-        console.warn("⏱ Retrying user check after 1s...");
-        return setTimeout(() => checkUser(true), 1000);
-      }
+    console.log("📧 Email from user attributes:", email);
+    updateAdminEmail(email);
 
-      updateAdminEmail("Not signed in");
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const justCameFromIndex = urlParams.get("from") === "index";
-      const cameFromCognito = urlParams.get("from") === "cognito";
-
-      if (justCameFromIndex || cameFromCognito) {
-        console.warn("🚫 Avoiding redirect loop after login");
-        return;
-      }
-
-      const { domain, redirectSignIn } = amplifyAuthConfig.oauth;
-      const clientId = amplifyAuthConfig.userPoolWebClientId;
-
-      const loginUrl = new URL(`https://${domain}/login`);
-      loginUrl.searchParams.set('client_id', clientId);
-      loginUrl.searchParams.set('response_type', 'code');
-      loginUrl.searchParams.set('scope', 'email openid phone');
-      loginUrl.searchParams.set('redirect_uri', redirectSignIn);
-      console.log("🔁 Redirecting to login page...");
-      window.location.replace(loginUrl.toString());
+    // ✅ Clean up URL after login (remove ?from=cognito)
+    if (urlParams.get("from") === "cognito") {
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
     }
+  } catch (err) {
+    console.warn("❌ Could not fetch authenticated user:", err.name, err.message);
+
+    if (!retry) {
+      console.warn("⏱ Retrying user check after 1s...");
+      return setTimeout(() => checkUser(true), 1000);
+    }
+
+    updateAdminEmail("Not signed in");
+
+    const justCameFromIndex = urlParams.get("from") === "index";
+    const cameFromCognito = urlParams.get("from") === "cognito";
+
+    if (justCameFromIndex || cameFromCognito) {
+      console.warn("🚫 Avoiding redirect loop after login");
+      return;
+    }
+
+    const { domain, redirectSignIn } = amplifyAuthConfig.oauth;
+    const clientId = amplifyAuthConfig.userPoolWebClientId;
+
+    const loginUrl = new URL(`https://${domain}/login`);
+    loginUrl.searchParams.set('client_id', clientId);
+    loginUrl.searchParams.set('response_type', 'code');
+    loginUrl.searchParams.set('scope', 'email openid phone');
+    loginUrl.searchParams.set('redirect_uri', redirectSignIn);
+    console.log("🔁 Redirecting to login page...");
+    window.location.replace(loginUrl.toString());
   }
+}
+
 
   Hub.listen('auth', (data) => {
     const { payload } = data;
