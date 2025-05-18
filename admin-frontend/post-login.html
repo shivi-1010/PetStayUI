@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>Redirecting...</title>
-  <script src="https://unpkg.com/aws-amplify@4.3.26/dist/aws-amplify.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -15,45 +14,54 @@
 <body>
   <p>🔐 Logging you in... Please wait.</p>
 
+  <!-- ✅ Defer loading until DOM is ready -->
+  <script src="https://cdn.jsdelivr.net/npm/aws-amplify@4.3.26/dist/aws-amplify.min.js" defer></script>
+
   <script>
-    window.addEventListener('load', async () => {
-      if (!window.Amplify || !window.Amplify.Auth) {
-        console.error("❌ Amplify library not loaded properly.");
-        return;
-      }
-
-      const amplifyAuthConfig = {
-        Auth: {
-          region: 'us-east-1',
-          userPoolId: 'us-east-1_I0PzIIZGM',
-          userPoolWebClientId: '4jfnrkopa8cb7r30i0i25gar8k',
-          oauth: {
-            domain: 'us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com',
-            scope: ['email', 'openid', 'phone'],
-            redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html',
-            redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
-            responseType: 'code',
-          },
-        }
-      };
-
-      const Amplify = window.Amplify;
-      Amplify.configure(amplifyAuthConfig);
+    // Wait until page and Amplify have loaded
+    window.addEventListener("load", async () => {
+      const waitForAmplify = () =>
+        new Promise((resolve, reject) => {
+          const interval = setInterval(() => {
+            if (window.Amplify && window.Amplify.Auth) {
+              clearInterval(interval);
+              resolve(window.Amplify);
+            }
+          }, 100);
+          setTimeout(() => {
+            clearInterval(interval);
+            reject(new Error("Amplify script failed to load."));
+          }, 5000); // max wait time: 5 sec
+        });
 
       try {
-        if (window.location.search.includes('code=')) {
-          console.log("🔁 Found OAuth code, signing in...");
-          await Amplify.Auth.federatedSignIn();
-          console.log("✅ Sign-in complete, redirecting...");
-        }
-      } catch (err) {
-        console.error("❌ OAuth sign-in failed:", err);
-      }
+        const Amplify = await waitForAmplify();
 
-      // Wait a little for session establishment
-      setTimeout(() => {
+        Amplify.configure({
+          Auth: {
+            region: 'us-east-1',
+            userPoolId: 'us-east-1_I0PzIIZGM',
+            userPoolWebClientId: '4jfnrkopa8cb7r30i0i25gar8k',
+            oauth: {
+              domain: 'us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com',
+              scope: ['email', 'openid', 'phone'],
+              redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html',
+              redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
+              responseType: 'code',
+            },
+          }
+        });
+
+        if (window.location.search.includes("code=")) {
+          console.log("🔁 Found OAuth code, completing sign-in...");
+          await Amplify.Auth.federatedSignIn();
+        }
+
+        console.log("✅ Auth complete, redirecting...");
         window.location.href = 'admin_dashboard.html?from=cognito';
-      }, 1500);
+      } catch (error) {
+        console.error("❌ Final sign-in error:", error);
+      }
     });
   </script>
 </body>
