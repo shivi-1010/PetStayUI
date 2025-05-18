@@ -12,20 +12,22 @@
     </style>
   </head>
   <body>
-    <p>🔄 Logging you in... Please wait.</p>
+    <p>🔐 Logging you in... Please wait.</p>
 
     <script>
-      // Wait 2 seconds to give Amplify time to handle the OAuth code
-      setTimeout(() => {
+      function waitForCodeToClearAndRedirect() {
+        // If code is still in the URL, Amplify hasn't finished yet
         const hasCode = window.location.search.includes("code=");
-        if (hasCode) {
-          // Let Amplify process it first, do not redirect yet
-          console.log("✅ OAuth code found, waiting...");
-        } else {
-          console.log("✅ Code processed, redirecting to dashboard...");
+        if (!hasCode) {
+          console.log("✅ OAuth code cleared, redirecting to dashboard...");
           window.location.href = "admin_dashboard.html?from=cognito";
+        } else {
+          console.log("⏳ Waiting for Amplify to process code...");
+          setTimeout(waitForCodeToClearAndRedirect, 500); // check again in 0.5s
         }
-      }, 2000);
+      }
+
+      waitForCodeToClearAndRedirect();
     </script>
   </body>
 </html>
