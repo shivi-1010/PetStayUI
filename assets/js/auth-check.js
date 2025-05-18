@@ -1,3 +1,5 @@
+console.log("✅ auth-check.js loaded");
+
 Amplify.default.configure({
   Auth: {
     region: 'us-east-1',
@@ -12,6 +14,7 @@ Amplify.default.configure({
     }
   }
 });
+
 
 document.addEventListener('DOMContentLoaded', function () {
   initAuthCheck();
