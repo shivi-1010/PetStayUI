@@ -11,12 +11,11 @@ const amplifyAuthConfig = {
   oauth: {
     domain: 'us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com',
     scope: ['email', 'openid', 'phone'],
-    redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/admin_dashboard.html',
+    redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/admin_dashboard.html?from=cognito',
     redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
     responseType: 'code',
   }
 };
-
 
 if (!Amplify || typeof Amplify.configure !== 'function') {
   console.error("❌ Amplify not available or misconfigured.");
@@ -25,77 +24,75 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
 } else {
   Amplify.configure({ Auth: amplifyAuthConfig });
 
-function updateAdminEmail(email) {
-  console.log("🧩 updateAdminEmail called with:", email);
+  function updateAdminEmail(email) {
+    console.log("🧩 updateAdminEmail called with:", email);
 
-  const fallback = email || "Not signed in";
+    const fallback = email || "Not signed in";
 
-  const emailEl = document.getElementById('adminEmail');
-  if (emailEl) {
-    // Clear spinner and set text content safely
-    emailEl.innerHTML = fallback;
-    console.log("📩 Email set in #adminEmail:", fallback);
-  } else {
-    console.warn("⚠️ Element #adminEmail not found in DOM");
+    const emailEl = document.getElementById('adminEmail');
+    if (emailEl) {
+      emailEl.innerHTML = fallback;
+      console.log("📩 Email set in #adminEmail:", fallback);
+    } else {
+      console.warn("⚠️ Element #adminEmail not found in DOM");
+    }
+
+    const dropdownEl = document.getElementById('adminEmailDropdown');
+    if (dropdownEl) {
+      dropdownEl.textContent = fallback;
+      console.log("📩 Email set in #adminEmailDropdown:", fallback);
+    } else {
+      console.warn("⚠️ Element #adminEmailDropdown not found in DOM");
+    }
   }
 
-  const dropdownEl = document.getElementById('adminEmailDropdown');
-  if (dropdownEl) {
-    dropdownEl.textContent = fallback;
-    console.log("📩 Email set in #adminEmailDropdown:", fallback);
-  } else {
-    console.warn("⚠️ Element #adminEmailDropdown not found in DOM");
-  }
-}
   console.log("✅ Amplify configured successfully");
   console.log("🔄 Checking user authentication status...");
 
+  async function checkUser(retry = false) {
+    try {
+      const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
+      console.log("✅ Raw user object:", user);
 
-async function checkUser() {
-  try {
-    const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
-    console.log("✅ Raw user object:", user);
+      const attributes = await Auth.userAttributes(user);
+      console.log("🔍 Full user attributes:", attributes);
 
-    const attributes = await Auth.userAttributes(user);
-        console.log("🔍 Full user attributes:", attributes);  // 🔥 ADD THIS LINE
-    const emailAttr = attributes.find(attr => attr.Name === "email");
-    const email = emailAttr ? emailAttr.Value : "Email not available";
+      const emailAttr = attributes.find(attr => attr.Name === "email");
+      const email = emailAttr ? emailAttr.Value : user.getUsername() || "Email not available";
 
-    console.log("📧 Email from user attributes:", email);
-    updateAdminEmail(email);
-  } catch (err) {
-    console.warn("❌ Could not fetch authenticated user:", err);
+      console.log("📧 Email from user attributes:", email);
+      updateAdminEmail(email);
+    } catch (err) {
+      console.warn("❌ Could not fetch authenticated user:", err.name, err.message);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const justCameFromIndex = urlParams.get("from") === "index";
+      if (!retry) {
+        console.warn("⏱ Retrying user check after 1s...");
+        return setTimeout(() => checkUser(true), 1000);
+      }
 
-    if (err === 'not authenticated' || err.name === 'NoCurrentUser') {
-      console.warn("⚠️ No session found — user is not signed in.");
-    } else {
-      console.error("🔴 Unexpected auth error:", err);
+      updateAdminEmail("Not signed in");
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const justCameFromIndex = urlParams.get("from") === "index";
+      const cameFromCognito = urlParams.get("from") === "cognito";
+
+      if (justCameFromIndex || cameFromCognito) {
+        console.warn("🚫 Avoiding redirect loop after login");
+        return;
+      }
+
+      const { domain, redirectSignIn } = amplifyAuthConfig.oauth;
+      const clientId = amplifyAuthConfig.userPoolWebClientId;
+
+      const loginUrl = new URL(`https://${domain}/login`);
+      loginUrl.searchParams.set('client_id', clientId);
+      loginUrl.searchParams.set('response_type', 'code');
+      loginUrl.searchParams.set('scope', 'email openid phone');
+      loginUrl.searchParams.set('redirect_uri', redirectSignIn);
+      console.log("🔁 Redirecting to login page...");
+      window.location.replace(loginUrl.toString());
     }
-
-    updateAdminEmail("Not signed in");
-
-    if (justCameFromIndex) {
-      console.warn("🚫 Avoiding redirect — already came from index.html");
-      return;
-    }
-
-    const { domain, redirectSignIn } = amplifyAuthConfig.oauth;
-    const clientId = amplifyAuthConfig.userPoolWebClientId;
-
-    const loginUrl = new URL(`https://${domain}/login`);
-    loginUrl.searchParams.set('client_id', clientId);
-    loginUrl.searchParams.set('response_type', 'code');
-    loginUrl.searchParams.set('scope', 'email openid phone');
-    loginUrl.searchParams.set('redirect_uri', redirectSignIn);
-    console.log("🔁 Redirecting to login page...");
-    window.location.replace(loginUrl.toString());
   }
-}
-
-
 
   Hub.listen('auth', (data) => {
     const { payload } = data;
@@ -134,7 +131,6 @@ async function checkUser() {
   };
 
   document.addEventListener('DOMContentLoaded', () => {
-    // 🔁 Delay to allow session to initialize
     setTimeout(() => {
       checkUser();
 
