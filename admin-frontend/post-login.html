@@ -1,37 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <!-- <meta http-equiv="refresh" content="0; URL=admin_dashboard.html?from=cognito" /> -->
-
-
-  <title>Redirecting...</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding-top: 50px;
-    }
-  </style>
-</head>
-<body>
-  <p>Redirecting to your dashboard...</p>
-  <!DOCTYPE html>
-<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>Redirecting...</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding-top: 80px;
+      }
+    </style>
   </head>
   <body>
-    <p>Redirecting to dashboard...</p>
+    <p>🔄 Logging you in... Please wait.</p>
 
     <script>
-      // Give Amplify time to complete token exchange
+      // Wait 2 seconds to give Amplify time to handle the OAuth code
       setTimeout(() => {
-        window.location.href = "admin_dashboard.html?from=cognito";
-      }, 2000); // 2 seconds delay
+        const hasCode = window.location.search.includes("code=");
+        if (hasCode) {
+          // Let Amplify process it first, do not redirect yet
+          console.log("✅ OAuth code found, waiting...");
+        } else {
+          console.log("✅ Code processed, redirecting to dashboard...");
+          window.location.href = "admin_dashboard.html?from=cognito";
+        }
+      }, 2000);
     </script>
-
-    
-</body>
+  </body>
 </html>
