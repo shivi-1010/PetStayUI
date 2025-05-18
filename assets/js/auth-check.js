@@ -28,18 +28,19 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
   if (!Auth || !Hub) {
     console.error("❌ Amplify.Auth or Amplify.Hub is missing. Cannot proceed.");
   } else {
-  function updateAdminEmail(email) {
+function updateAdminEmail(email) {
+  const fallback = email || "Not signed in";
+
   const emailEl = document.getElementById('adminEmail');
   if (emailEl) {
-    // Remove spinner if present
     const spinner = emailEl.querySelector('.spinner-border');
     if (spinner) spinner.remove();
-    emailEl.textContent = email;
+    emailEl.textContent = fallback;
   }
 
   const dropdownEl = document.getElementById('adminEmailDropdown');
   if (dropdownEl) {
-    dropdownEl.textContent = email;
+    dropdownEl.textContent = fallback;
   }
 }
 
@@ -48,11 +49,21 @@ async function checkUser() {
   try {
     const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
     console.log("✅ Authenticated as:", user.username);
-    updateAdminEmail(user.attributes.email);
+
+    if (user && user.attributes && user.attributes.email) {
+      updateAdminEmail(user.attributes.email);
+    } else {
+      console.warn("⚠️ Email not available in user attributes:", user);
+      updateAdminEmail("Email not available");
+    }
+
   } catch (err) {
     console.warn("❌ Could not fetch authenticated user:", err);
+    updateAdminEmail("Not signed in");
   }
 }
+
+
 
 
     // Listen for auth events
@@ -92,15 +103,18 @@ window.signOutUser = function () {
     });
 };
     // DOM ready
-    document.addEventListener('DOMContentLoaded', () => {
-      const signOutEl = document.getElementById("signOutBtn");
-      if (signOutEl) {
-        console.log("✅ Sign out button found, attaching handler");
-        signOutEl.addEventListener("click", window.signOutUser);
-      } else {
-        console.warn("⚠️ Sign out button NOT found");
-      }
-    });
+document.addEventListener('DOMContentLoaded', () => {
+  checkUser(); // 👈 Ensures email is rendered right after refresh
+
+  const signOutEl = document.getElementById("signOutBtn");
+  if (signOutEl) {
+    console.log("✅ Sign out button found, attaching handler");
+    signOutEl.addEventListener("click", window.signOutUser);
+  } else {
+    console.warn("⚠️ Sign out button NOT found");
+  }
+});
+
 
   }
 }
