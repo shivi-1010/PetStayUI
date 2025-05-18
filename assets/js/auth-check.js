@@ -1,4 +1,3 @@
-import { Amplify } from 'aws-amplify';
 console.log("✅ auth-check.js loaded");
 
 Amplify.configure({
@@ -60,3 +59,12 @@ window.signOutUser = function () {
       window.location.href = 'https://master.dcglvvmmzr1w5.amplifyapp.com/index.html';
     });
 };
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById("signOutBtn");
+  btn?.addEventListener("click", window.signOutUser);
+});
+
+
+

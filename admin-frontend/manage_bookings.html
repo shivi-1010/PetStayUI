@@ -85,43 +85,43 @@
             <div class="header-right">
 
               <!-- profile start -->
-          <div class="profile-box ml-15">
-  <button class="dropdown-toggle bg-transparent border-0" type="button" id="profile"
-    data-bs-toggle="dropdown" aria-expanded="false">
-    <div class="profile-info">
-      <div class="info">
-        <div class="image">
-          <img src="/assets/images/profile/profile-image.png" alt="" />
-        </div>
-        <div>
-          <h6 class="fw-500" id="adminEmail">Loading...</h6>
-          <p>Admin</p>
-        </div>
-      </div>
-    </div>
-  </button>
-  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profile">
-    <li>
-      <div class="author-info flex items-center !p-1">
-        <div class="image">
-          <img src="/assets/images/profile/profile-image.png" alt="image">
-        </div>
-        <div class="content">
-          <h4 class="text-sm">Admin</h4>
-          <a id="adminEmailDropdown"
-            class="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs"
-            href="#">Loading...</a>
-        </div>
-      </div>
-    </li>
-    <li class="divider"></li>
-    <li>
-      <a href="javascript:void(0);" onclick="signOutUser()">
-        <i class="lni lni-exit"></i> Sign Out
-      </a>
-    </li>
-  </ul>
-</div>
+              <div class="profile-box ml-15">
+                <button class="dropdown-toggle bg-transparent border-0" type="button" id="profile"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  <div class="profile-info">
+                    <div class="info">
+                      <div class="image">
+                        <img src="/assets/images/profile/profile-image.png" alt="" />
+                      </div>
+                      <div>
+                        <h6 class="fw-500" id="adminEmail">Loading...</h6>
+                        <p>Admin</p>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profile">
+                  <li>
+                    <div class="author-info flex items-center !p-1">
+                      <div class="image">
+                        <img src="/assets/images/profile/profile-image.png" alt="image">
+                      </div>
+                      <div class="content">
+                        <h4 class="text-sm">Admin</h4>
+                        <a id="adminEmailDropdown"
+                          class="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs"
+                          href="#">Loading...</a>
+                      </div>
+                    </div>
+                  </li>
+                  <li class="divider"></li>
+                  <li>
+                    <a href="javascript:void(0);" id="signOutBtn">
+                      <i class="lni lni-exit"></i> Sign Out
+                    </a>
+                  </li>
+                </ul>
+              </div>
 
               <!-- profile end -->
             </div>
@@ -324,26 +324,26 @@
   <script src="/assets/js/world-merc.js"></script>
   <script src="/assets/js/polyfill.js"></script>
   <script src="/assets/js/main.js"></script>
-<script>
-   const amplifyScript = document.createElement('script');
-  amplifyScript.src = "https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js";
+  <script>
+    const amplifyScript = document.createElement('script');
+    amplifyScript.src = "https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js";
 
-  amplifyScript.onload = function () {
-    console.log("✅ Amplify is loaded");
+    amplifyScript.onload = function () {
+      console.log("✅ Amplify is loaded");
 
-    window.Amplify = window.aws_amplify;
+      window.Amplify = window.aws_amplify;
 
-    const authScript = document.createElement('script');
-    authScript.src = "/assets/js/auth-check.js";
-    document.body.appendChild(authScript);
-  };
+      const authScript = document.createElement('script');
+      authScript.src = "/assets/js/auth-check.js";
+      document.body.appendChild(authScript);
+    };
 
-  amplifyScript.onerror = function () {
-    console.error("❌ Failed to load AWS Amplify.");
-  };
+    amplifyScript.onerror = function () {
+      console.error("❌ Failed to load AWS Amplify.");
+    };
 
-  document.head.appendChild(amplifyScript);
-</script>
+    document.head.appendChild(amplifyScript);
+  </script>
 
 
 </body>
