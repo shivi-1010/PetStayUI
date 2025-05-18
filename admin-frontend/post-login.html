@@ -14,50 +14,47 @@
 <body>
   <p>🔐 Logging you in... Please wait.</p>
 
-  <!-- ✅ Local Amplify copy -->
-  <script src="/admin-frontend/aws-amplify.min.js"></script>
+  <!-- ✅ Load Amplify only once and wait for it -->
+  <script>
+    const script = document.createElement('script');
+    script.src = '/admin-frontend/aws-amplify.min.js';
+    script.onload = async () => {
+      try {
+        const Amplify = window.Amplify;
 
-<!-- Load Amplify script manually and wait for it to be ready -->
-<script>
-  const script = document.createElement('script');
-  script.src = '/admin-frontend/aws-amplify.min.js';
-  script.onload = async () => {
-    try {
-      const Amplify = window.Amplify;
+        Amplify.configure({
+          Auth: {
+            region: 'us-east-1',
+            userPoolId: 'us-east-1_I0PzIIZGM',
+            userPoolWebClientId: '4jfnrkopa8cb7r30i0i25gar8k',
+            oauth: {
+              domain: 'us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com',
+              scope: ['email', 'openid', 'phone'],
+              redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html',
+              redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
+              responseType: 'code',
+            },
+          }
+        });
 
-      Amplify.configure({
-        Auth: {
-          region: 'us-east-1',
-          userPoolId: 'us-east-1_I0PzIIZGM',
-          userPoolWebClientId: '4jfnrkopa8cb7r30i0i25gar8k',
-          oauth: {
-            domain: 'us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com',
-            scope: ['email', 'openid', 'phone'],
-            redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html',
-            redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
-            responseType: 'code',
-          },
+        if (window.location.search.includes("code=")) {
+          console.log("🔁 Found OAuth code, completing sign-in...");
+          await Amplify.Auth.federatedSignIn();
         }
-      });
 
-      if (window.location.search.includes("code=")) {
-        console.log("🔁 Found OAuth code, completing sign-in...");
-        await Amplify.Auth.federatedSignIn();
+        console.log("✅ Auth complete, redirecting...");
+        window.location.href = 'admin_dashboard.html?from=cognito';
+      } catch (err) {
+        console.error("❌ Final sign-in error:", err);
       }
+    };
 
-      console.log("✅ Auth complete, redirecting...");
-      window.location.href = 'admin_dashboard.html?from=cognito';
-    } catch (err) {
-      console.error("❌ Final sign-in error:", err);
-    }
-  };
+    script.onerror = () => {
+      console.error("❌ Amplify script could not be loaded.");
+    };
 
-  script.onerror = () => {
-    console.error("❌ Amplify script could not be loaded.");
-  };
-
-  document.head.appendChild(script);
-</script>
+    document.head.appendChild(script);
+  </script>
 
 </body>
 </html>
