@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <title>Redirecting...</title>
+    <script src="https://unpkg.com/aws-amplify@4.3.26/dist/aws-amplify.min.js"></script>
+    <script src="auth-check.js"></script>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -16,14 +18,13 @@
 
     <script>
       function waitForCodeToClearAndRedirect() {
-        // If code is still in the URL, Amplify hasn't finished yet
         const hasCode = window.location.search.includes("code=");
         if (!hasCode) {
           console.log("✅ OAuth code cleared, redirecting to dashboard...");
           window.location.href = "admin_dashboard.html?from=cognito";
         } else {
           console.log("⏳ Waiting for Amplify to process code...");
-          setTimeout(waitForCodeToClearAndRedirect, 500); // check again in 0.5s
+          setTimeout(waitForCodeToClearAndRedirect, 500);
         }
       }
 
