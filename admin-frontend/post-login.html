@@ -16,24 +16,30 @@
   <p>🔐 Logging you in... Please wait.</p>
 
   <script>
-    const amplifyAuthConfig = {
-      Auth: {
-        region: 'us-east-1',
-        userPoolId: 'us-east-1_I0PzIIZGM',
-        userPoolWebClientId: '4jfnrkopa8cb7r30i0i25gar8k',
-        oauth: {
-          domain: 'us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com',
-          scope: ['email', 'openid', 'phone'],
-          redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html',
-          redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
-          responseType: 'code',
-        },
+    window.addEventListener('load', async () => {
+      if (!window.Amplify || !window.Amplify.Auth) {
+        console.error("❌ Amplify library not loaded properly.");
+        return;
       }
-    };
 
-    Amplify.configure(amplifyAuthConfig);
+      const amplifyAuthConfig = {
+        Auth: {
+          region: 'us-east-1',
+          userPoolId: 'us-east-1_I0PzIIZGM',
+          userPoolWebClientId: '4jfnrkopa8cb7r30i0i25gar8k',
+          oauth: {
+            domain: 'us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com',
+            scope: ['email', 'openid', 'phone'],
+            redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html',
+            redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
+            responseType: 'code',
+          },
+        }
+      };
 
-    async function completeLoginAndRedirect() {
+      const Amplify = window.Amplify;
+      Amplify.configure(amplifyAuthConfig);
+
       try {
         if (window.location.search.includes('code=')) {
           console.log("🔁 Found OAuth code, signing in...");
@@ -44,13 +50,11 @@
         console.error("❌ OAuth sign-in failed:", err);
       }
 
-      // Wait for Amplify to finalize session
+      // Wait a little for session establishment
       setTimeout(() => {
         window.location.href = 'admin_dashboard.html?from=cognito';
       }, 1500);
-    }
-
-    completeLoginAndRedirect();
+    });
   </script>
 </body>
 </html>
