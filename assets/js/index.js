@@ -13,18 +13,19 @@ document.getElementById('left-button')?.addEventListener('click', () => {
 
 
 // Redirect to Admin Login via Cognito Hosted UI
+// Redirect to Admin Login via Cognito Hosted UI
 document.getElementById('right-button')?.addEventListener('click', () => {
-  const clientId = 'd9cmu6gjb0aj5hcjak6tv72a9';
-  const domain = 'us-east-1hgomakakg.auth.us-east-1.amazoncognito.com'; 
-  const redirectUri = encodeURIComponent('https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/admin_dashboard.html');
+  const clientId = '4jfnrkopa8cb7r30i0i25gar8k';
+  const domain = 'us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com'; 
+  const redirectUri = encodeURIComponent('https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/admin_dashboard.html?from=index');
 
   const loginUrl = `https://${domain}/login?client_id=${clientId}&response_type=code&scope=email+openid+phone&redirect_uri=${redirectUri}`;
-
 
   window.location.href = loginUrl;
 });
 
-// ✨ Hover effect logic for split landing page
+
+// Hover effect logic for split landing page
 const content = document.querySelector(".content");
 const left = document.querySelector(".left");
 const right = document.querySelector(".right");

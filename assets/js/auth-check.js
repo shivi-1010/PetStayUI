@@ -6,16 +6,17 @@ const Hub = window.aws_amplify?.Hub || window.Amplify?.Hub;
 
 const amplifyAuthConfig = {
   region: 'us-east-1',
-  userPoolId: 'us-east-1_HgoMAkakG',
-  userPoolWebClientId: 'd9cmu6gjb0aj5hcjak6tv72a9',
+  userPoolId: 'us-east-1_I0PzIIZGM',
+  userPoolWebClientId: '4jfnrkopa8cb7r30i0i25gar8k',
   oauth: {
-    domain: 'us-east-1hgomakakg.auth.us-east-1.amazoncognito.com',
+    domain: 'us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com',
     scope: ['email', 'openid', 'phone'],
     redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/admin_dashboard.html',
     redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
     responseType: 'code',
   }
 };
+
 
 if (!Amplify || typeof Amplify.configure !== 'function') {
   console.error("❌ Amplify not available or misconfigured.");
@@ -56,6 +57,9 @@ function updateAdminEmail(email) {
     } catch (err) {
       console.warn("❌ Could not fetch authenticated user:", err);
 
+      const urlParams = new URLSearchParams(window.location.search);
+      const justCameFromIndex = urlParams.get("from") === "index";
+
       if (err === 'not authenticated' || err.name === 'NoCurrentUser') {
         console.warn("⚠️ No session found — user is not signed in.");
       } else {
@@ -64,7 +68,13 @@ function updateAdminEmail(email) {
 
       updateAdminEmail("Not signed in");
 
-      // Redirect to login if not authenticated
+      // ⛔ Prevent redirect loop if already came from index.html
+      if (justCameFromIndex) {
+        console.warn("🚫 Avoiding redirect — already came from index.html");
+        return;
+      }
+
+      // ✅ Redirect to login if not authenticated
       const { domain, redirectSignIn } = amplifyAuthConfig.oauth;
       const clientId = amplifyAuthConfig.userPoolWebClientId;
 
@@ -77,6 +87,7 @@ function updateAdminEmail(email) {
       window.location.replace(loginUrl.toString());
     }
   }
+
 
   Hub.listen('auth', (data) => {
     const { payload } = data;
