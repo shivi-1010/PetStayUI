@@ -12,13 +12,13 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
   Amplify.configure({
     Auth: {
       region: 'us-east-1',
-      userPoolId: 'us-east-1_sS3D9GHIP',
-      userPoolWebClientId: '5q7vn6voeac087nisn42ie3cau',
+      userPoolId: 'us-east-1_sS3D9GHlP',
+      userPoolWebClientId: 'd9cmu6gjb0aj5hcjak6tv72a9',
       oauth: {
-        domain: 'petstay-admin.auth.us-east-1.amazoncognito.com',
+        domain: 'us-east-1hgomakakg.auth.us-east-1.amazoncognito.com',
         scope: ['email', 'openid', 'profile'],
-        redirectSignIn: 'https://master.dcglvvmmzr1w5.amplifyapp.com/admin-frontend/admin_dashboard.html',
-        redirectSignOut: 'https://master.dcglvvmmzr1w5.amplifyapp.com/index.html',
+        redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/admin_dashboard.html',
+        redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
         responseType: 'code',
       }
     }

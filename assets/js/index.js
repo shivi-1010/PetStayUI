@@ -14,9 +14,9 @@ document.getElementById('left-button')?.addEventListener('click', () => {
 
 // Redirect to Admin Login via Cognito Hosted UI
 document.getElementById('right-button')?.addEventListener('click', () => {
-  const clientId = '5q7vn6voeac087nisn42ie3cau';
-  const domain = 'petstay-admin.auth.us-east-1.amazoncognito.com'; 
-  const redirectUri = encodeURIComponent('https://master.dcglvvmmzr1w5.amplifyapp.com/admin-frontend/admin_dashboard.html');
+  const clientId = 'd9cmu6gjb0aj5hcjak6tv72a9';
+  const domain = 'us-east-1hgomakakg.auth.us-east-1.amazoncognito.com'; 
+  const redirectUri = encodeURIComponent('https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/admin_dashboard.html');
 
   const loginUrl = `https://${domain}/login?client_id=${clientId}&response_type=code&scope=email+openid+profile&redirect_uri=${redirectUri}`;
 
