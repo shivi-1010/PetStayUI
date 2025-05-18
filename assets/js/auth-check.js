@@ -27,14 +27,14 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
 
 function updateAdminEmail(email) {
   console.log("🧩 updateAdminEmail called with:", email);
-  
+
   const fallback = email || "Not signed in";
+
   const emailEl = document.getElementById('adminEmail');
   if (emailEl) {
-    const spinner = emailEl.querySelector('.spinner-border');
-    if (spinner) spinner.remove();
-    emailEl.textContent = fallback;
-    console.log("📩 Email set in adminEmail span:", fallback);
+    // Clear spinner and set text content safely
+    emailEl.innerHTML = fallback;
+    console.log("📩 Email set in #adminEmail:", fallback);
   } else {
     console.warn("⚠️ Element #adminEmail not found in DOM");
   }
@@ -42,51 +42,59 @@ function updateAdminEmail(email) {
   const dropdownEl = document.getElementById('adminEmailDropdown');
   if (dropdownEl) {
     dropdownEl.textContent = fallback;
+    console.log("📩 Email set in #adminEmailDropdown:", fallback);
+  } else {
+    console.warn("⚠️ Element #adminEmailDropdown not found in DOM");
+  }
+}
+  console.log("✅ Amplify configured successfully");
+  console.log("🔄 Checking user authentication status...");
+
+
+async function checkUser() {
+  try {
+    const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
+    console.log("✅ Raw user object:", user);
+
+    const attributes = await Auth.userAttributes(user);
+        console.log("🔍 Full user attributes:", attributes);  // 🔥 ADD THIS LINE
+    const emailAttr = attributes.find(attr => attr.Name === "email");
+    const email = emailAttr ? emailAttr.Value : "Email not available";
+
+    console.log("📧 Email from user attributes:", email);
+    updateAdminEmail(email);
+  } catch (err) {
+    console.warn("❌ Could not fetch authenticated user:", err);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const justCameFromIndex = urlParams.get("from") === "index";
+
+    if (err === 'not authenticated' || err.name === 'NoCurrentUser') {
+      console.warn("⚠️ No session found — user is not signed in.");
+    } else {
+      console.error("🔴 Unexpected auth error:", err);
+    }
+
+    updateAdminEmail("Not signed in");
+
+    if (justCameFromIndex) {
+      console.warn("🚫 Avoiding redirect — already came from index.html");
+      return;
+    }
+
+    const { domain, redirectSignIn } = amplifyAuthConfig.oauth;
+    const clientId = amplifyAuthConfig.userPoolWebClientId;
+
+    const loginUrl = new URL(`https://${domain}/login`);
+    loginUrl.searchParams.set('client_id', clientId);
+    loginUrl.searchParams.set('response_type', 'code');
+    loginUrl.searchParams.set('scope', 'email openid phone');
+    loginUrl.searchParams.set('redirect_uri', redirectSignIn);
+    console.log("🔁 Redirecting to login page...");
+    window.location.replace(loginUrl.toString());
   }
 }
 
-
-  async function checkUser() {
-    try {
-      const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
-      console.log("✅ Raw user object:", user);
-
-      const email = user.attributes?.email || "Email not available";
-      console.log("📧 Email from ID token:", email);
-      updateAdminEmail(email);
-    } catch (err) {
-      console.warn("❌ Could not fetch authenticated user:", err);
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const justCameFromIndex = urlParams.get("from") === "index";
-
-      if (err === 'not authenticated' || err.name === 'NoCurrentUser') {
-        console.warn("⚠️ No session found — user is not signed in.");
-      } else {
-        console.error("🔴 Unexpected auth error:", err);
-      }
-
-      updateAdminEmail("Not signed in");
-
-      // ⛔ Prevent redirect loop if already came from index.html
-      if (justCameFromIndex) {
-        console.warn("🚫 Avoiding redirect — already came from index.html");
-        return;
-      }
-
-      // ✅ Redirect to login if not authenticated
-      const { domain, redirectSignIn } = amplifyAuthConfig.oauth;
-      const clientId = amplifyAuthConfig.userPoolWebClientId;
-
-      const loginUrl = new URL(`https://${domain}/login`);
-      loginUrl.searchParams.set('client_id', clientId);
-      loginUrl.searchParams.set('response_type', 'code');
-      loginUrl.searchParams.set('scope', 'email openid phone');
-      loginUrl.searchParams.set('redirect_uri', redirectSignIn);
-      console.log("🔁 Redirecting to login page...");
-      window.location.replace(loginUrl.toString());
-    }
-  }
 
 
   Hub.listen('auth', (data) => {
