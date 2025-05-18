@@ -17,7 +17,8 @@ document.getElementById('left-button')?.addEventListener('click', () => {
 document.getElementById('right-button')?.addEventListener('click', () => {
   const clientId = '4jfnrkopa8cb7r30i0i25gar8k';
   const domain = 'us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com'; 
-  const redirectUri = encodeURIComponent('https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/admin_dashboard.html');
+ const redirectUri = encodeURIComponent('https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html');
+
 
   const loginUrl = `https://${domain}/login?client_id=${clientId}&response_type=code&scope=email+openid+phone&redirect_uri=${redirectUri}`;
 
