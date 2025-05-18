@@ -13,9 +13,9 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
     Auth: {
       region: 'us-east-1',
       userPoolId: 'us-east-1_sS3D9GHIP',
-      userPoolWebClientId: '5bupuv4hbea64uvljbr6kjtihg',
+      userPoolWebClientId: '5q7vn6voeac087nisn42ie3cau',
       oauth: {
-        domain: 'us-east-1ss3d9ghlp.auth.us-east-1.amazoncognito.com',
+        domain: 'petstay-admin.auth.us-east-1.amazoncognito.com',
         scope: ['email', 'openid', 'profile'],
         redirectSignIn: 'https://master.dcglvvmmzr1w5.amplifyapp.com/admin-frontend/admin_dashboard.html',
         redirectSignOut: 'https://master.dcglvvmmzr1w5.amplifyapp.com/index.html',
