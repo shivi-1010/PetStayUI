@@ -1,30 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Redirecting...</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding-top: 80px;
-    }
-  </style>
-</head>
-<body>
-  <p>🔐 Logging you in... Please wait.</p>
-
-  <!-- ✅ Load Amplify only once and wait for it -->
-<script>
-  const script = document.createElement('script');
-  script.src = '/admin-frontend/aws-amplify.min.js';
-  script.onload = async () => {
-    try {
+  <script src="/admin-frontend/aws-amplify.min.js"></script>
+  <script>
+    window.addEventListener('load', async () => {
       const Amplify = window.aws_amplify?.default;
       const Auth = window.aws_amplify?.Auth;
 
       if (!Amplify || !Auth) {
-        throw new Error("Amplify or Auth not available on window");
+        console.error("❌ Amplify not available.");
+        return;
       }
 
       Amplify.configure({
@@ -37,30 +24,23 @@
             scope: ['email', 'openid', 'phone'],
             redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html',
             redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
-            responseType: 'code',
-          },
+            responseType: 'code'
+          }
         }
       });
 
-      if (window.location.search.includes("code=")) {
-        console.log("🔁 Found OAuth code, completing sign-in...");
-        await Auth.federatedSignIn();
+      try {
+        console.log("🔁 Handling OAuth redirect");
+        await Auth.currentAuthenticatedUser(); // <-- This will trigger internal token exchange
+        console.log("✅ Session active. Redirecting to dashboard...");
+        window.location.href = 'admin_dashboard.html?from=cognito';
+      } catch (err) {
+        console.error("❌ User not authenticated yet:", err);
       }
-
-      console.log("✅ Auth complete, redirecting...");
-      window.location.href = 'admin_dashboard.html?from=cognito';
-    } catch (err) {
-      console.error("❌ Final sign-in error:", err);
-    }
-  };
-
-  script.onerror = () => {
-    console.error("❌ Amplify script could not be loaded.");
-  };
-
-  document.head.appendChild(script);
-</script>
-
-
+    });
+  </script>
+</head>
+<body>
+  <p>🔐 Logging you in... Please wait.</p>
 </body>
 </html>
