@@ -325,19 +325,21 @@
   <script src="/assets/js/polyfill.js"></script>
   <script src="/assets/js/main.js"></script>
 <script>
-  const amplifyScript = document.createElement('script');
+   const amplifyScript = document.createElement('script');
   amplifyScript.src = "https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js";
-  
+
   amplifyScript.onload = function () {
     console.log("✅ Amplify is loaded");
+
+    window.Amplify = window.aws_amplify;
 
     const authScript = document.createElement('script');
     authScript.src = "/assets/js/auth-check.js";
     document.body.appendChild(authScript);
   };
-  
+
   amplifyScript.onerror = function () {
-    console.error("❌ Failed to load Amplify.");
+    console.error("❌ Failed to load AWS Amplify.");
   };
 
   document.head.appendChild(amplifyScript);

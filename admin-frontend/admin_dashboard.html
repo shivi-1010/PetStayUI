@@ -475,6 +475,9 @@
   amplifyScript.onload = function () {
     console.log("✅ Amplify is loaded");
 
+    // ✅ Assign it to global Amplify for compatibility
+    window.Amplify = window.aws_amplify;
+
     const authScript = document.createElement('script');
     authScript.src = "/assets/js/auth-check.js";
     document.body.appendChild(authScript);
