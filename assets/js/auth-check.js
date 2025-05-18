@@ -16,7 +16,7 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
       userPoolWebClientId: 'd9cmu6gjb0aj5hcjak6tv72a9',
       oauth: {
         domain: 'us-east-1hgomakakg.auth.us-east-1.amazoncognito.com',
-        scope: ['email', 'openid', 'profile'],
+        scope: ['email', 'openid', 'phone'],
         redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/admin_dashboard.html',
         redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
         responseType: 'code',
