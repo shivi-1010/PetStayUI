@@ -1,3 +1,5 @@
+<!-- //booking-success.html// -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,40 +35,38 @@
 
   <script src="../assets/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/main.js"></script>
-  <!-- <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      // Get BookingID from URL query string
-      const urlParams = new URLSearchParams(window.location.search);
-      const bookingId = urlParams.get('bookingId');
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const qrCodeData = sessionStorage.getItem('qrCodeBase64');
+    const bookingId = sessionStorage.getItem('BookingID');
 
-      if (!bookingId) {
-        document.getElementById('qrcode').innerHTML = "<p class='text-danger'>Booking ID not found.</p>";
-        return;
-      }
+    if (!qrCodeData || !bookingId) {
+      document.getElementById('qrcode').innerHTML = "<p class='text-danger'>QR code not found.</p>";
+      return;
+    }
 
-      // Generate QR code
-      const qrCode = new QRCode(document.getElementById("qrcode"), {
-        text: bookingId,
-        width: 200,
-        height: 200,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
-      });
+    // Display QR code image
+    const img = document.createElement('img');
+    img.src = `data:image/png;base64,${qrCodeData}`;
+    img.alt = "QR Code";
+    img.style.width = '200px';
+    img.style.height = '200px';
+    document.getElementById('qrcode').appendChild(img);
 
-      // Enable QR code download
-      document.getElementById('downloadQR').addEventListener('click', function () {
-        const qrImg = document.querySelector('#qrcode img') || document.querySelector('#qrcode canvas');
-        if (qrImg) {
-          const link = document.createElement('a');
-          link.href = qrImg.src || qrImg.toDataURL("image/png");
-          link.download = `PetStay-Booking-${bookingId}.png`;
-          link.click();
-        } else {
-          alert('QR Code not generated yet.');
-        }
-      });
+    // Download button logic
+    document.getElementById('downloadQR').addEventListener('click', function () {
+      const link = document.createElement('a');
+      link.href = img.src;
+      link.download = `PetStay-Booking-${bookingId}.png`;
+      link.click();
     });
-  </script> -->
+
+    // Optional: Clean up sessionStorage after showing
+    sessionStorage.removeItem('qrCodeBase64');
+    sessionStorage.removeItem('BookingID');
+  });
+</script>
+
+
 </body>
 </html>
