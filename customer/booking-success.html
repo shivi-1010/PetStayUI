@@ -6,65 +6,67 @@
   <title>Booking Successful | PetStay</title>
   <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
   <link rel="stylesheet" href="../assets/css/main.css" />
-    <link rel="stylesheet" href="../assets/css/customer.css" />
+  <link rel="stylesheet" href="../assets/css/customer.css" />
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-
 </head>
 <body>
-<div class="confirmation-wrapper">
-<main class="main-wrapper ">
-  <section class="booking-success-section">
-    <div class="container text-center pt-5">
-      <h2 class="fw-bold mb-2">🎉 Booking Confirmed!</h2>
-      <p class="text-muted">Thank you for choosing PetStay. Use the QR code below for check-in.</p>
+  <div class="confirmation-wrapper">
+    <main class="main-wrapper">
+      <section class="booking-success-section">
+        <div class="container text-center pt-5">
+          <h2 class="fw-bold mb-2">🎉 Booking Confirmed!</h2>
+          <p class="text-muted">Thank you for choosing PetStay. Use the QR code below for check-in.</p>
 
-      <div class="qr-card mx-auto mt-4">
-        <h5 class="fw-semibold mb-3">Your Check-In QR Code</h5>
-        <div id="qrcode" class="qr-code-wrapper"></div>
+          <div class="qr-card mx-auto mt-4">
+            <h5 class="fw-semibold mb-3">Your Check-In QR Code</h5>
+            <div id="qrcode" class="qr-code-wrapper"></div>
 
-        <button id="downloadQR" class="btn btn-primary w-100 mt-3">Download QR Code</button>
-        <p class="small text-muted mt-3">Please present this QR code at the reception during check-in.</p>
-      </div>
+            <button id="downloadQR" class="btn btn-primary w-100 mt-3">Download QR Code</button>
+            <p class="small text-muted mt-3">Please present this QR code at the reception during check-in.</p>
+          </div>
 
-      <a href="new-booking.html" class="btn btn-secondary mt-4">Make Another Booking</a>
-    </div>
-  </section>
-</main>
-</div>
+          <a href="new-booking.html" class="btn btn-secondary mt-4">Make Another Booking</a>
+        </div>
+      </section>
+    </main>
+  </div>
 
+  <script src="../assets/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <!-- <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Get BookingID from URL query string
+      const urlParams = new URLSearchParams(window.location.search);
+      const bookingId = urlParams.get('bookingId');
 
-<script src="../assets/js/bootstrap.bundle.min.js"></script>
-<script src="../assets/js/main.js"></script>
-<script>
-// Generate QR Code
-document.addEventListener('DOMContentLoaded', function() {
-  var qrCode = new QRCode(document.getElementById("qrcode"), {
-    text: "BookingID-12345678",  // Replace with dynamic booking ID
-    width: 200,
-    height: 200,
-    colorDark: "#000000",
-    colorLight: "#ffffff",
-    correctLevel: QRCode.CorrectLevel.H
-  });
+      if (!bookingId) {
+        document.getElementById('qrcode').innerHTML = "<p class='text-danger'>Booking ID not found.</p>";
+        return;
+      }
 
-  // Download QR Code as image
-  document.getElementById('downloadQR').addEventListener('click', function() {
-    // Find canvas or image inside QRCode div
-    const qrImg = document.querySelector('#qrcode img') || document.querySelector('#qrcode canvas');
-    
-    if (qrImg) {
-      // Create a temporary link to trigger download
-      const link = document.createElement('a');
-      link.href = qrImg.src || qrImg.toDataURL("image/png");
-      link.download = 'PetStay-Booking-QR.png';
-      link.click();
-    } else {
-      alert('QR Code not generated yet.');
-    }
-  });
-});
-</script>
+      // Generate QR code
+      const qrCode = new QRCode(document.getElementById("qrcode"), {
+        text: bookingId,
+        width: 200,
+        height: 200,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
 
-
+      // Enable QR code download
+      document.getElementById('downloadQR').addEventListener('click', function () {
+        const qrImg = document.querySelector('#qrcode img') || document.querySelector('#qrcode canvas');
+        if (qrImg) {
+          const link = document.createElement('a');
+          link.href = qrImg.src || qrImg.toDataURL("image/png");
+          link.download = `PetStay-Booking-${bookingId}.png`;
+          link.click();
+        } else {
+          alert('QR Code not generated yet.');
+        }
+      });
+    });
+  </script> -->
 </body>
 </html>
