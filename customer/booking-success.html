@@ -51,7 +51,8 @@
     }
 
     // Update heading with customer's name
-    title.innerText = `🎉 Booking Confirmed, ${ownerName}!`;
+  title.innerText = `🎉 Booking Confirmed${ownerName ? ', ' + ownerName : ''}!`;
+
 
     // Render QR code image
     const img = document.createElement('img');
