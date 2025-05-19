@@ -16,12 +16,12 @@
       <div class="container">
         <div class="title-wrapper text-center pt-4">
           <h2>Book Your Pet With Us !</h2>
-          <p> A new pet stay reservation</p>
+          <p>A new pet stay reservation</p>
         </div>
 
         <div class="form-elements-wrapper mt-4">
           <div class="card-style">
-            <form action="booking-success.html" method="POST">
+            <form id="bookingForm">
 
               <!-- Owner Information -->
               <h5 class="mb-3">🐾 Owner Information</h5>
@@ -63,7 +63,6 @@
                         <option value="">Select Species</option>
                         <option>Dog</option>
                         <option>Cat</option>
-                       
                       </select>
                     </div>
                   </div>
@@ -80,18 +79,6 @@
                     <input type="number" name="petAge" placeholder="Pet Age" min="0" required />
                   </div>
                 </div>
-                <!-- <div class="col-md-4">
-                  <div class="select-style-1">
-                    <label>Vaccinated</label>
-                    <div class="select-position">
-                      <select name="vaccinated" required>
-                        <option value="">Select</option>
-                        <option>Yes</option>
-                        <option>No</option>
-                      </select>
-                    </div>
-                  </div>
-                </div> -->
               </div>
 
               <!-- Booking Details -->
@@ -117,12 +104,6 @@
                 </div>
               </div>
 
-              <!-- Special Instructions
-              <div class="input-style-1 mt-3">
-                <label>Special Instructions</label>
-                <textarea name="specialInstructions" rows="3" placeholder="Any dietary, medical, or special needs?"></textarea>
-              </div> -->
-
               <!-- Submit Button -->
               <div class="text-center mt-4">
                 <button type="submit" class="main-btn primary-btn btn-hover">Book Now</button>
@@ -139,5 +120,47 @@
 
 <script src="../assets/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/js/main.js"></script>
+
+<!-- 📦 Booking Form Submission Script -->
+<script>
+  document.getElementById("bookingForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const data = {
+      OwnerName: formData.get("ownerName"),
+      Email: formData.get("email"),
+      PhoneNumber: formData.get("phone"),
+      PetName: formData.get("petName"),
+      PetSpecies: formData.get("petSpecies"),
+      PetBreed: formData.get("petBreed"),
+      PetAge: formData.get("petAge"),
+      CheckInDate: formData.get("checkInDate"),
+      CheckOutDate: formData.get("checkOutDate"),
+      ArrivalTime: formData.get("arrivalTime")
+    };
+
+    try {
+      const response = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/newbooking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        sessionStorage.setItem("BookingID", result.BookingID || "Unavailable");
+        window.location.href = "booking-success.html";
+      } else {
+        alert("Failed: " + (result.message || "Unknown error"));
+      }
+    } catch (err) {
+      alert("Error: " + err.message);
+      console.error(err);
+    }
+  });
+</script>
+
 </body>
 </html>

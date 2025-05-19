@@ -1,3 +1,4 @@
+// File: assets/js/auth-check.js
 console.log("auth-check.js loaded");
 
 const Amplify = window.aws_amplify?.Amplify || window.Amplify;
