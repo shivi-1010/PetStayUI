@@ -40,14 +40,13 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
       const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
       console.log("✅ Raw user object:", user);
 
-      const attributes = await Auth.userAttributes(user);
-      console.log("🔍 Full user attributes:", attributes);
+      const session = await Auth.currentSession();
+      const idTokenPayload = session.getIdToken().decodePayload();
+      const email = idTokenPayload?.email || user.getUsername() || "Email not available";
 
-      const emailAttr = attributes.find(attr => attr.Name === "email");
-      const email = emailAttr ? emailAttr.Value : user.getUsername() || "Email not available";
-
-      console.log("📧 Email from user attributes:", email);
+      console.log("📧 Email from ID token payload:", email);
       updateAdminEmail(email);
+
 
       // ✅ Clean up URL after login (remove ?from=cognito)
       if (urlParams.get("from") === "cognito") {
