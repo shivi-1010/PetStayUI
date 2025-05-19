@@ -1,4 +1,4 @@
-console.log("✅ auth-check.js loaded");
+console.log("auth-check.js loaded");
 
 const Amplify = window.aws_amplify?.Amplify || window.Amplify;
 const Auth = window.aws_amplify?.Auth || window.Amplify?.Auth;
@@ -18,19 +18,19 @@ const amplifyAuthConfig = {
 };
 
 if (!Amplify || typeof Amplify.configure !== 'function') {
-  console.error("❌ Amplify not available or misconfigured.");
+  console.error("Amplify not available or misconfigured.");
 } else if (!Auth || !Hub) {
-  console.error("❌ Amplify.Auth or Amplify.Hub is missing. Cannot proceed.");
+  console.error("Amplify.Auth or Amplify.Hub is missing. Cannot proceed.");
 } else {
   Amplify.configure({ Auth: amplifyAuthConfig });
 
   Auth.currentSession()
     .then(session => {
-      console.log("✅ Session exists:", session);
+      console.log("Session exists:", session);
       checkUser();
     })
     .catch(err => {
-      console.warn("ℹ️ No active session yet:", err.message);
+      console.warn("No active session yet:", err.message);
     });
 
   async function checkUser(retry = false) {
@@ -38,26 +38,26 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
 
     try {
       const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
-      console.log("✅ Raw user object:", user);
+      console.log("Raw user object:", user);
 
       const session = await Auth.currentSession();
       const idTokenPayload = session.getIdToken().decodePayload();
       const email = idTokenPayload?.email || user.getUsername() || "Email not available";
 
-      console.log("📧 Email from ID token payload:", email);
+      console.log("Email from ID token payload:", email);
       updateAdminEmail(email);
 
 
-      // ✅ Clean up URL after login (remove ?from=cognito)
+      // Clean up URL after login (remove ?from=cognito)
       if (urlParams.get("from") === "cognito") {
         const cleanUrl = window.location.origin + window.location.pathname;
         window.history.replaceState({}, document.title, cleanUrl);
       }
     } catch (err) {
-      console.warn("❌ Could not fetch authenticated user:", err.name, err.message);
+      console.warn(" Could not fetch authenticated user:", err.name, err.message);
 
       if (!retry) {
-        console.warn("⏱ Retrying user check after 1s...");
+        console.warn("Retrying user check after 1s...");
         return setTimeout(() => checkUser(true), 1000);
       }
 
@@ -67,7 +67,7 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
       const cameFromCognito = urlParams.get("from") === "cognito";
 
       if (justCameFromIndex || cameFromCognito) {
-        console.warn("🚫 Avoiding redirect loop after login");
+        console.warn("Avoiding redirect loop after login");
         return;
       }
 
@@ -87,42 +87,42 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
   }
 
   function updateAdminEmail(email) {
-    console.log("🧩 updateAdminEmail called with:", email);
+    console.log("updateAdminEmail called with:", email);
     const fallback = email || "Not signed in";
 
     const emailEl = document.getElementById('adminEmail');
     if (emailEl) {
       emailEl.innerHTML = fallback;
-      console.log("📩 Email set in #adminEmail:", fallback);
+      console.log("Email set in #adminEmail:", fallback);
     } else {
-      console.warn("⚠️ Element #adminEmail not found in DOM");
+      console.warn("Element #adminEmail not found in DOM");
     }
 
     const dropdownEl = document.getElementById('adminEmailDropdown');
     if (dropdownEl) {
       dropdownEl.textContent = fallback;
-      console.log("📩 Email set in #adminEmailDropdown:", fallback);
+      console.log("Email set in #adminEmailDropdown:", fallback);
     } else {
-      console.warn("⚠️ Element #adminEmailDropdown not found in DOM");
+      console.warn("Element #adminEmailDropdown not found in DOM");
     }
   }
 
   Hub.listen('auth', (data) => {
     const { payload } = data;
     if (payload.event === 'signIn') {
-      console.log("🔔 Auth event: signIn");
+      console.log("Auth event: signIn");
       checkUser();
     } else if (payload.event === 'signOut') {
-      console.log("🔔 Auth event: signOut");
+      console.log("Auth event: signOut");
     }
   });
 
   window.signOutUser = function () {
-    console.log("➡️ Sign out triggered");
+    console.log("Sign out triggered");
 
     Auth.currentSession()
       .then(session => {
-        console.log("🪪 Session found");
+        console.log("Session found");
         const idToken = session.getIdToken().getJwtToken();
         return Auth.signOut({ global: true }).then(() => idToken);
       })
@@ -134,11 +134,11 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
         logoutUrl.searchParams.append('client_id', clientId);
         logoutUrl.searchParams.append('logout_uri', redirectSignOut);
         logoutUrl.searchParams.append('id_token_hint', idToken);
-        console.log("🚀 Redirecting to:", logoutUrl.toString());
+        console.log("Redirecting to:", logoutUrl.toString());
         window.location.replace(logoutUrl.toString());
       })
       .catch(err => {
-        console.error("❌ Sign out failed:", err);
+        console.error("Sign out failed:", err);
         window.location.replace(amplifyAuthConfig.oauth.redirectSignOut);
       });
   };
@@ -150,10 +150,10 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
       const retryAttachSignOut = () => {
         const signOutEl = document.getElementById("signOutBtn");
         if (signOutEl) {
-          console.log("✅ Sign out button found, attaching handler");
+          console.log("Sign out button found, attaching handler");
           signOutEl.addEventListener("click", window.signOutUser);
         } else {
-          console.warn("⚠️ Sign out button NOT found, retrying...");
+          console.warn("Sign out button NOT found, retrying...");
           setTimeout(retryAttachSignOut, 300);
         }
       };
