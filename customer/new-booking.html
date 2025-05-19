@@ -129,18 +129,18 @@
       e.preventDefault();
 
       const formData = new FormData(this);
-     const data = {
-  OwnerName: formData.get("ownerName"),
-  Email: formData.get("email"),
-  PhoneNumber: formData.get("phone"),
-  PetName: formData.get("petName"),
-  PetSpecies: formData.get("petSpecies"),
-  PetBreed: formData.get("petBreed"),
-  PetAge: formData.get("petAge"),
-  CheckInDate: formData.get("checkInDate"),
-  CheckOutDate: formData.get("checkOutDate"),
-  ArrivalTime: formData.get("arrivalTime")
-};
+      const data = {
+        OwnerName: formData.get("ownerName"),
+        Email: formData.get("email"),
+        PhoneNumber: formData.get("phone"),
+        PetName: formData.get("petName"),
+        PetSpecies: formData.get("petSpecies"),
+        PetBreed: formData.get("petBreed"),
+        PetAge: formData.get("petAge"),
+        CheckInDate: formData.get("checkInDate"),
+        CheckOutDate: formData.get("checkOutDate"),
+        ArrivalTime: formData.get("arrivalTime")
+      };
 
 
       try {
