@@ -2,6 +2,7 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,12 +12,13 @@
   <link rel="stylesheet" href="../assets/css/customer.css" />
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
+
 <body>
   <div class="confirmation-wrapper">
     <main class="main-wrapper">
       <section class="booking-success-section">
         <div class="container text-center pt-5">
-          <h2 class="fw-bold mb-2">🎉 Booking Confirmed!</h2>
+          <h2 class="fw-bold mb-2">Booking Confirmed!</h2>
           <p class="text-muted">Thank you for choosing PetStay. Use the QR code below for check-in.</p>
 
           <div class="qr-card mx-auto mt-4">
@@ -24,7 +26,12 @@
             <div id="qrcode" class="qr-code-wrapper"></div>
 
             <button id="downloadQR" class="btn btn-primary w-100 mt-3">Download QR Code</button>
+            <button onclick="window.print()" class="btn btn-outline-secondary mt-2 w-100">Print This Page</button>
+
             <p class="small text-muted mt-3">Please present this QR code at the reception during check-in.</p>
+
+            <div id="toast-msg" class="alert alert-success mt-3 d-none" role="alert">QR Code Downloaded </div>
+
           </div>
 
           <a href="new-booking.html" class="btn btn-secondary mt-4">Make Another Booking</a>
@@ -35,55 +42,78 @@
 
   <script src="../assets/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/main.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const qrCodeData = sessionStorage.getItem('qrCodeBase64');
-    const bookingId = sessionStorage.getItem('BookingID');
-    const ownerName = sessionStorage.getItem('OwnerName');
 
-    const title = document.querySelector('h2.fw-bold.mb-2');
-    const qrWrapper = document.getElementById('qrcode');
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script>
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+  </script>
 
-    // Validate data presence
-    if (!qrCodeData || !bookingId || !ownerName) {
-      qrWrapper.innerHTML = "<p class='text-danger'>⚠️ Booking info not found. Please try again.</p>";
-      return;
-    }
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const qrCodeData = sessionStorage.getItem('qrCodeBase64');
+      const bookingId = sessionStorage.getItem('BookingID');
+      const ownerName = sessionStorage.getItem('OwnerName');
 
-    // Update heading with customer's name
-  title.innerText = `🎉 Booking Confirmed${ownerName ? ', ' + ownerName : ''}!`;
+      const title = document.querySelector('h2.fw-bold.mb-2');
+      const qrWrapper = document.getElementById('qrcode');
+
+      // Validate data presence
+      if (!qrCodeData || !bookingId || !ownerName) {
+        qrWrapper.innerHTML = "<p class='text-danger'> Booking info not found. Please try again.</p>";
+        return;
+      }
+
+      // Trigger confetti only when valid data is found
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 
 
-    // Render QR code image
-    const img = document.createElement('img');
-    img.src = `data:image/png;base64,${qrCodeData}`;
-    img.alt = "QR Code";
-    img.style.width = '200px';
-    img.style.height = '200px';
-    qrWrapper.appendChild(img);
+      const capName = ownerName.charAt(0).toUpperCase() + ownerName.slice(1);
+      // Update heading with customer's name
+      title.innerText = `🎉 Booking Confirmed${capName ? ', ' + capName : ''}!`;
 
-    // Show Booking ID below QR code
-    const bookingIdText = document.createElement('p');
-    bookingIdText.className = 'mt-3 fw-semibold';
-    bookingIdText.innerText = `Your Booking ID: ${bookingId}`;
-    qrWrapper.appendChild(bookingIdText);
 
-    // Download button logic
-    document.getElementById('downloadQR').addEventListener('click', function () {
-      const link = document.createElement('a');
-      link.href = img.src;
-      link.download = `PetStay-Booking-${bookingId}.png`;
-      link.click();
+
+      // Show Booking ID above QR code
+      const bookingIdText = document.createElement('p');
+      bookingIdText.className = 'mt-3 fw-semibold';
+      bookingIdText.innerText = `Your Booking ID: ${bookingId}`;
+      bookingIdText.style.textAlign = 'center';
+      qrWrapper.appendChild(bookingIdText);
+
+      // Render QR code image below the booking ID
+      const img = document.createElement('img');
+      img.src = `data:image/png;base64,${qrCodeData}`;
+      img.alt = "QR Code";
+      img.style.width = '200px';
+      img.style.height = '200px';
+      img.style.display = 'block';
+      img.style.margin = '20px auto';
+      qrWrapper.appendChild(img);
+
+
+      // Download button logic
+      document.getElementById('downloadQR').addEventListener('click', function () {
+        const link = document.createElement('a');
+        link.href = img.src;
+        link.download = `PetStay-Booking-${bookingId}.png`;
+        link.click();
+        // Show toast message
+        const toast = document.getElementById('toast-msg');
+        toast.classList.remove('d-none');
+        setTimeout(() => toast.classList.add('d-none'), 3000);
+
+
+      });
+
+      // Optional: Clean up sessionStorage after showing
+      sessionStorage.removeItem('qrCodeBase64');
+      sessionStorage.removeItem('BookingID');
+      sessionStorage.removeItem('OwnerName');
     });
-
-    // Optional: Clean up sessionStorage after showing
-    sessionStorage.removeItem('qrCodeBase64');
-    sessionStorage.removeItem('BookingID');
-    sessionStorage.removeItem('OwnerName');
-  });
-</script>
+  </script>
 
 
 
 </body>
+
 </html>
