@@ -39,19 +39,33 @@
   document.addEventListener('DOMContentLoaded', function () {
     const qrCodeData = sessionStorage.getItem('qrCodeBase64');
     const bookingId = sessionStorage.getItem('BookingID');
+    const ownerName = sessionStorage.getItem('OwnerName');
 
-    if (!qrCodeData || !bookingId) {
-      document.getElementById('qrcode').innerHTML = "<p class='text-danger'>QR code not found.</p>";
+    const title = document.querySelector('h2.fw-bold.mb-2');
+    const qrWrapper = document.getElementById('qrcode');
+
+    // Validate data presence
+    if (!qrCodeData || !bookingId || !ownerName) {
+      qrWrapper.innerHTML = "<p class='text-danger'>⚠️ Booking info not found. Please try again.</p>";
       return;
     }
 
-    // Display QR code image
+    // Update heading with customer's name
+    title.innerText = `🎉 Booking Confirmed, ${ownerName}!`;
+
+    // Render QR code image
     const img = document.createElement('img');
     img.src = `data:image/png;base64,${qrCodeData}`;
     img.alt = "QR Code";
     img.style.width = '200px';
     img.style.height = '200px';
-    document.getElementById('qrcode').appendChild(img);
+    qrWrapper.appendChild(img);
+
+    // Show Booking ID below QR code
+    const bookingIdText = document.createElement('p');
+    bookingIdText.className = 'mt-3 fw-semibold';
+    bookingIdText.innerText = `Your Booking ID: ${bookingId}`;
+    qrWrapper.appendChild(bookingIdText);
 
     // Download button logic
     document.getElementById('downloadQR').addEventListener('click', function () {
@@ -64,8 +78,10 @@
     // Optional: Clean up sessionStorage after showing
     sessionStorage.removeItem('qrCodeBase64');
     sessionStorage.removeItem('BookingID');
+    sessionStorage.removeItem('OwnerName');
   });
 </script>
+
 
 
 </body>

@@ -43,7 +43,8 @@
                   <div class="col-md-4">
                     <div class="input-style-1">
                       <label>Phone Number</label>
-                      <input type="tel" name="phone" placeholder="+1 234 567 8900" required />
+                      <input type="tel" name="PhoneNumber" placeholder="+1 234 567 8900" required />
+
                     </div>
                   </div>
                 </div>
@@ -132,7 +133,7 @@
       const data = {
         OwnerName: formData.get("ownerName"),
         Email: formData.get("email"),
-        PhoneNumber: formData.get("phone"),
+        PhoneNumber: formData.get("PhoneNumber"),
         PetName: formData.get("petName"),
         PetSpecies: formData.get("petSpecies"),
         PetBreed: formData.get("petBreed"),
@@ -155,6 +156,10 @@
         if (response.ok) {
           sessionStorage.setItem("BookingID", result.BookingID || "Unavailable");
           sessionStorage.setItem("qrCodeBase64", result.qrCode || "");
+
+          // Add OwnerName to session storage
+          sessionStorage.setItem("OwnerName", data.OwnerName);
+
           window.location.href = "booking-success.html";
 
         } else {
