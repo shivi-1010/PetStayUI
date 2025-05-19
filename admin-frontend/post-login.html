@@ -31,7 +31,7 @@
 
       try {
         console.log("🔁 Handling OAuth redirect");
-        await Auth.currentAuthenticatedUser(); // <-- This will trigger internal token exchange
+        await Auth.currentAuthenticatedUser(); 
         console.log("✅ Session active. Redirecting to dashboard...");
         window.location.href = 'admin_dashboard.html?from=cognito';
       } catch (err) {
