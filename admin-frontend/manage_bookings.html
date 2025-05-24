@@ -161,7 +161,33 @@
           </div>
         </div>
 
-        <!-- <div class="tables-wrapper">
+
+
+        <div class="tables-wrapper">
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <input type="text" class="form-control" id="searchInput" placeholder="Search by name..." />
+            </div>
+            <div class="col-md-3">
+              <select class="form-control" id="statusFilter">
+                <option value="">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Checked-In">Checked-In</option>
+                <option value="Checked-Out">Checked-Out</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            <select class="form-control" id="speciesFilter">
+              <option value="">All Species</option>
+              <option value="Dog">Dog</option>
+              <option value="Cat">Cat</option>
+            </select>
+          </div>
+
           <div class="row">
             <div class="col-lg-12">
               <div class="card-style mb-30">
@@ -171,28 +197,14 @@
                   <table class="table">
                     <thead>
                       <tr>
-                        <th>
-                          <h6>#</h6>
-                        </th>
-                        <th>
-                          <h6>Customer</h6>
-                        </th>
-                        <th>
-                          <h6>Pet Name</h6>
-                        </th>
-                        <th>
-                          <h6>Check-In</h6>
-                        </th>
-                        <th>
-                          <h6>Check-Out</h6>
-                        </th>
-                        <th>
-                          <h6>Status</h6>
-                        </th>
-
-                        <th>
-                          <h6>Actions</h6>
-                        </th>
+                        <th>#</th>
+                        <th>Customer</th>
+                        <th>Pet Name</th>
+                        <th>Species</th>
+                        <th>Check-In</th>
+                        <th>Check-Out</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody id="bookingsTableBody"> </tbody>
@@ -201,75 +213,33 @@
               </div>
             </div>
           </div>
-        </div> -->
-
-<div class="tables-wrapper">
-  <div class="row mb-3">
-    <div class="col-md-4">
-      <input type="text" class="form-control" id="searchInput" placeholder="Search by name..." />
-    </div>
-    <div class="col-md-3">
-      <select class="form-control" id="statusFilter">
-        <option value="">All Statuses</option>
-        <option value="Pending">Pending</option>
-        <option value="Confirmed">Confirmed</option>
-        <option value="Checked-In">Checked-In</option>
-        <option value="Checked-Out">Checked-Out</option>
-        <option value="Cancelled">Cancelled</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-lg-12">
-      <div class="card-style mb-30">
-        <h6 class="mb-10">Manage Bookings</h6>
-        <p class="text-sm mb-20">View and manage current and upcoming pet bookings.</p>
-        <div class="table-wrapper table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Customer</th>
-                <th>Pet Name</th>
-                <th>Check-In</th>
-                <th>Check-Out</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="bookingsTableBody"> </tbody>
-          </table>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- Booking Details Modal -->
-<div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable modal-md">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="bookingModalLabel">Booking Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body" id="modalDetails">
-        <!-- Dynamically populated -->
-      </div>
-    </div>
-  </div>
-</div>
+        <!-- Booking Details Modal -->
+        <div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-scrollable modal-md">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="bookingModalLabel">Booking Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body" id="modalDetails">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
 
-<!-- Toast Container -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-  <div id="toast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="polite" aria-atomic="true">
-    <div class="d-flex">
-      <div class="toast-body" id="toastMessage">Success!</div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-  </div>
-</div>
+        <!-- Toast Container -->
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+          <div id="toast" class="toast align-items-center text-white bg-success border-0" role="alert"
+            aria-live="polite" aria-atomic="true">
+            <div class="d-flex">
+              <div class="toast-body" id="toastMessage">Success!</div>
+              <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+          </div>
+        </div>
 
       </div>
     </section>
@@ -328,57 +298,63 @@
     document.head.appendChild(amplifyScript);
   </script>
 
-<script>
-  let allBookings = [];
+  <script>
+    let allBookings = [];
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    await loadBookings();
-    document.getElementById("searchInput").addEventListener("input", () => renderBookings(allBookings));
-    document.getElementById("statusFilter").addEventListener("change", () => renderBookings(allBookings));
-  });
+    document.addEventListener("DOMContentLoaded", async () => {
+      await loadBookings();
+      document.getElementById("searchInput").addEventListener("input", () => renderBookings(allBookings));
+      document.getElementById("statusFilter").addEventListener("change", () => renderBookings(allBookings));
+      document.getElementById("speciesFilter").addEventListener("change", () => renderBookings(allBookings));
 
-  async function loadBookings() {
-    try {
-      const res = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/bookings");
-   const result = await res.json();
-allBookings = result.bookings || result;
+    });
 
-      renderBookings(allBookings);
-      console.log("✅ Loaded bookings:", allBookings);
-    } catch (err) {
-      console.error("❌ Failed to load bookings:", err);
+    async function loadBookings() {
+      try {
+        const res = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/bookings");
+        const result = await res.json();
+        allBookings = result.bookings || result;
+
+        renderBookings(allBookings);
+        console.log("✅ Loaded bookings:", allBookings);
+      } catch (err) {
+        console.error("❌ Failed to load bookings:", err);
+      }
     }
-  }
 
-  function renderBookings(bookings) {
-    const tbody = document.getElementById("bookingsTableBody");
-    const searchValue = document.getElementById("searchInput")?.value.toLowerCase() || "";
-    const statusFilter = document.getElementById("statusFilter")?.value || "";
-
-    const filtered = bookings.filter(b =>
-      (!statusFilter || b.Status === statusFilter) &&
-      (b.OwnerName?.toLowerCase().includes(searchValue) || b.PetName?.toLowerCase().includes(searchValue))
-    );
-
-    tbody.innerHTML = "";
-    filtered.forEach((b, index) => {
-      const statusClass = {
-        "Pending": "info-btn",
-        "Confirmed": "active-btn",
-        "Checked-In": "success-btn",
-        "Checked-Out": "warning-btn",
-        "Cancelled": "close-btn"
-      }[b.Status] || "info-btn";
-
-      const showCheckout = b.Status === "Checked-In";
-const showConfirm = b.Status === "Pending";
+    function renderBookings(bookings) {
+      const tbody = document.getElementById("bookingsTableBody");
+      const searchValue = document.getElementById("searchInput")?.value.toLowerCase() || "";
+      const statusFilter = document.getElementById("statusFilter")?.value || "";
+      const speciesFilter = document.getElementById("speciesFilter")?.value || "";
+      const filtered = bookings.filter(b =>
+        (!statusFilter || b.Status === statusFilter) &&
+        (!speciesFilter || b.PetSpecies === speciesFilter) &&
+        (b.OwnerName?.toLowerCase().includes(searchValue) || b.PetName?.toLowerCase().includes(searchValue))
+      );
 
 
-tbody.innerHTML += `
+      tbody.innerHTML = "";
+      filtered.forEach((b, index) => {
+        const statusClass = {
+          "Pending": "info-btn",
+          "Confirmed": "active-btn",
+          "Checked-In": "success-btn",
+          "Checked-Out": "warning-btn",
+          "Cancelled": "close-btn"
+        }[b.Status] || "info-btn";
+
+
+        const showCheckout = b.Status === "Checked-In";
+        const showConfirm = b.Status === "Pending";
+
+
+        tbody.innerHTML += `
   <tr>
     <td>${index + 1}</td>
     <td>${b.OwnerName}</td>
     <td>${b.PetName}</td>
+     <td>${b.PetSpecies || "N/A"}</td> 
     <td>${b.CheckInDate}</td>
     <td>${b.CheckOutDate}</td>
     <td><span class="status-btn ${statusClass}">${b.Status}</span></td>
@@ -391,11 +367,11 @@ tbody.innerHTML += `
           <i class="lni lni-trash-can"></i>
         </button>
         ${showConfirm
-          ? `<button class="text-warning" title="Confirm Booking" onclick="confirmBooking('${b.BookingID}')">
+            ? `<button class="text-warning" title="Confirm Booking" onclick="confirmBooking('${b.BookingID}')">
                <i class="lni lni-checkmark"></i>
              </button>` : ""}
         ${showCheckout
-          ? `<button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')">
+            ? `<button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')">
                <i class="lni lni-checkmark-circle"></i>
              </button>` : ""}
       </div>
@@ -403,53 +379,53 @@ tbody.innerHTML += `
   </tr>
 `;
 
-    });
-  }
-
-  async function cancelBooking(id) {
-    if (!confirm("Cancel this booking?")) return;
-    try {
-      const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/cancel`, { method: "POST" });
-      const data = await res.json();
-      showToast(data.message);
-      await loadBookings();
-    } catch (err) {
-      showToast("❌ Error cancelling booking");
-      console.error(err);
+      });
     }
-  }
 
-  async function checkoutBooking(id) {
-    if (!confirm("Check out this guest?")) return;
-    try {
-      const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/checkout`, { method: "POST" });
-      const data = await res.json();
-      showToast(data.message);
-      await loadBookings();
-    } catch (err) {
-      showToast("❌ Error checking out");
-      console.error(err);
+    async function cancelBooking(id) {
+      if (!confirm("Cancel this booking?")) return;
+      try {
+        const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/cancel`, { method: "POST" });
+        const data = await res.json();
+        showToast(data.message);
+        await loadBookings();
+      } catch (err) {
+        showToast("❌ Error cancelling booking");
+        console.error(err);
+      }
     }
-  }
 
-  async function confirmBooking(id) {
-  if (!confirm("Confirm this booking for check-in eligibility?")) return;
-  try {
-    const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/confirm`, {
-      method: "POST"
-    });
-    const data = await res.json();
-    showToast(data.message || "✅ Booking confirmed!");
-    await loadBookings(); // Refresh updated booking list
-  } catch (err) {
-    showToast("❌ Error confirming booking");
-    console.error(err);
-  }
-}
+    async function checkoutBooking(id) {
+      if (!confirm("Check out this guest?")) return;
+      try {
+        const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/checkout`, { method: "POST" });
+        const data = await res.json();
+        showToast(data.message);
+        await loadBookings();
+      } catch (err) {
+        showToast("❌ Error checking out");
+        console.error(err);
+      }
+    }
+
+    async function confirmBooking(id) {
+      if (!confirm("Confirm this booking for check-in eligibility?")) return;
+      try {
+        const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/confirm`, {
+          method: "POST"
+        });
+        const data = await res.json();
+        showToast(data.message || "✅ Booking confirmed!");
+        await loadBookings(); // Refresh updated booking list
+      } catch (err) {
+        showToast("❌ Error confirming booking");
+        console.error(err);
+      }
+    }
 
 
-  function viewBooking(b) {
-    const html = `
+    function viewBooking(b) {
+      const html = `
       <p><strong>Owner:</strong> ${b.OwnerName}</p>
       <p><strong>Email:</strong> ${b.Email}</p>
       <p><strong>Phone:</strong> ${b.PhoneNumber}</p>
@@ -462,15 +438,15 @@ tbody.innerHTML += `
       <p><strong>Status:</strong> ${b.Status}</p>
       <p><strong>Room:</strong> ${b.RoomNumber || "N/A"}</p>
     `;
-    document.getElementById("modalDetails").innerHTML = html;
-    new bootstrap.Modal(document.getElementById("bookingModal")).show();
-  }
+      document.getElementById("modalDetails").innerHTML = html;
+      new bootstrap.Modal(document.getElementById("bookingModal")).show();
+    }
 
-  function showToast(msg) {
-    document.getElementById("toastMessage").textContent = msg;
-    new bootstrap.Toast(document.getElementById("toast")).show();
-  }
-</script>
+    function showToast(msg) {
+      document.getElementById("toastMessage").textContent = msg;
+      new bootstrap.Toast(document.getElementById("toast")).show();
+    }
+  </script>
 
 </body>
 
