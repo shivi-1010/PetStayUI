@@ -316,9 +316,9 @@
         allBookings = result.bookings || result;
 
         renderBookings(allBookings);
-        console.log("✅ Loaded bookings:", allBookings);
+        console.log("Loaded bookings:", allBookings);
       } catch (err) {
-        console.error("❌ Failed to load bookings:", err);
+        console.error("Failed to load bookings:", err);
       }
     }
 
@@ -347,6 +347,8 @@
 
         const showCheckout = b.Status === "Checked-In";
         const showConfirm = b.Status === "Pending";
+        const showRestore = b.Status === "Cancelled";
+
 
 
         tbody.innerHTML += `
@@ -363,9 +365,12 @@
         <button class="text-primary" title="View Details" onclick='viewBooking(${JSON.stringify(b)})'>
           <i class="lni lni-eye"></i>
         </button>
-        <button class="text-danger" title="Cancel Booking" onclick="cancelBooking('${b.BookingID}')">
-          <i class="lni lni-trash-can"></i>
-        </button>
+ ${b.Status !== "Cancelled" ? `
+  <button class="text-danger" title="Cancel Booking" onclick="cancelBooking('${b.BookingID}')">
+    <i class="lni lni-trash-can"></i>
+  </button>` : ""
+          }
+
         ${showConfirm
             ? `<button class="text-warning" title="Confirm Booking" onclick="confirmBooking('${b.BookingID}')">
                <i class="lni lni-checkmark"></i>
@@ -374,6 +379,14 @@
             ? `<button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')">
                <i class="lni lni-checkmark-circle"></i>
              </button>` : ""}
+
+${showRestore
+            ? `<button class="text-info" title="Restore Booking" onclick="restoreBooking('${b.BookingID}')">
+      <i class="lni lni-undo" style="color: teal;"></i>
+
+     </button>` : ""}
+
+
       </div>
     </td>
   </tr>
@@ -390,23 +403,29 @@
         showToast(data.message);
         await loadBookings();
       } catch (err) {
-        showToast("❌ Error cancelling booking");
+        showToast("Error cancelling booking");
         console.error(err);
       }
     }
 
-    async function checkoutBooking(id) {
-      if (!confirm("Check out this guest?")) return;
-      try {
-        const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/checkout`, { method: "POST" });
-        const data = await res.json();
-        showToast(data.message);
-        await loadBookings();
-      } catch (err) {
-        showToast("❌ Error checking out");
-        console.error(err);
-      }
+  async function checkoutBooking(id) {
+  if (!confirm("Check out this guest?")) return;
+  try {
+    const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/checkout`, { method: "POST" });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.message || "Checkout failed", true); 
+    } else {
+      showToast(data.message || "Checked out successfully");
+      await loadBookings();
     }
+  } catch (err) {
+    showToast("Error checking out", true);
+    console.error(err);
+  }
+}
+
 
     async function confirmBooking(id) {
       if (!confirm("Confirm this booking for check-in eligibility?")) return;
@@ -415,14 +434,28 @@
           method: "POST"
         });
         const data = await res.json();
-        showToast(data.message || "✅ Booking confirmed!");
-        await loadBookings(); // Refresh updated booking list
+        showToast(data.message || "Booking confirmed!");
+        await loadBookings(); 
       } catch (err) {
-        showToast("❌ Error confirming booking");
+        showToast("Error confirming booking");
         console.error(err);
       }
     }
 
+    async function restoreBooking(id) {
+      if (!confirm("Restore this cancelled booking?")) return;
+      try {
+        const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/restore`, {
+          method: "POST"
+        });
+        const data = await res.json();
+        showToast(data.message || "Booking restored.");
+        await loadBookings();
+      } catch (err) {
+        showToast("Error restoring booking");
+        console.error(err);
+      }
+    }
 
     function viewBooking(b) {
       const html = `
@@ -442,10 +475,20 @@
       new bootstrap.Modal(document.getElementById("bookingModal")).show();
     }
 
-    function showToast(msg) {
-      document.getElementById("toastMessage").textContent = msg;
-      new bootstrap.Toast(document.getElementById("toast")).show();
-    }
+function showToast(msg, isError = false) {
+  const toastEl = document.getElementById("toast");
+  const toastMsg = document.getElementById("toastMessage");
+
+  toastMsg.textContent = msg;
+
+  toastEl.classList.remove("bg-success", "bg-danger");
+  toastEl.classList.add(isError ? "bg-danger" : "bg-success");
+
+  new bootstrap.Toast(toastEl).show();
+}
+
+
+
   </script>
 
 </body>

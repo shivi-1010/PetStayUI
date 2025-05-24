@@ -141,177 +141,198 @@
     <!-- ========== header end ========== -->
 
     <!-- ========== section start ========== -->
-<section class="section">
-  <div class="container-fluid">
-    <!-- Title -->
-    <div class="title-wrapper pt-30">
-      <div class="row align-items-center">
-        <div class="col-md-6">
-          <div class="title">
-            <h2>PetStay Dashboard</h2>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="breadcrumb-wrapper">
-            <nav aria-label="breadcrumb">
-              <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
-                <li class="breadcrumb-item active" aria-current="page">PetStay</li>
-              </ol>
-            </nav>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="row">
-      <div class="col-xl-3 col-lg-4 col-sm-6">
-        <div class="icon-card mb-30">
-          <div class="icon purple"><i class="lni lni-cart-full"></i></div>
-          <div class="content">
-            <h6 class="mb-10">Current Guests</h6>
-            <h3 class="text-bold mb-10" id="currentGuests">Loading...</h3>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-lg-4 col-sm-6">
-        <div class="icon-card mb-30">
-          <div class="icon success"><i class="lni lni-dollar"></i></div>
-          <div class="content">
-            <h6 class="mb-10">Booking Today</h6>
-            <h3 class="text-bold mb-10" id="bookingsToday">Loading...</h3>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-lg-4 col-sm-6">
-        <div class="icon-card mb-30">
-          <div class="icon primary"><i class="lni lni-credit-cards"></i></div>
-          <div class="content">
-            <h6 class="mb-10">Available Rooms</h6>
-            <h3 class="text-bold mb-10" id="availableRooms">Loading...</h3>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-lg-4 col-sm-6">
-        <div class="icon-card mb-30">
-          <div class="icon orange"><i class="lni lni-user"></i></div>
-          <div class="content">
-            <h6 class="mb-10" id="newBookings">Total Bookings</h6>
-            <h3 class="text-bold mb-10" id="newBookingsCount">Loading...</h3>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Guests Table -->
-    <div class="col-lg-12">
-      <div class="card-style mb-30">
-        <div class="title d-flex flex-wrap justify-content-between align-items-center">
-          <div class="left">
-            <h6 class="text-medium mb-30">Current Guests</h6>
-          </div>
-          <div class="right">
-            <div class="select-style-1">
-              <div class="select-position select-sm">
-                <select class="light-bg">
-                  <option value="">Today</option>
-                  <option value="">Weekly</option>
-                  <option value="">Monthly</option>
-                </select>
+    <section class="section">
+      <div class="container-fluid">
+        <!-- Title -->
+        <div class="title-wrapper pt-30">
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <div class="title">
+                <h2>PetStay Dashboard</h2>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="breadcrumb-wrapper">
+                <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">PetStay</li>
+                  </ol>
+                </nav>
               </div>
             </div>
           </div>
         </div>
-        <div class="table-responsive">
-          <table class="table top-selling-table">
-            <thead>
-              <tr>
-                <th><h6 class="text-sm text-medium">Pet Name</h6></th>
-                <th class="min-width"><h6 class="text-sm text-medium">Owner</h6></th>
-                <th class="min-width"><h6 class="text-sm text-medium">Room No.</h6></th>
-                <th class="min-width"><h6 class="text-sm text-medium">Date In</h6></th>
-                <th class="min-width"><h6 class="text-sm text-medium">Days Left</h6></th>
-                <th class="min-width"><h6 class="text-sm text-medium">Status</h6></th>
-              </tr>
-            </thead>
-            <tbody id="currentGuestsTable">
-              <!-- Dynamic content loaded via JS -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
 
-    <!-- Charts Section -->
-    <div class="row">
-      <div class="col-lg-6">
-        <div class="card-style mb-30">
-          <div class="title d-flex flex-wrap align-items-center justify-content-between">
-            <div class="left"><h6 class="text-medium mb-2">Booking Status</h6></div>
-            <div class="right">
-              <div class="select-style-1 mb-2">
-                <div class="select-position select-sm">
-                  <select class="bg-ligh">
-                    <option value="">Last 6 Months</option>
-                    <option value="">Last 3 Months</option>
-                    <option value="">Last Year</option>
-                  </select>
+        <!-- Stats Cards -->
+        <div class="row">
+          <div class="col-xl-3 col-lg-4 col-sm-6">
+            <div class="icon-card mb-30">
+              <div class="icon purple"><i class="lni lni-cart-full"></i></div>
+              <div class="content">
+                <h6 class="mb-10">Current Guests</h6>
+                <h3 class="text-bold mb-10" id="currentGuests">Loading...</h3>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-3 col-lg-4 col-sm-6">
+            <div class="icon-card mb-30">
+              <div class="icon success"><i class="lni lni-dollar"></i></div>
+              <div class="content">
+                <h6 class="mb-10">Booking Today</h6>
+                <h3 class="text-bold mb-10" id="bookingsToday">Loading...</h3>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-3 col-lg-4 col-sm-6">
+            <div class="icon-card mb-30">
+              <div class="icon primary"><i class="lni lni-credit-cards"></i></div>
+              <div class="content">
+                <h6 class="mb-10">Available Rooms</h6>
+                <div id="availableRooms">
+                  <p class="text-sm mb-1 text-success"><strong>Dog:</strong> <span id="dogRooms">—</span></p>
+                  <p class="text-sm text-danger"><strong>Cat:</strong> <span id="catRooms">—</span></p>
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-3 col-lg-4 col-sm-6">
+            <div class="icon-card mb-30">
+              <div class="icon orange"><i class="lni lni-user"></i></div>
+              <div class="content">
+                <h6 class="mb-10" id="newBookings">Total Bookings</h6>
+                <h3 class="text-bold mb-10" id="newBookingsCount">Loading...</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guests Table -->
+        <div class="col-lg-12">
+          <div class="card-style mb-30">
+            <div class="title d-flex flex-wrap justify-content-between align-items-center">
+              <div class="left">
+                <h6 class="text-medium mb-30">Current Guests</h6>
+              </div>
+              <div class="right">
+                <div class="select-style-1">
+                  <div class="select-position select-sm">
+                    <select class="light-bg">
+                      <option value="">Today</option>
+                      <option value="">Weekly</option>
+                      <option value="">Monthly</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div class="chart">
-            <canvas id="BookingStatusPieChart" style="width: 100%; height: 400px;"></canvas>
+            <div class="table-responsive">
+              <table class="table top-selling-table">
+                <thead>
+                  <tr>
+                    <th>
+                      <h6 class="text-sm text-medium">Pet Name</h6>
+                    </th>
+                    <th class="min-width">
+                      <h6 class="text-sm text-medium">Owner</h6>
+                    </th>
+                    <th class="min-width">
+                      <h6 class="text-sm text-medium">Room No.</h6>
+                    </th>
+                    <th class="min-width">
+                      <h6 class="text-sm text-medium">Date In</h6>
+                    </th>
+                    <th class="min-width">
+                      <h6 class="text-sm text-medium">Days Left</h6>
+                    </th>
+                    <th class="min-width">
+                      <h6 class="text-sm text-medium">Status</h6>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="currentGuestsTable">
+                  <!-- Dynamic content loaded via JS -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="col-lg-6">
-        <div class="card-style mb-30">
-          <div class="title d-flex flex-wrap align-items-center justify-content-between">
-            <div class="left"><h6 class="text-medium mb-2">Pet Species Stats</h6></div>
-            <div class="right">
-              <div class="select-style-1 mb-2">
-                <div class="select-position select-sm">
-                  <select class="bg-ligh">
-                    <option value="">Last 6 Months</option>
-                    <option value="">Last 3 Months</option>
-                    <option value="">Last Year</option>
-                  </select>
+
+        <!-- Charts Section -->
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="card-style mb-30">
+              <div class="title d-flex flex-wrap align-items-center justify-content-between">
+                <div class="left">
+                  <h6 class="text-medium mb-2">Booking Status</h6>
                 </div>
+                <div class="right">
+                  <div class="select-style-1 mb-2">
+                    <div class="select-position select-sm">
+                      <select class="bg-ligh">
+                        <option value="">Last 6 Months</option>
+                        <option value="">Last 3 Months</option>
+                        <option value="">Last Year</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="chart">
+                <canvas id="BookingStatusPieChart" style="width: 100%; height: 400px;"></canvas>
               </div>
             </div>
           </div>
-          <div class="chart">
-            <div id="legend4" class="mb-20">
-              <ul class="legend3 d-flex flex-wrap gap-3 align-items-center">
-                <li>
-                  <div class="d-flex">
-                    <span class="bg-color primary-bg"> </span>
-                    <div class="text">
-                      <p class="text-sm text-success"><span class="text-dark">Dogs</span></p>
-                      <h2 id="dogCount">—</h2>
+          <div class="col-lg-6">
+            <div class="card-style mb-30">
+              <div class="title d-flex flex-wrap align-items-center justify-content-between">
+                <div class="left">
+                  <h6 class="text-medium mb-2">Pet Species Stats</h6>
+                </div>
+                <div class="right">
+                  <div class="select-style-1 mb-2">
+                    <div class="select-position select-sm">
+                      <select class="bg-ligh">
+                        <option value="">Last 6 Months</option>
+                        <option value="">Last 3 Months</option>
+                        <option value="">Last Year</option>
+                      </select>
                     </div>
                   </div>
-                </li>
-                <li>
-                  <div class="d-flex">
-                    <span class="bg-color danger-bg"></span>
-                    <div class="text">
-                      <p class="text-sm text-danger"><span class="text-dark">Cats</span></p>
-                      <h2 id="catCount">—</h2>
-                    </div>
-                  </div>
-                </li>
-              </ul>
+                </div>
+              </div>
+              <div class="chart">
+                <div id="legend4" class="mb-20">
+                  <ul class="legend3 d-flex flex-wrap gap-3 align-items-center">
+                    <li>
+                      <div class="d-flex">
+                        <span class="bg-color primary-bg"> </span>
+                        <div class="text">
+                          <p class="text-sm text-success"><span class="text-dark">Dogs</span></p>
+                          <h2 id="dogCount">—</h2>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="d-flex">
+                        <span class="bg-color danger-bg"></span>
+                        <div class="text">
+                          <p class="text-sm text-danger"><span class="text-dark">Cats</span></p>
+                          <h2 id="catCount">—</h2>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <canvas id="PetSpeciesChart" style="width: 100%; height: 400px;"></canvas>
+              </div>
             </div>
-            <canvas id="PetSpeciesChart" style="width: 100%; height: 400px;"></canvas>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
     <!-- ========== section end ========== -->
 
@@ -347,43 +368,43 @@
   <script defer src="/assets/js/main.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
   <script defer src="/assets/js/auth-check.js"></script>
-<script>
-  async function loadDashboardData() {
-    try {
-      const res = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/bookings");
-      const bookings = await res.json();
+  <script>
+    async function loadDashboardData() {
+      try {
+        const res = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/bookings");
+        const bookings = await res.json();
 
-      const today = new Date().toISOString().split("T")[0];
+        const today = new Date().toISOString().split("T")[0];
 
-      const checkedIn = bookings.filter(b => b.Status === "Checked-In");
-      const todayBookings = bookings.filter(b => b.CheckInDate === today);
+        const checkedIn = bookings.filter(b => b.Status === "Checked-In");
+        const todayBookings = bookings.filter(b => b.CheckInDate === today);
 
-      document.getElementById("currentGuests").innerText = checkedIn.length;
-      document.getElementById("bookingsToday").innerText = todayBookings.length;
-      document.getElementById("newBookingsCount").innerText = bookings.length;
+        document.getElementById("currentGuests").innerText = checkedIn.length;
+        document.getElementById("bookingsToday").innerText = todayBookings.length;
+        document.getElementById("newBookingsCount").innerText = bookings.length;
 
-      const guestTable = document.getElementById("currentGuestsTable");
-      guestTable.innerHTML = "";
+        const guestTable = document.getElementById("currentGuestsTable");
+        guestTable.innerHTML = "";
 
-      const petSpeciesCount = { Dog: 0, Cat: 0 };
-      const statusCount = { "Pending": 0, "Confirmed": 0, "Checked-In": 0, "Checked-Out": 0, "Cancelled": 0 };
+        const petSpeciesCount = { Dog: 0, Cat: 0 };
+        const statusCount = { "Pending": 0, "Confirmed": 0, "Checked-In": 0, "Checked-Out": 0, "Cancelled": 0 };
 
-      bookings.forEach(b => {
-        const species = b.PetSpecies?.trim();
-        if (petSpeciesCount.hasOwnProperty(species)) {
-          petSpeciesCount[species]++;
-        }
-        if (statusCount.hasOwnProperty(b.Status)) {
-          statusCount[b.Status]++;
-        }
+        bookings.forEach(b => {
+          const species = b.PetSpecies?.trim();
+          if (petSpeciesCount.hasOwnProperty(species)) {
+            petSpeciesCount[species]++;
+          }
+          if (statusCount.hasOwnProperty(b.Status)) {
+            statusCount[b.Status]++;
+          }
 
-        if (b.Status === "Checked-In") {
-          const daysLeft = Math.max(
-            0,
-            Math.ceil((new Date(b.CheckOutDate) - new Date()) / (1000 * 60 * 60 * 24))
-          );
+          if (b.Status === "Checked-In") {
+            const daysLeft = Math.max(
+              0,
+              Math.ceil((new Date(b.CheckOutDate) - new Date()) / (1000 * 60 * 60 * 24))
+            );
 
-          guestTable.innerHTML += `
+            guestTable.innerHTML += `
             <tr>
               <td>
                 <div class="product">
@@ -399,102 +420,122 @@
               <td><p class="text-sm">${daysLeft} day${daysLeft !== 1 ? 's' : ''}</p></td>
               <td><span class="status-btn success-btn">Checked In</span></td>
             </tr>`;
-        }
-      });
-
-      console.log("Booking Status Counts", statusCount);  // for debugging
-
-      loadCharts(petSpeciesCount, statusCount);
-    } catch (err) {
-      console.error("Error loading dashboard data", err);
-    }
-  }
-
-  async function loadRoomAvailability() {
-    try {
-      const res = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/rooms/availability");
-      const stats = await res.json();
-      if (res.ok) {
-        document.getElementById("availableRooms").innerText = `${stats.availableRooms}/${stats.totalRooms}`;
-      }
-    } catch (err) {
-      console.error("Room availability error", err);
-    }
-  }
-
-  function loadCharts(petSpeciesCount, statusCount) {
-    const ctxSpecies = document.getElementById("PetSpeciesChart")?.getContext("2d");
-    if (ctxSpecies) {
-      new Chart(ctxSpecies, {
-        type: "bar",
-        data: {
-          labels: ["Dogs", "Cats"],
-          datasets: [{
-            label: "Pets",
-            data: [petSpeciesCount.Dog, petSpeciesCount.Cat],
-            backgroundColor: ["#365CF5", "#d50100"],
-            borderRadius: 10
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            tooltip: {
-              backgroundColor: "#F3F6F8",
-              titleColor: "#8F92A1",
-              bodyColor: "#171717",
-              bodyFont: { weight: "bold", size: 16 },
-              displayColors: false
-            },
-            legend: { display: false }
           }
-        }
-      });
+        });
+
+        console.log("Booking Status Counts", statusCount);  // for debugging
+
+        loadCharts(petSpeciesCount, statusCount);
+      } catch (err) {
+        console.error("Error loading dashboard data", err);
+      }
     }
 
-    const ctxBookingStatus = document.getElementById("BookingStatusPieChart")?.getContext("2d");
-    if (ctxBookingStatus) {
-      new Chart(ctxBookingStatus, {
-        type: "pie",
-        data: {
-          labels: Object.keys(statusCount),
-          datasets: [{
-            data: Object.values(statusCount),
-            backgroundColor: [
-              "#FFC107",  // Pending
-              "#28A745",  // Confirmed
-              "#007BFF",  // Checked-In
-              "#6C757D",  // Checked-Out
-              "#DC3545"   // Cancelled
-            ],
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              position: "bottom",
-              labels: { boxWidth: 20, padding: 20 }
-            },
-            tooltip: {
-              backgroundColor: "#F3F6F8",
-              bodyColor: "#171717",
-              titleColor: "#8F92A1",
-              bodyFont: { size: 14 },
-              displayColors: true
+    async function loadRoomAvailability() {
+      try {
+        const res = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/rooms/availability");
+        const stats = await res.json();
+
+        if (res.ok && Array.isArray(stats.rooms)) {
+          let totalDog = 0, availableDog = 0;
+          let totalCat = 0, availableCat = 0;
+
+          stats.rooms.forEach(r => {
+            if (r.petType === "Dog") {
+              totalDog++;
+              if (!r.isOccupied) availableDog++;
+            } else if (r.petType === "Cat") {
+              totalCat++;
+              if (!r.isOccupied) availableCat++;
+            }
+          });
+
+          document.getElementById("dogRooms").innerText = `${availableDog} / ${totalDog}`;
+          document.getElementById("catRooms").innerText = `${availableCat} / ${totalCat}`;
+
+          // Optional Alerts
+          if (availableDog === 0) console.warn("No dog rooms available!");
+          if (availableCat === 0) console.warn("No cat rooms available!");
+        }
+      } catch (err) {
+        console.error("Room availability error", err);
+      }
+    }
+
+
+    function loadCharts(petSpeciesCount, statusCount) {
+      const ctxSpecies = document.getElementById("PetSpeciesChart")?.getContext("2d");
+      if (ctxSpecies) {
+        new Chart(ctxSpecies, {
+          type: "bar",
+          data: {
+            labels: ["Dogs", "Cats"],
+            datasets: [{
+              label: "Pets",
+              data: [petSpeciesCount.Dog, petSpeciesCount.Cat],
+              backgroundColor: ["#365CF5", "#d50100"],
+              borderRadius: 10
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              tooltip: {
+                backgroundColor: "#F3F6F8",
+                titleColor: "#8F92A1",
+                bodyColor: "#171717",
+                bodyFont: { weight: "bold", size: 16 },
+                displayColors: false
+              },
+              legend: { display: false }
             }
           }
-        }
-      });
-    }
-  }
+        });
+      }
 
-  window.addEventListener("DOMContentLoaded", () => {
-    loadDashboardData();
-    loadRoomAvailability();
-  });
-</script>
+      const ctxBookingStatus = document.getElementById("BookingStatusPieChart")?.getContext("2d");
+      if (ctxBookingStatus) {
+        new Chart(ctxBookingStatus, {
+          type: "pie",
+          data: {
+            labels: Object.keys(statusCount),
+            datasets: [{
+              data: Object.values(statusCount),
+              backgroundColor: [
+                "#FFC107",  // Pending
+                "#28A745",  // Confirmed
+                "#007BFF",  // Checked-In
+                "#6C757D",  // Checked-Out
+                "#DC3545"   // Cancelled
+              ],
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: { boxWidth: 20, padding: 20 }
+              },
+              tooltip: {
+                backgroundColor: "#F3F6F8",
+                bodyColor: "#171717",
+                titleColor: "#8F92A1",
+                bodyFont: { size: 14 },
+                displayColors: true
+              }
+            }
+          }
+        });
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      loadDashboardData();
+      loadRoomAvailability();
+    });
+  </script>
 
 
 

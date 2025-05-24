@@ -50,6 +50,11 @@ def lambda_handler(event, context):
             booking_id = path.split('/')[2]
             return checkin_booking(booking_id)
 
+        # POST /booking/{bookingId}/restore
+        elif method == 'POST' and path.startswith('/booking/') and path.endswith('/restore'):
+            booking_id = path.split('/')[2]
+            return restore_booking(booking_id)
+
         else:
             return {
                 'statusCode': 404,
@@ -63,6 +68,7 @@ def lambda_handler(event, context):
             'headers': HEADERS,
             'body': json.dumps({'error': str(e)})
         }
+
 
 def get_all_bookings():
     try:
@@ -82,6 +88,31 @@ def get_all_bookings():
         }
 
 def get_room_availability():
+    try:
+        response = rooms_table.scan()
+        rooms = response.get('Items', [])
+
+        total = len(rooms)
+        occupied = sum(1 for r in rooms if r.get('isOccupied') == True)
+        available = total - occupied
+
+        return {
+            'statusCode': 200,
+            'headers': HEADERS,
+            'body': json.dumps({
+                'totalRooms': total,
+                'occupiedRooms': occupied,
+                'availableRooms': available,
+                'rooms': rooms  
+            })
+        }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': HEADERS,
+            'body': json.dumps({'error': str(e)})
+        }
+
     try:
         response = rooms_table.scan()
         rooms = response.get('Items', [])
@@ -250,3 +281,26 @@ def checkin_booking(booking_id):
 
     except Exception as e:
         return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'message': 'Check-in failed', 'error': str(e)})}
+
+def restore_booking(booking_id):
+    try:
+        booking = bookings_table.get_item(Key={'BookingID': booking_id}).get('Item')
+        if not booking:
+            return {'statusCode': 404, 'headers': HEADERS, 'body': json.dumps({'message': 'Booking not found'})}
+
+        if booking.get('Status') != 'Cancelled':
+            return {'statusCode': 400, 'headers': HEADERS, 'body': json.dumps({'message': 'Only cancelled bookings can be restored'})}
+
+        # Restore to Pending (or Confirmed if preferred)
+        bookings_table.update_item(
+            Key={'BookingID': booking_id},
+            UpdateExpression='SET #s = :status',
+            ExpressionAttributeNames={'#s': 'Status'},
+            ExpressionAttributeValues={':status': 'Pending'}
+        )
+
+        return {'statusCode': 200, 'headers': HEADERS, 'body': json.dumps({'message': 'Booking restored to Pending'})}
+
+    except Exception as e:
+        return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'error': str(e)})}
+
