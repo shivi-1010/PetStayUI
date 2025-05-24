@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>PetStay Check-In</title>
@@ -7,10 +8,13 @@
   <link rel="stylesheet" href="assets/css/checkin.css">
 
 </head>
+
 <body class="bg-light">
   <div class="container mt-5 text-center">
     <h2 class="mb-4">🐾 PetStay Check-In</h2>
     <div id="result" class="alert alert-info">Loading booking details...</div>
+    <div id="roomInfo" class="mt-3 fw-bold text-primary"></div>
+
   </div>
 
   <script>
@@ -50,12 +54,19 @@
       });
 
       if (res.ok) {
-        alert("Booking marked as checked-in!");
-        location.reload();
+        const result = await res.json();
+        alert(`Booking marked as checked-in!\nAssigned Room: ${result.roomId}`);
+          document.getElementById("roomInfo").innerText = `✅ Assigned Room: ${result.roomId}`;
+
+       setTimeout(() => location.reload(), 3000); // reload after 3 seconds
+
       } else {
-        alert("Failed to check in.");
+        const error = await res.json();
+        alert(`Failed to check in: ${error.message || 'Unknown error'}`);
       }
+
     }
   </script>
 </body>
+
 </html>

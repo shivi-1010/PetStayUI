@@ -138,10 +138,12 @@ h5 {
 }
 
 .qr-code-wrapper {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 }
+
 
 .qr-code-wrapper img {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
