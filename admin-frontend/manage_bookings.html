@@ -371,31 +371,38 @@ allBookings = result.bookings || result;
       }[b.Status] || "info-btn";
 
       const showCheckout = b.Status === "Checked-In";
+const showConfirm = b.Status === "Pending";
 
-      tbody.innerHTML += `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${b.OwnerName}</td>
-          <td>${b.PetName}</td>
-          <td>${b.CheckInDate}</td>
-          <td>${b.CheckOutDate}</td>
-          <td><span class="status-btn ${statusClass}">${b.Status}</span></td>
-          <td>
-            <div class="action">
-              <button class="text-primary" title="View Details" onclick='viewBooking(${JSON.stringify(b)})'>
-                <i class="lni lni-eye"></i>
-              </button>
-              <button class="text-danger" title="Cancel Booking" onclick="cancelBooking('${b.BookingID}')">
-                <i class="lni lni-trash-can"></i>
-              </button>
-              ${showCheckout
-                ? `<button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')">
-                    <i class="lni lni-checkmark-circle"></i>
-                  </button>` : ""}
-            </div>
-          </td>
-        </tr>
-      `;
+
+tbody.innerHTML += `
+  <tr>
+    <td>${index + 1}</td>
+    <td>${b.OwnerName}</td>
+    <td>${b.PetName}</td>
+    <td>${b.CheckInDate}</td>
+    <td>${b.CheckOutDate}</td>
+    <td><span class="status-btn ${statusClass}">${b.Status}</span></td>
+    <td>
+      <div class="action">
+        <button class="text-primary" title="View Details" onclick='viewBooking(${JSON.stringify(b)})'>
+          <i class="lni lni-eye"></i>
+        </button>
+        <button class="text-danger" title="Cancel Booking" onclick="cancelBooking('${b.BookingID}')">
+          <i class="lni lni-trash-can"></i>
+        </button>
+        ${showConfirm
+          ? `<button class="text-warning" title="Confirm Booking" onclick="confirmBooking('${b.BookingID}')">
+               <i class="lni lni-checkmark"></i>
+             </button>` : ""}
+        ${showCheckout
+          ? `<button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')">
+               <i class="lni lni-checkmark-circle"></i>
+             </button>` : ""}
+      </div>
+    </td>
+  </tr>
+`;
+
     });
   }
 
@@ -424,6 +431,22 @@ allBookings = result.bookings || result;
       console.error(err);
     }
   }
+
+  async function confirmBooking(id) {
+  if (!confirm("Confirm this booking for check-in eligibility?")) return;
+  try {
+    const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/confirm`, {
+      method: "POST"
+    });
+    const data = await res.json();
+    showToast(data.message || "✅ Booking confirmed!");
+    await loadBookings(); // Refresh updated booking list
+  } catch (err) {
+    showToast("❌ Error confirming booking");
+    console.error(err);
+  }
+}
+
 
   function viewBooking(b) {
     const html = `

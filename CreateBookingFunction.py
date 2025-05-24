@@ -85,89 +85,11 @@ def lambda_handler(event, context):
                 'headers': {'Content-Type': 'application/json'},
                 'body': json.dumps(item)
             }
-
-        # 3. Check-in with transactional room allocation
-        elif http_method == 'POST' and '/checkin' in path and booking_id:
-            booking_response = bookings_table.get_item(Key={'BookingID': booking_id})
-            booking = booking_response.get('Item')
-
-            if not booking:
-                return {'statusCode': 404, 'body': json.dumps({'message': 'Booking not found'})}
-
-            if booking.get('Status') == 'Checked-In':
-                return {
-                    'statusCode': 200,
-                    'body': json.dumps({'message': 'Already checked in', 'roomId': booking.get('RoomNumber')})
-                }
-
-            pet_type = booking.get('PetSpecies', '')
-            if pet_type not in ['Dog', 'Cat']:
-                return {'statusCode': 400, 'body': json.dumps({'message': 'Unsupported pet type'})}
-
-            # Find available room for the pet type
-            available_rooms = rooms_table.scan(
-                FilterExpression=Attr('petType').eq(pet_type) & Attr('isOccupied').eq(False)
-            )
-
-            if not available_rooms['Items']:
-                return {
-                    'statusCode': 409,
-                    'body': json.dumps({'message': f'No available room for {pet_type}'})
-                }
-
-            room = available_rooms['Items'][0]
-            room_id = room['roomId']
-            checkin_time = datetime.datetime.utcnow().isoformat()
-
-            try:
-                # Atomic transaction: update both room and booking
-                dynamodb_client.transact_write_items(
-                    TransactItems=[
-                        {
-                            'Update': {
-                                'TableName': 'Rooms',
-                                'Key': {'roomId': {'S': room_id}},
-                                'UpdateExpression': 'SET isOccupied = :occupied',
-                                'ConditionExpression': 'isOccupied = :false',
-                                'ExpressionAttributeValues': {
-                                    ':occupied': {'BOOL': True},
-                                    ':false': {'BOOL': False}
-                                }
-                            }
-                        },
-                        {
-                            'Update': {
-                                'TableName': 'Bookings',
-                                'Key': {'BookingID': {'S': booking_id}},
-                                'UpdateExpression': 'SET #s = :status, CheckInTime = :time, RoomNumber = :room',
-                                'ExpressionAttributeNames': {'#s': 'Status'},
-                                'ExpressionAttributeValues': {
-                                    ':status': {'S': 'Checked-In'},
-                                    ':time': {'S': checkin_time},
-                                    ':room': {'S': room_id}
-                                }
-                            }
-                        }
-                    ]
-                )
-
-                return {
-                    'statusCode': 200,
-                    'body': json.dumps({
-                        'message': f'Booking checked-in and assigned to {room_id}',
-                        'roomId': room_id
-                    })
-                }
-
-            except ClientError as e:
-                return {
-                    'statusCode': 500,
-                    'body': json.dumps({'message': 'Check-in failed', 'error': str(e)})
-                }
-
-        # 4. Unsupported route
-        else:
-            return {'statusCode': 400, 'body': json.dumps({'message': 'Unsupported operation or missing parameters'})}
-
     except Exception as e:
-        return {'statusCode': 500, 'body': json.dumps({'message': str(e)})}
+        return {
+            'statusCode': 500,
+            'body': json.dumps({
+                'message': 'Internal server error',
+                'error': str(e)
+            })
+        }

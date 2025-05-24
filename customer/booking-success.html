@@ -1,5 +1,3 @@
-<!-- //booking-success.html// -->
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -29,10 +27,11 @@
             <button onclick="window.print()" class="btn btn-outline-secondary mt-2 w-100">Print This Page</button>
 
             <p class="small text-muted mt-3">Please present this QR code at the reception during check-in.</p>
-
-            <div id="toast-msg" class="alert alert-success mt-3 d-none" role="alert">QR Code Downloaded </div>
-
+            <div id="toast-msg" class="alert alert-success mt-3 d-none" role="alert">QR Code Downloaded</div>
           </div>
+
+          <!-- Status Message Display -->
+          <div id="bookingStatusMessage" class="alert mt-4 d-none text-start" role="alert"></div>
 
           <a href="new-booking.html" class="btn btn-secondary mt-4">Make Another Booking</a>
         </div>
@@ -42,11 +41,7 @@
 
   <script src="../assets/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/main.js"></script>
-
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-  <script>
-    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-  </script>
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -56,31 +51,27 @@
 
       const title = document.querySelector('h2.fw-bold.mb-2');
       const qrWrapper = document.getElementById('qrcode');
+      const statusBox = document.getElementById('bookingStatusMessage');
 
-      // Validate data presence
       if (!qrCodeData || !bookingId || !ownerName) {
         qrWrapper.innerHTML = "<p class='text-danger'> Booking info not found. Please try again.</p>";
         return;
       }
 
-      // Trigger confetti only when valid data is found
+      // Confetti effect
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 
-
       const capName = ownerName.charAt(0).toUpperCase() + ownerName.slice(1);
-      // Update heading with customer's name
-      title.innerText = `🎉 Booking Confirmed${capName ? ', ' + capName : ''}!`;
+      title.innerText = `Booking Confirmed${capName ? ', ' + capName : ''}!`;
 
-
-
-      // Show Booking ID above QR code
+      // Booking ID above QR
       const bookingIdText = document.createElement('p');
       bookingIdText.className = 'mt-3 fw-semibold';
       bookingIdText.innerText = `Your Booking ID: ${bookingId}`;
       bookingIdText.style.textAlign = 'center';
       qrWrapper.appendChild(bookingIdText);
 
-      // Render QR code image below the booking ID
+      // QR Code Image
       const img = document.createElement('img');
       img.src = `data:image/png;base64,${qrCodeData}`;
       img.alt = "QR Code";
@@ -90,30 +81,62 @@
       img.style.margin = '20px auto';
       qrWrapper.appendChild(img);
 
-
-      // Download button logic
+      // Download QR
       document.getElementById('downloadQR').addEventListener('click', function () {
         const link = document.createElement('a');
         link.href = img.src;
         link.download = `PetStay-Booking-${bookingId}.png`;
         link.click();
-        // Show toast message
         const toast = document.getElementById('toast-msg');
         toast.classList.remove('d-none');
         setTimeout(() => toast.classList.add('d-none'), 3000);
-
-
       });
 
-      // Optional: Clean up sessionStorage after showing
+      // ✅ Fetch booking status
+      fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data || !data.Status) return;
+
+          let message = '';
+          let alertClass = 'alert-info';
+
+          switch (data.Status) {
+            case 'Pending':
+              message = 'Booking received! Please wait for admin confirmation before check-in.';
+              alertClass = 'alert-warning';
+              break;
+            case 'Confirmed':
+              message = 'Booking confirmed! You may now check-in using the QR code.';
+              alertClass = 'alert-success';
+              break;
+            case 'Checked-In':
+              message = 'You are already checked-in. Enjoy your pet\'s stay!';
+              alertClass = 'alert-success';
+              break;
+            case 'Cancelled':
+              message = 'Your booking was cancelled. Please contact support for more information.';
+              alertClass = 'alert-danger';
+              break;
+            default:
+              message = `Current booking status: ${data.Status}`;
+              alertClass = 'alert-secondary';
+          }
+
+          statusBox.textContent = message;
+          statusBox.className = `alert ${alertClass} mt-4`;
+          statusBox.classList.remove('d-none');
+        })
+        .catch(err => {
+          console.error('Error fetching booking status:', err);
+        });
+
+      // Optional cleanup
       sessionStorage.removeItem('qrCodeBase64');
       sessionStorage.removeItem('BookingID');
       sessionStorage.removeItem('OwnerName');
     });
   </script>
-
-
-
 </body>
 
 </html>

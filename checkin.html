@@ -23,7 +23,7 @@
       const bookingId = params.get("bookingId");
 
       if (!bookingId) {
-        document.getElementById("result").innerHTML = "<span class='text-danger'>❌ Booking ID not found in QR.</span>";
+        document.getElementById("result").innerHTML = "<span class='text-danger'>Booking ID not found in QR.</span>";
         return;
       }
 
@@ -32,19 +32,29 @@
         const booking = await response.json();
 
         if (response.ok && booking.BookingID) {
+
+
           document.getElementById("result").innerHTML = `
-            <h5 class="text-success">Booking Found</h5>
-            <p><strong>Owner:</strong> ${booking.OwnerName}</p>
-            <p><strong>Pet:</strong> ${booking.PetName} (${booking.PetSpecies})</p>
-            <p><strong>Check-In Date:</strong> ${booking.CheckInDate}</p>
-            <p><strong>Status:</strong> <span class="badge bg-${booking.Status === 'Checked-In' ? 'success' : 'warning'}">${booking.Status}</span></p>
-            ${booking.Status !== 'Checked-In' ? `<button class="btn btn-success mt-3" onclick="checkIn('${booking.BookingID}')">Mark as Checked-In</button>` : ''}
-          `;
+  <h5 class="text-success">Booking Found</h5>
+  <p><strong>Owner:</strong> ${booking.OwnerName}</p>
+  <p><strong>Pet:</strong> ${booking.PetName} (${booking.PetSpecies})</p>
+  <p><strong>Check-In Date:</strong> ${booking.CheckInDate}</p>
+  <p><strong>Status:</strong> <span class="badge bg-${booking.Status === 'Checked-In' ? 'success' : booking.Status === 'Confirmed' ? 'primary' : 'warning'}">${booking.Status}</span></p>
+  ${booking.Status === 'Confirmed'
+              ? `<button class="btn btn-success mt-3" onclick="checkIn('${booking.BookingID}')">Mark as Checked-In</button>`
+              : booking.Status === 'Checked-In'
+                ? `<div class="text-success fw-bold">✅ Already checked in.</div>`
+                : `<div class="text-warning fw-bold">⏳ Awaiting admin confirmation before check-in.</div>`
+            }
+`;
+
+
+
         } else {
-          document.getElementById("result").innerHTML = "<span class='text-danger'>❌ No booking found.</span>";
+          document.getElementById("result").innerHTML = "<span class='text-danger'>No booking found.</span>";
         }
       } catch (err) {
-        document.getElementById("result").innerHTML = "<span class='text-danger'>❌ Failed to load booking info.</span>";
+        document.getElementById("result").innerHTML = "<span class='text-danger'>Failed to load booking info.</span>";
       }
     });
 
@@ -56,16 +66,48 @@
       if (res.ok) {
         const result = await res.json();
         alert(`Booking marked as checked-in!\nAssigned Room: ${result.roomId}`);
-          document.getElementById("roomInfo").innerText = `✅ Assigned Room: ${result.roomId}`;
+        const checkInBtn = document.querySelector("button.btn-success");
+        if (checkInBtn) checkInBtn.disabled = true;
+        document.getElementById("roomInfo").innerText = "Processing check-in... ⏳";
 
-       setTimeout(() => location.reload(), 3000); 
+        setTimeout(() => {
+          document.getElementById("roomInfo").innerText = `Assigned Room: ${result.roomId}`;
+        }, 1000);
 
+
+        // Re-fetch booking details and update the display
+        await updateBookingDisplay(bookingId);
       } else {
         const error = await res.json();
         alert(`Failed to check in: ${error.message || 'Unknown error'}`);
       }
-
     }
+
+    async function updateBookingDisplay(bookingId) {
+      try {
+        const response = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}`);
+        const booking = await response.json();
+
+        if (response.ok && booking.BookingID) {
+          document.getElementById("result").innerHTML = `
+        <h5 class="text-success">Booking Updated</h5>
+        <p><strong>Owner:</strong> ${booking.OwnerName}</p>
+        <p><strong>Pet:</strong> ${booking.PetName} (${booking.PetSpecies})</p>
+        <p><strong>Check-In Date:</strong> ${booking.CheckInDate}</p>
+       <p><strong>Status:</strong> 
+  <span class="badge bg-${booking.Status === 'Checked-In' ? 'success' : booking.Status === 'Confirmed' ? 'primary' : 'warning'}">
+    ${booking.Status}
+  </span>
+</p>
+
+      `;
+        }
+      } catch (err) {
+        console.error("Failed to refresh booking display", err);
+      }
+    }
+
+
   </script>
 </body>
 
