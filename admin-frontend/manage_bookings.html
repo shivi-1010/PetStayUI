@@ -62,7 +62,6 @@
 
   <!-- ======== main-wrapper start =========== -->
   <main class="main-wrapper">
-    <!-- ========== header start ========== -->
     <header class="header">
       <div class="container-fluid">
         <div class="row">
@@ -159,16 +158,10 @@
                 </nav>
               </div>
             </div>
-            <!-- end col -->
           </div>
-          <!-- end row -->
         </div>
-        <!-- ========== title-wrapper end ========== -->
 
-        <!-- ========== tables-wrapper start ========== -->
-
-
-        <div class="tables-wrapper">
+        <!-- <div class="tables-wrapper">
           <div class="row">
             <div class="col-lg-12">
               <div class="card-style mb-30">
@@ -202,97 +195,83 @@
                         </th>
                       </tr>
                     </thead>
-                    <tbody>
-                      <tr>
-                        <td>1</td>
-                        <td>John Doe</td>
-                        <td>Buddy</td>
-                        <td>2025-06-01</td>
-                        <td>2025-06-05</td>
-                        <td><span class="status-btn active-btn">Confirmed</span></td>
-
-                        <td>
-                          <div class="action">
-                            <button class="text-primary" title="View Details" aria-label="View Booking Details">
-                              <i class="lni lni-eye"></i>
-                            </button>
-
-                            <button class="text-danger" title="Cancel Booking">
-                              <i class="lni lni-trash-can"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>2</td>
-                        <td>Sarah Lee</td>
-                        <td>Milo</td>
-                        <td>2025-06-03</td>
-                        <td>2025-06-07</td>
-                        <td><span class="status-btn info-btn">Pending</span></td>
-                        <!-- <td><img src="/assets/images/qr/qr2.png" alt="QR Code" width="40"></td> -->
-                        <td>
-                          <div class="action">
-                            <button class="text-primary" title="View Details">
-                              <i class="lni lni-eye"></i>
-                            </button>
-                            <button class="text-danger" title="Cancel Booking">
-                              <i class="lni lni-trash-can"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>3</td>
-                        <td>David Smith</td>
-                        <td>Luna</td>
-                        <td>2025-06-10</td>
-                        <td>2025-06-15</td>
-                        <td><span class="status-btn success-btn">Checked-In</span></td>
-                        <!-- <td><img src="/assets/images/qr/qr3.png" alt="QR Code" width="40"></td> -->
-                        <td>
-                          <div class="action">
-                            <button class="text-primary" title="View Details">
-                              <i class="lni lni-eye"></i>
-                            </button>
-                            <button class="text-danger" title="Cancel Booking">
-                              <i class="lni lni-trash-can"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>4</td>
-                        <td>Amy Brown</td>
-                        <td>Rocky</td>
-                        <td>2025-06-12</td>
-                        <td>2025-06-18</td>
-                        <td><span class="status-btn close-btn">Cancelled</span></td>
-                        <!-- <td><img src="/assets/images/qr/qr4.png" alt="QR Code" width="40"></td> -->
-                        <td>
-                          <div class="action">
-                            <button class="text-primary" title="View Details">
-                              <i class="lni lni-eye"></i>
-                            </button>
-                            <button class="text-danger" title="Remove Record">
-                              <i class="lni lni-trash-can"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
+                    <tbody id="bookingsTableBody"> </tbody>
                   </table>
                 </div>
               </div>
             </div>
           </div>
+        </div> -->
+
+<div class="tables-wrapper">
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <input type="text" class="form-control" id="searchInput" placeholder="Search by name..." />
+    </div>
+    <div class="col-md-3">
+      <select class="form-control" id="statusFilter">
+        <option value="">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Confirmed">Confirmed</option>
+        <option value="Checked-In">Checked-In</option>
+        <option value="Checked-Out">Checked-Out</option>
+        <option value="Cancelled">Cancelled</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card-style mb-30">
+        <h6 class="mb-10">Manage Bookings</h6>
+        <p class="text-sm mb-20">View and manage current and upcoming pet bookings.</p>
+        <div class="table-wrapper table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Customer</th>
+                <th>Pet Name</th>
+                <th>Check-In</th>
+                <th>Check-Out</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsTableBody"> </tbody>
+          </table>
         </div>
-
-
-
-        <!-- ========== tables-wrapper end ========== -->
       </div>
-      <!-- end container -->
+    </div>
+  </div>
+</div>
+
+<!-- Booking Details Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-md">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bookingModalLabel">Booking Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="modalDetails">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+  <div id="toast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="polite" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="toastMessage">Success!</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+      </div>
     </section>
     <!-- ========== table components end ========== -->
 
@@ -333,7 +312,7 @@
     amplifyScript.src = "https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js";
 
     amplifyScript.onload = function () {
-      console.log("✅ Amplify is loaded");
+      console.log("Amplify is loaded");
 
       window.Amplify = window.aws_amplify;
 
@@ -343,12 +322,129 @@
     };
 
     amplifyScript.onerror = function () {
-      console.error("❌ Failed to load AWS Amplify.");
+      console.error("Failed to load AWS Amplify.");
     };
 
     document.head.appendChild(amplifyScript);
   </script>
 
+<script>
+  let allBookings = [];
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    await loadBookings();
+    document.getElementById("searchInput").addEventListener("input", () => renderBookings(allBookings));
+    document.getElementById("statusFilter").addEventListener("change", () => renderBookings(allBookings));
+  });
+
+  async function loadBookings() {
+    try {
+      const res = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/bookings");
+      allBookings = await res.json();
+      renderBookings(allBookings);
+    } catch (err) {
+      console.error("❌ Failed to load bookings:", err);
+    }
+  }
+
+  function renderBookings(bookings) {
+    const tbody = document.getElementById("bookingsTableBody");
+    const searchValue = document.getElementById("searchInput")?.value.toLowerCase() || "";
+    const statusFilter = document.getElementById("statusFilter")?.value || "";
+
+    const filtered = bookings.filter(b =>
+      (!statusFilter || b.Status === statusFilter) &&
+      (b.OwnerName?.toLowerCase().includes(searchValue) || b.PetName?.toLowerCase().includes(searchValue))
+    );
+
+    tbody.innerHTML = "";
+    filtered.forEach((b, index) => {
+      const statusClass = {
+        "Pending": "info-btn",
+        "Confirmed": "active-btn",
+        "Checked-In": "success-btn",
+        "Checked-Out": "warning-btn",
+        "Cancelled": "close-btn"
+      }[b.Status] || "info-btn";
+
+      const showCheckout = b.Status === "Checked-In";
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${b.OwnerName}</td>
+          <td>${b.PetName}</td>
+          <td>${b.CheckInDate}</td>
+          <td>${b.CheckOutDate}</td>
+          <td><span class="status-btn ${statusClass}">${b.Status}</span></td>
+          <td>
+            <div class="action">
+              <button class="text-primary" title="View Details" onclick='viewBooking(${JSON.stringify(b)})'>
+                <i class="lni lni-eye"></i>
+              </button>
+              <button class="text-danger" title="Cancel Booking" onclick="cancelBooking('${b.BookingID}')">
+                <i class="lni lni-trash-can"></i>
+              </button>
+              ${showCheckout
+                ? `<button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')">
+                    <i class="lni lni-checkmark-circle"></i>
+                  </button>` : ""}
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  async function cancelBooking(id) {
+    if (!confirm("Cancel this booking?")) return;
+    try {
+      const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/cancel`, { method: "POST" });
+      const data = await res.json();
+      showToast(data.message);
+      await loadBookings();
+    } catch (err) {
+      showToast("❌ Error cancelling booking");
+      console.error(err);
+    }
+  }
+
+  async function checkoutBooking(id) {
+    if (!confirm("Check out this guest?")) return;
+    try {
+      const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/checkout`, { method: "POST" });
+      const data = await res.json();
+      showToast(data.message);
+      await loadBookings();
+    } catch (err) {
+      showToast("❌ Error checking out");
+      console.error(err);
+    }
+  }
+
+  function viewBooking(b) {
+    const html = `
+      <p><strong>Owner:</strong> ${b.OwnerName}</p>
+      <p><strong>Email:</strong> ${b.Email}</p>
+      <p><strong>Phone:</strong> ${b.PhoneNumber}</p>
+      <hr>
+      <p><strong>Pet:</strong> ${b.PetName} (${b.PetSpecies}, ${b.PetBreed || "N/A"})</p>
+      <p><strong>Age:</strong> ${b.PetAge}</p>
+      <hr>
+      <p><strong>Check-In:</strong> ${b.CheckInDate}</p>
+      <p><strong>Check-Out:</strong> ${b.CheckOutDate}</p>
+      <p><strong>Status:</strong> ${b.Status}</p>
+      <p><strong>Room:</strong> ${b.RoomNumber || "N/A"}</p>
+    `;
+    document.getElementById("modalDetails").innerHTML = html;
+    new bootstrap.Modal(document.getElementById("bookingModal")).show();
+  }
+
+  function showToast(msg) {
+    document.getElementById("toastMessage").textContent = msg;
+    new bootstrap.Toast(document.getElementById("toast")).show();
+  }
+</script>
 
 </body>
 
