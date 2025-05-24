@@ -366,12 +366,16 @@
       guestTable.innerHTML = "";
 
       const petSpeciesCount = { Dog: 0, Cat: 0 };
-      const statusCount = { "Pending": 0, "Confirmed": 0, "Checked-In": 0, "Cancelled": 0 };
+      const statusCount = { "Pending": 0, "Confirmed": 0, "Checked-In": 0, "Checked-Out": 0, "Cancelled": 0 };
 
       bookings.forEach(b => {
         const species = b.PetSpecies?.trim();
-        if (petSpeciesCount[species] !== undefined) petSpeciesCount[species]++;
-        if (statusCount[b.Status]) statusCount[b.Status]++;
+        if (petSpeciesCount.hasOwnProperty(species)) {
+          petSpeciesCount[species]++;
+        }
+        if (statusCount.hasOwnProperty(b.Status)) {
+          statusCount[b.Status]++;
+        }
 
         if (b.Status === "Checked-In") {
           const daysLeft = Math.max(
@@ -397,6 +401,8 @@
             </tr>`;
         }
       });
+
+      console.log("Booking Status Counts", statusCount);  // for debugging
 
       loadCharts(petSpeciesCount, statusCount);
     } catch (err) {
@@ -427,7 +433,7 @@
             label: "Pets",
             data: [petSpeciesCount.Dog, petSpeciesCount.Cat],
             backgroundColor: ["#365CF5", "#d50100"],
-            borderRadius: 10,
+            borderRadius: 10
           }]
         },
         options: {
@@ -454,11 +460,18 @@
           labels: Object.keys(statusCount),
           datasets: [{
             data: Object.values(statusCount),
-            backgroundColor: ["#FFC107", "#28A745", "#007BFF", "#DC3545"],
+            backgroundColor: [
+              "#FFC107",  // Pending
+              "#28A745",  // Confirmed
+              "#007BFF",  // Checked-In
+              "#6C757D",  // Checked-Out
+              "#DC3545"   // Cancelled
+            ],
             borderWidth: 2
           }]
         },
         options: {
+          responsive: true,
           plugins: {
             legend: {
               position: "bottom",
@@ -471,8 +484,7 @@
               bodyFont: { size: 14 },
               displayColors: true
             }
-          },
-          responsive: true
+          }
         }
       });
     }
@@ -483,6 +495,7 @@
     loadRoomAvailability();
   });
 </script>
+
 
 
 
