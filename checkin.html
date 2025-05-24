@@ -58,7 +58,7 @@
         alert(`Booking marked as checked-in!\nAssigned Room: ${result.roomId}`);
           document.getElementById("roomInfo").innerText = `✅ Assigned Room: ${result.roomId}`;
 
-       setTimeout(() => location.reload(), 3000); // reload after 3 seconds
+       setTimeout(() => location.reload(), 3000); 
 
       } else {
         const error = await res.json();
