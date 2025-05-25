@@ -490,13 +490,15 @@
       });
 
       const refreshBtn = document.createElement("button");
-      refreshBtn.textContent = "↻ Refresh";
-      refreshBtn.className = "btn btn-outline-primary btn-sm ms-3";
+      refreshBtn.innerHTML = `<i class="lni lni-reload me-1"></i>Refresh`;
+
+      refreshBtn.className = "btn btn-sm btn-outline-primary float-end mt-2 ms-2";
       refreshBtn.addEventListener("click", () => {
         loadDashboardData();
         loadRoomAvailability();
       });
-      document.querySelector(".title-wrapper .row")?.appendChild(refreshBtn);
+      document.querySelector(".breadcrumb-wrapper")?.appendChild(refreshBtn);
+
     });
 
 
@@ -567,11 +569,6 @@
         });
       }
     }
-
-    window.addEventListener("DOMContentLoaded", () => {
-      loadDashboardData();
-      loadRoomAvailability();
-    });
   </script>
 
 

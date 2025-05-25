@@ -315,14 +315,14 @@ async function loadBookings() {
   try {
     const res = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/bookings");
     const result = await res.json();
-    allBookings = JSON.parse(result.body); 
-
+    allBookings = result.bookings;  
     renderBookings(allBookings);
     console.log("Loaded bookings:", allBookings);
   } catch (err) {
     console.error("Failed to load bookings:", err);
   }
 }
+
 
 
     function renderBookings(bookings) {
