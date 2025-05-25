@@ -334,6 +334,16 @@
       </div>
     </section>
 
+  <!-- Toast Notification for Room Availability -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+    <div id="availabilityToast" class="toast text-white bg-danger border-0" role="alert" aria-live="polite" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="availabilityMessage"></div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+
     <!-- ========== section end ========== -->
 
     <!-- ========== footer start =========== -->
@@ -369,18 +379,31 @@
   <script defer src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
   <script defer src="/assets/js/auth-check.js"></script>
   <script>
-    async function loadDashboardData() {
+ async function loadDashboardData(filter = "Today") {
       try {
         const res = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/bookings");
-        const bookings = await res.json();
+        const result = await res.json();
+        const bookings = JSON.parse(result.body);
 
-        const today = new Date().toISOString().split("T")[0];
+        const today = new Date();
+        let todayISO = today.toISOString().split("T")[0];
+
+        let filteredBookings = bookings;
+        if (filter === "Today") {
+          filteredBookings = bookings.filter(b => b.CheckInDate === todayISO);
+        } else if (filter === "Weekly") {
+          const weekAgo = new Date();
+          weekAgo.setDate(today.getDate() - 7);
+          filteredBookings = bookings.filter(b => new Date(b.CheckInDate) >= weekAgo);
+        } else if (filter === "Monthly") {
+          const monthAgo = new Date();
+          monthAgo.setDate(today.getDate() - 30);
+          filteredBookings = bookings.filter(b => new Date(b.CheckInDate) >= monthAgo);
+        }
 
         const checkedIn = bookings.filter(b => b.Status === "Checked-In");
-        const todayBookings = bookings.filter(b => b.CheckInDate === today);
-
         document.getElementById("currentGuests").innerText = checkedIn.length;
-        document.getElementById("bookingsToday").innerText = todayBookings.length;
+        document.getElementById("bookingsToday").innerText = filteredBookings.length;
         document.getElementById("newBookingsCount").innerText = bookings.length;
 
         const guestTable = document.getElementById("currentGuestsTable");
@@ -391,39 +414,29 @@
 
         bookings.forEach(b => {
           const species = b.PetSpecies?.trim();
-          if (petSpeciesCount.hasOwnProperty(species)) {
-            petSpeciesCount[species]++;
-          }
-          if (statusCount.hasOwnProperty(b.Status)) {
-            statusCount[b.Status]++;
-          }
+          if (petSpeciesCount.hasOwnProperty(species)) petSpeciesCount[species]++;
+          if (statusCount.hasOwnProperty(b.Status)) statusCount[b.Status]++;
 
           if (b.Status === "Checked-In") {
-            const daysLeft = Math.max(
-              0,
-              Math.ceil((new Date(b.CheckOutDate) - new Date()) / (1000 * 60 * 60 * 24))
-            );
-
+            const daysLeft = Math.max(0, Math.ceil((new Date(b.CheckOutDate) - new Date()) / (1000 * 60 * 60 * 24)));
             guestTable.innerHTML += `
-            <tr>
-              <td>
-                <div class="product">
-                  <div class="image">
-                    <img src="/assets/images/pets/${species?.toLowerCase() || 'default'}.jpg" alt="${b.PetName}" />
+              <tr>
+                <td>
+                  <div class="product">
+                    <div class="image">
+                      <img src="/assets/images/pets/${species?.toLowerCase() || 'default'}.jpg" alt="${b.PetName}" />
+                    </div>
+                    <p class="text-sm">${b.PetName} (${b.PetBreed || b.PetSpecies})</p>
                   </div>
-                  <p class="text-sm">${b.PetName} (${b.PetBreed || b.PetSpecies})</p>
-                </div>
-              </td>
-              <td><p class="text-sm">${b.OwnerName}</p></td>
-              <td><p class="text-sm">${b.RoomNumber}</p></td>
-              <td><p class="text-sm">${b.CheckInDate}</p></td>
-              <td><p class="text-sm">${daysLeft} day${daysLeft !== 1 ? 's' : ''}</p></td>
-              <td><span class="status-btn success-btn">Checked In</span></td>
-            </tr>`;
+                </td>
+                <td><p class="text-sm">${b.OwnerName}</p></td>
+                <td><p class="text-sm">${b.RoomNumber}</p></td>
+                <td><p class="text-sm">${b.CheckInDate}</p></td>
+                <td><p class="text-sm">${daysLeft} day${daysLeft !== 1 ? 's' : ''}</p></td>
+                <td><span class="status-btn success-btn">Checked In</span></td>
+              </tr>`;
           }
         });
-
-        console.log("Booking Status Counts", statusCount);  // for debugging
 
         loadCharts(petSpeciesCount, statusCount);
       } catch (err) {
@@ -434,7 +447,8 @@
     async function loadRoomAvailability() {
       try {
         const res = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/rooms/availability");
-        const stats = await res.json();
+        const result = await res.json();
+        const stats = JSON.parse(result.body);
 
         if (res.ok && Array.isArray(stats.rooms)) {
           let totalDog = 0, availableDog = 0;
@@ -453,14 +467,35 @@
           document.getElementById("dogRooms").innerText = `${availableDog} / ${totalDog}`;
           document.getElementById("catRooms").innerText = `${availableCat} / ${totalCat}`;
 
-          // Optional Alerts
-          if (availableDog === 0) console.warn("No dog rooms available!");
-          if (availableCat === 0) console.warn("No cat rooms available!");
+          if (availableDog === 0 || availableCat === 0) {
+            const toast = new bootstrap.Toast(document.getElementById("availabilityToast"));
+            const msg = `${availableDog === 0 ? 'No dog rooms available. ' : ''}${availableCat === 0 ? 'No cat rooms available.' : ''}`;
+            document.getElementById("availabilityMessage").textContent = msg;
+            toast.show();
+          }
         }
       } catch (err) {
         console.error("Room availability error", err);
       }
     }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      loadDashboardData();
+      loadRoomAvailability();
+
+      document.querySelector("select.light-bg")?.addEventListener("change", (e) => {
+        loadDashboardData(e.target.value);
+      });
+
+      const refreshBtn = document.createElement("button");
+      refreshBtn.textContent = "↻ Refresh";
+      refreshBtn.className = "btn btn-outline-primary btn-sm ms-3";
+      refreshBtn.addEventListener("click", () => {
+        loadDashboardData();
+        loadRoomAvailability();
+      });
+      document.querySelector(".title-wrapper .row")?.appendChild(refreshBtn);
+    });
 
 
     function loadCharts(petSpeciesCount, statusCount) {
