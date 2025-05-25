@@ -79,32 +79,44 @@
     });
 
 
-    async function checkIn(bookingId) {
-      const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}/checkin`, {
-        method: "POST"
-      });
+   async function checkIn(bookingId) {
+  try {
+    const session = await Amplify.Auth.currentSession();
+    const token = session.getIdToken().getJwtToken(); // ✅ get ID token
 
-      if (res.ok) {
-        const result = await res.json();
-        const toastMsg = document.getElementById("checkinToastMsg");
-        toastMsg.textContent = `✅ Check-in successful. Room Assigned: ${result.roomId}`;
-        const toast = new bootstrap.Toast(document.getElementById("checkinToast"));
-        toast.show();
-
-        const checkInBtn = document.querySelector("button.btn-success");
-        if (checkInBtn) checkInBtn.disabled = true;
-        document.getElementById("roomInfo").innerText = "Processing check-in... ⏳";
-
-        setTimeout(() => {
-          document.getElementById("roomInfo").innerText = `Assigned Room: ${result.roomId}`;
-        }, 1000);
-
-        await updateBookingDisplay(bookingId);
-      } else {
-        const error = await res.json();
-        alert(`Failed to check in: ${error.message || 'Unknown error'}`);
+    const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}/checkin`, {
+      method: "POST",
+      headers: {
+        Authorization: token
       }
+    });
+
+    if (res.ok) {
+      const result = await res.json();
+      const toastMsg = document.getElementById("checkinToastMsg");
+      toastMsg.textContent = `✅ Check-in successful. Room Assigned: ${result.roomId}`;
+      const toast = new bootstrap.Toast(document.getElementById("checkinToast"));
+      toast.show();
+
+      const checkInBtn = document.querySelector("button.btn-success");
+      if (checkInBtn) checkInBtn.disabled = true;
+      document.getElementById("roomInfo").innerText = "Processing check-in... ⏳";
+
+      setTimeout(() => {
+        document.getElementById("roomInfo").innerText = `Assigned Room: ${result.roomId}`;
+      }, 1000);
+
+      await updateBookingDisplay(bookingId);
+    } else {
+      const error = await res.json();
+      alert(`Failed to check in: ${error.message || 'Unknown error'}`);
     }
+  } catch (err) {
+    console.error("Check-in failed:", err);
+    alert("Something went wrong during check-in.");
+  }
+}
+
 
     async function updateBookingDisplay(bookingId) {
       try {
