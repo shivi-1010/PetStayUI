@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Redirecting...</title>
@@ -10,7 +11,7 @@
       const Auth = window.aws_amplify?.Auth;
 
       if (!Amplify || !Auth) {
-        console.error("❌ Amplify not available.");
+        console.error("Amplify not available.");
         return;
       }
 
@@ -30,17 +31,25 @@
       });
 
       try {
-        console.log("🔁 Handling OAuth redirect");
-        await Auth.currentAuthenticatedUser(); 
-        console.log("✅ Session active. Redirecting to dashboard...");
-        window.location.href = 'admin_dashboard.html?from=cognito';
+        console.log("Handling OAuth redirect");
+        await Auth.currentAuthenticatedUser();
+        console.log("Session active. Redirecting to dashboard...");
+        const redirectURL = sessionStorage.getItem("redirectAfterLogin");
+        if (redirectURL && redirectURL.includes("checkin.html")) {
+          window.location.href = redirectURL;
+        } else {
+          window.location.href = 'admin_dashboard.html';
+        }
+
       } catch (err) {
-        console.error("❌ User not authenticated yet:", err);
+        console.error("User not authenticated yet:", err);
       }
     });
   </script>
 </head>
+
 <body>
   <p>🔐 Logging you in... Please wait.</p>
 </body>
+
 </html>
