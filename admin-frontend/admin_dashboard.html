@@ -334,15 +334,16 @@
       </div>
     </section>
 
-  <!-- Toast Notification for Room Availability -->
-  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
-    <div id="availabilityToast" class="toast text-white bg-danger border-0" role="alert" aria-live="polite" aria-atomic="true">
-      <div class="d-flex">
-        <div class="toast-body" id="availabilityMessage"></div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    <!-- Toast Notification for Room Availability -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+      <div id="availabilityToast" class="toast text-white bg-danger border-0" role="alert" aria-live="polite"
+        aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body" id="availabilityMessage"></div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
       </div>
     </div>
-  </div>
 
     <!-- ========== section end ========== -->
 
@@ -379,11 +380,11 @@
   <script defer src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
   <script defer src="/assets/js/auth-check.js"></script>
   <script>
- async function loadDashboardData(filter = "Today") {
+    async function loadDashboardData(filter = "Today") {
       try {
         const res = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/bookings");
         const result = await res.json();
-        const bookings = JSON.parse(result.body);
+        const bookings = result.bookings;
 
         const today = new Date();
         let todayISO = today.toISOString().split("T")[0];
@@ -448,7 +449,8 @@
       try {
         const res = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/rooms/availability");
         const result = await res.json();
-        const stats = JSON.parse(result.body);
+        const stats = result.stats;
+
 
         if (res.ok && Array.isArray(stats.rooms)) {
           let totalDog = 0, availableDog = 0;
