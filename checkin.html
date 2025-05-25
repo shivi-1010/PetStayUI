@@ -39,17 +39,18 @@
   <p><strong>Owner:</strong> ${booking.OwnerName}</p>
   <p><strong>Pet:</strong> ${booking.PetName} (${booking.PetSpecies})</p>
   <p><strong>Check-In Date:</strong> ${booking.CheckInDate}</p>
-  <p><strong>Status:</strong> <span class="badge bg-${booking.Status === 'Checked-In' ? 'success' : booking.Status === 'Confirmed' ? 'primary' : 'warning'}">${booking.Status}</span></p>
+  <p><strong>Status:</strong> 
+    <span class="badge bg-${booking.Status === 'Checked-In' ? 'success' : booking.Status === 'Confirmed' ? 'primary' : booking.Status === 'Checked-Out' ? 'secondary' : 'warning'}">${booking.Status}</span>
+  </p>
   ${booking.Status === 'Confirmed'
               ? `<button class="btn btn-success mt-3" onclick="checkIn('${booking.BookingID}')">Mark as Checked-In</button>`
               : booking.Status === 'Checked-In'
-                ? `<div class="text-success fw-bold">✅ Already checked in.</div>`
-                : `<div class="text-warning fw-bold">⏳ Awaiting admin confirmation before check-in.</div>`
+                ? `<div class="text-success fw-bold">Already checked in.</div>`
+                : booking.Status === 'Checked-Out'
+                  ? `<div class="text-secondary fw-bold">🐾 Thank you for choosing PetStay! We hope to see you and your furry friend again soon.</div>`
+                  : `<div class="text-warning fw-bold">Awaiting admin confirmation before check-in.</div>`
             }
 `;
-
-
-
         } else {
           document.getElementById("result").innerHTML = "<span class='text-danger'>No booking found.</span>";
         }
@@ -90,17 +91,25 @@
 
         if (response.ok && booking.BookingID) {
           document.getElementById("result").innerHTML = `
-        <h5 class="text-success">Booking Updated</h5>
-        <p><strong>Owner:</strong> ${booking.OwnerName}</p>
-        <p><strong>Pet:</strong> ${booking.PetName} (${booking.PetSpecies})</p>
-        <p><strong>Check-In Date:</strong> ${booking.CheckInDate}</p>
-       <p><strong>Status:</strong> 
-  <span class="badge bg-${booking.Status === 'Checked-In' ? 'success' : booking.Status === 'Confirmed' ? 'primary' : 'warning'}">
-    ${booking.Status}
-  </span>
-</p>
+  <h5 class="text-success">Booking Updated</h5>
+  <p><strong>Owner:</strong> ${booking.OwnerName}</p>
+  <p><strong>Pet:</strong> ${booking.PetName} (${booking.PetSpecies})</p>
+  <p><strong>Check-In Date:</strong> ${booking.CheckInDate}</p>
+  <p><strong>Status:</strong> 
+    <span class="badge bg-${booking.Status === 'Checked-In' ? 'success' : booking.Status === 'Confirmed' ? 'primary' : booking.Status === 'Checked-Out' ? 'secondary' : 'warning'}">
+      ${booking.Status}
+    </span>
+  </p>
+  ${booking.Status === 'Checked-In'
+              ? `<div class="text-success fw-bold">Already checked in.</div>`
+              : booking.Status === 'Checked-Out'
+                ? `<div class="text-secondary fw-bold">🐾 Thank you for choosing PetStay! We hope to see you and your furry friend again soon.</div>`
+                : booking.Status === 'Confirmed'
+                  ? `<button class="btn btn-success mt-3" onclick="checkIn('${booking.BookingID}')">Mark as Checked-In</button>`
+                  : `<div class="text-warning fw-bold">Awaiting admin confirmation before check-in.</div>`
+            }
+`;
 
-      `;
         }
       } catch (err) {
         console.error("Failed to refresh booking display", err);

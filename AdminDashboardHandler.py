@@ -22,45 +22,35 @@ def lambda_handler(event, context):
     print("Path:", path)
 
     try:
-        # GET /bookings
         if method == 'GET' and path == '/bookings':
             return get_all_bookings()
 
-        # GET /rooms/availability
         elif method == 'GET' and path == '/rooms/availability':
             return get_room_availability()
 
-        # POST /booking/{bookingId}/cancel
-        elif method == 'POST' and path.startswith('/booking/') and path.endswith('/cancel'):
-            booking_id = path.split('/')[2]
-            return cancel_booking(booking_id)
-
-        # POST /booking/{bookingId}/checkout
-        elif method == 'POST' and path.startswith('/booking/') and path.endswith('/checkout'):
-            booking_id = path.split('/')[2]
-            return checkout_booking(booking_id)
-
-        # POST /booking/{bookingId}/confirm
-        elif method == 'POST' and path.startswith('/booking/') and path.endswith('/confirm'):
-            booking_id = path.split('/')[2]
-            return confirm_booking(booking_id)
-
-        # POST /booking/{bookingId}/checkin
-        elif method == 'POST' and path.startswith('/booking/') and path.endswith('/checkin'):
-            booking_id = path.split('/')[2]
-            return checkin_booking(booking_id)
-
-        # POST /booking/{bookingId}/restore
-        elif method == 'POST' and path.startswith('/booking/') and path.endswith('/restore'):
-            booking_id = path.split('/')[2]
-            return restore_booking(booking_id)
-
         else:
-            return {
-                'statusCode': 404,
-                'headers': HEADERS,
-                'body': json.dumps({'message': 'Route not found'})
-            }
+            segments = path.strip('/').split('/')
+            if len(segments) == 3 and segments[0] == 'booking':
+                booking_id = segments[1]
+                action = segments[2]
+
+                if method == 'POST':
+                    if action == 'cancel':
+                        return cancel_booking(booking_id)
+                    elif action == 'checkout':
+                        return checkout_booking(booking_id)
+                    elif action == 'confirm':
+                        return confirm_booking(booking_id)
+                    elif action == 'checkin':
+                        return checkin_booking(booking_id)
+                    elif action == 'restore':
+                        return restore_booking(booking_id)
+
+        return {
+            'statusCode': 404,
+            'headers': HEADERS,
+            'body': json.dumps({'message': 'Route not found'})
+        }
 
     except Exception as e:
         return {
@@ -68,7 +58,6 @@ def lambda_handler(event, context):
             'headers': HEADERS,
             'body': json.dumps({'error': str(e)})
         }
-
 
 def get_all_bookings():
     try:
@@ -81,19 +70,14 @@ def get_all_bookings():
             'body': json.dumps(bookings)
         }
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': HEADERS,
-            'body': json.dumps({'error': str(e)})
-        }
+        return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'error': str(e)})}
 
 def get_room_availability():
     try:
         response = rooms_table.scan()
         rooms = response.get('Items', [])
-
         total = len(rooms)
-        occupied = sum(1 for r in rooms if r.get('isOccupied') == True)
+        occupied = sum(1 for r in rooms if r.get('isOccupied') is True)
         available = total - occupied
 
         return {
@@ -103,37 +87,12 @@ def get_room_availability():
                 'totalRooms': total,
                 'occupiedRooms': occupied,
                 'availableRooms': available,
-                'rooms': rooms  
+                'rooms': rooms
             })
-        }
-    except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': HEADERS,
-            'body': json.dumps({'error': str(e)})
         }
 
-    try:
-        response = rooms_table.scan()
-        rooms = response.get('Items', [])
-        total = len(rooms)
-        occupied = sum(1 for r in rooms if r.get('isOccupied') == True)
-        available = total - occupied
-        return {
-            'statusCode': 200,
-            'headers': HEADERS,
-            'body': json.dumps({
-                'totalRooms': total,
-                'occupiedRooms': occupied,
-                'availableRooms': available
-            })
-        }
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': HEADERS,
-            'body': json.dumps({'error': str(e)})
-        }
+        return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'error': str(e)})}
 
 def cancel_booking(booking_id):
     try:
@@ -141,7 +100,7 @@ def cancel_booking(booking_id):
         if not booking:
             return {'statusCode': 404, 'headers': HEADERS, 'body': json.dumps({'message': 'Booking not found'})}
 
-        transact_items = [{
+        transact_items = [ {
             'Update': {
                 'TableName': 'Bookings',
                 'Key': {'BookingID': {'S': booking_id}},
@@ -156,7 +115,7 @@ def cancel_booking(booking_id):
             transact_items.append({
                 'Update': {
                     'TableName': 'Rooms',
-                    'Key': {'RoomNumber': {'S': room_id}},
+                    'Key': {'roomId': {'S': room_id}},
                     'UpdateExpression': 'SET isOccupied = :false',
                     'ExpressionAttributeValues': {':false': {'BOOL': False}}
                 }
@@ -170,19 +129,37 @@ def cancel_booking(booking_id):
 
 def checkout_booking(booking_id):
     try:
+        print(f"[CHECKOUT] Booking ID: {booking_id}")
+
         booking = bookings_table.get_item(Key={'BookingID': booking_id}).get('Item')
+        print(f"[CHECKOUT] Booking fetched: {booking}")
+
         if not booking:
-            return {'statusCode': 404, 'headers': HEADERS, 'body': json.dumps({'message': 'Booking not found'})}
+            print("[CHECKOUT] Booking not found.")
+            return {
+                'statusCode': 404,
+                'headers': HEADERS,
+                'body': json.dumps({'message': 'Booking not found'})
+            }
 
         if booking.get('Status') != 'Checked-In':
-            return {'statusCode': 400, 'headers': HEADERS, 'body': json.dumps({'message': 'Only checked-in bookings can be checked out'})}
+            print(f"[CHECKOUT] Invalid status for checkout: {booking.get('Status')}")
+            return {
+                'statusCode': 400,
+                'headers': HEADERS,
+                'body': json.dumps({'message': 'Only checked-in bookings can be checked out'})
+            }
 
-        if booking.get('RoomNumber'):
+        room_id = booking.get('RoomNumber')
+        print(f"[CHECKOUT] RoomNumber: {room_id}")
+
+        if room_id:
             rooms_table.update_item(
-                Key={'RoomNumber': booking['RoomNumber']},
+                Key={'roomId': room_id},
                 UpdateExpression='SET isOccupied = :false',
                 ExpressionAttributeValues={':false': False}
             )
+            print("[CHECKOUT] Room occupancy updated.")
 
         bookings_table.update_item(
             Key={'BookingID': booking_id},
@@ -193,11 +170,23 @@ def checkout_booking(booking_id):
                 ':time': datetime.utcnow().isoformat()
             }
         )
+        print("[CHECKOUT] Booking status updated to Checked-Out.")
 
-        return {'statusCode': 200, 'headers': HEADERS, 'body': json.dumps({'message': 'Pet checked out and room released'})}
+        return {
+            'statusCode': 200,
+            'headers': HEADERS,
+            'body': json.dumps({'message': 'Pet checked out and room released'})
+        }
 
     except Exception as e:
-        return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'error': str(e)})}
+        import traceback
+        print("[CHECKOUT ERROR]", str(e))
+        print(traceback.format_exc())
+        return {
+            'statusCode': 500,
+            'headers': HEADERS,
+            'body': json.dumps({'error': str(e)})
+        }
 
 def confirm_booking(booking_id):
     try:
@@ -291,7 +280,6 @@ def restore_booking(booking_id):
         if booking.get('Status') != 'Cancelled':
             return {'statusCode': 400, 'headers': HEADERS, 'body': json.dumps({'message': 'Only cancelled bookings can be restored'})}
 
-        # Restore to Pending (or Confirmed if preferred)
         bookings_table.update_item(
             Key={'BookingID': booking_id},
             UpdateExpression='SET #s = :status',
@@ -303,4 +291,3 @@ def restore_booking(booking_id):
 
     except Exception as e:
         return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'error': str(e)})}
-

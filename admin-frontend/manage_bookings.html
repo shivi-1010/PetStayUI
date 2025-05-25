@@ -72,59 +72,62 @@
                   <i class="lni lni-chevron-left me-2"></i> Menu
                 </button>
               </div>
-              <div class="header-search d-none d-md-flex">
+              <!-- <div class="header-search d-none d-md-flex">
                 <form action="#">
                   <input type="text" placeholder="Search..." />
                   <button><i class="lni lni-search-alt"></i></button>
                 </form>
-              </div>
+              </div> -->
             </div>
           </div>
           <div class="col-lg-7 col-md-7 col-6">
             <div class="header-right">
-
-              <!-- profile start -->
               <div class="profile-box ml-15">
                 <button class="dropdown-toggle bg-transparent border-0" type="button" id="profile"
                   data-bs-toggle="dropdown" aria-expanded="false">
                   <div class="profile-info">
-                    <div class="info">
+                    <div class="info d-flex align-items-center">
                       <div class="image">
-                        <img src="/assets/images/profile/profile-image.png" alt="" />
+                        <img src="/assets/images/profile/profile-image.png" alt="Profile image" />
                       </div>
                       <div>
-                        <h6 class="fw-500" id="adminEmail">
+                        <!-- Email inserted here by JS -->
+                        <h6 class="fw-500 mb-0" id="adminEmail">
                           <span class="spinner-border spinner-border-sm" role="status"></span>
+                          Loading...
                         </h6>
-                        <p>Admin</p>
+                        <p class="mb-0">Admin</p>
                       </div>
                     </div>
                   </div>
                 </button>
+
+                <!-- 🔽 Dropdown -->
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profile">
                   <li>
-                    <div class="author-info flex items-center !p-1">
+                    <div class="author-info d-flex align-items-center p-2">
                       <div class="image">
-                        <img src="/assets/images/profile/profile-image.png" alt="image">
+                        <img src="/assets/images/profile/profile-image.png" alt="Dropdown image">
                       </div>
-                      <div class="content">
-                        <h4 class="text-sm">Admin</h4>
-                        <a id="adminEmailDropdown"
-                          class="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white text-xs"
-                          href="#">Loading...</a>
+                      <div class="content ms-2">
+                        <h4 class="text-sm mb-1">Admin</h4> <!-- Still fixed -->
+                        <!-- Email dynamically set here -->
+                        <a id="adminEmailDropdown" class="text-muted text-xs" href="#">Loading...</a>
                       </div>
                     </div>
                   </li>
-                  <li class="divider"></li>
                   <li>
-                    <a href="javascript:void(0);" id="signOutBtn">
-                      <i class="lni lni-exit"></i> Sign Out
+                    <hr class="dropdown-divider">
+                  </li>
+                  <li>
+                    <a href="javascript:void(0);" id="signOutBtn" class="dropdown-item">
+                      <i class="lni lni-exit me-1"></i> Sign Out
                     </a>
                   </li>
                 </ul>
               </div>
 
-              <!-- profile end -->
+
             </div>
           </div>
         </div>
@@ -160,9 +163,6 @@
             </div>
           </div>
         </div>
-
-
-
         <div class="tables-wrapper">
           <div class="row mb-3">
             <div class="col-md-4">
@@ -180,13 +180,16 @@
             </div>
           </div>
 
-          <div class="col-md-3">
-            <select class="form-control" id="speciesFilter">
-              <option value="">All Species</option>
-              <option value="Dog">Dog</option>
-              <option value="Cat">Cat</option>
-            </select>
+          <div class="row mb-4">
+            <div class="col-md-3">
+              <select class="form-control" id="speciesFilter">
+                <option value="">All Species</option>
+                <option value="Dog">Dog</option>
+                <option value="Cat">Cat</option>
+              </select>
+            </div>
           </div>
+
 
           <div class="row">
             <div class="col-lg-12">
@@ -308,19 +311,19 @@
       document.getElementById("speciesFilter").addEventListener("change", () => renderBookings(allBookings));
 
     });
+async function loadBookings() {
+  try {
+    const res = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/bookings");
+    const result = await res.json();
+    allBookings = JSON.parse(result.body); 
 
-    async function loadBookings() {
-      try {
-        const res = await fetch("https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/bookings");
-        const result = await res.json();
-        allBookings = result.bookings || result;
+    renderBookings(allBookings);
+    console.log("Loaded bookings:", allBookings);
+  } catch (err) {
+    console.error("Failed to load bookings:", err);
+  }
+}
 
-        renderBookings(allBookings);
-        console.log("Loaded bookings:", allBookings);
-      } catch (err) {
-        console.error("Failed to load bookings:", err);
-      }
-    }
 
     function renderBookings(bookings) {
       const tbody = document.getElementById("bookingsTableBody");
@@ -408,23 +411,23 @@ ${showRestore
       }
     }
 
-  async function checkoutBooking(id) {
-  if (!confirm("Check out this guest?")) return;
-  try {
-    const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/checkout`, { method: "POST" });
-    const data = await res.json();
+    async function checkoutBooking(id) {
+      if (!confirm("Check out this guest?")) return;
+      try {
+        const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/checkout`, { method: "POST" });
+        const data = await res.json();
 
-    if (!res.ok) {
-      showToast(data.message || "Checkout failed", true); 
-    } else {
-      showToast(data.message || "Checked out successfully");
-      await loadBookings();
+        if (!res.ok) {
+          showToast(data.message || "Checkout failed", true);
+        } else {
+          showToast(data.message || "Checked out successfully");
+          await loadBookings();
+        }
+      } catch (err) {
+        showToast("Error checking out", true);
+        console.error(err);
+      }
     }
-  } catch (err) {
-    showToast("Error checking out", true);
-    console.error(err);
-  }
-}
 
 
     async function confirmBooking(id) {
@@ -435,7 +438,7 @@ ${showRestore
         });
         const data = await res.json();
         showToast(data.message || "Booking confirmed!");
-        await loadBookings(); 
+        await loadBookings();
       } catch (err) {
         showToast("Error confirming booking");
         console.error(err);
@@ -475,17 +478,17 @@ ${showRestore
       new bootstrap.Modal(document.getElementById("bookingModal")).show();
     }
 
-function showToast(msg, isError = false) {
-  const toastEl = document.getElementById("toast");
-  const toastMsg = document.getElementById("toastMessage");
+    function showToast(msg, isError = false) {
+      const toastEl = document.getElementById("toast");
+      const toastMsg = document.getElementById("toastMessage");
 
-  toastMsg.textContent = msg;
+      toastMsg.textContent = msg;
 
-  toastEl.classList.remove("bg-success", "bg-danger");
-  toastEl.classList.add(isError ? "bg-danger" : "bg-success");
+      toastEl.classList.remove("bg-success", "bg-danger");
+      toastEl.classList.add(isError ? "bg-danger" : "bg-success");
 
-  new bootstrap.Toast(toastEl).show();
-}
+      new bootstrap.Toast(toastEl).show();
+    }
 
 
 
