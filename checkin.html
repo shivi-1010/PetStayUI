@@ -83,12 +83,19 @@
     }
 
     // Only triggers on staff/admin intent
-    function loginThenCheckIn() {
-      sessionStorage.setItem("redirectAfterLogin", window.location.href);
-      const loginURL = "https://us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com/login?client_id=4jfnrkopa8cb7r30i0i25gar8k&response_type=code&scope=email+openid+phone&redirect_uri=" +
-        encodeURIComponent(window.location.origin + window.location.pathname + "?bookingId=" + bookingId + "&fromLogin=1");
-      window.location.href = loginURL;
-    }
+function loginThenCheckIn() {
+  // Always store intended destination
+  sessionStorage.setItem("redirectAfterLogin", window.location.href);
+
+  // ALWAYS use the static callback as the redirect_uri
+  const loginURL = "https://us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com/login"
+    + "?client_id=4jfnrkopa8cb7r30i0i25gar8k"
+    + "&response_type=code"
+    + "&scope=email+openid+phone"
+    + "&redirect_uri=https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html";
+  window.location.href = loginURL;
+}
+
 
     // Only runs after Cognito redirect (with fromLogin=1)
     async function checkInAfterLogin() {
