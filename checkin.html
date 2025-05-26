@@ -108,8 +108,8 @@
     async function checkInAfterLogin() {
       try {
         // Retrieve the current authenticated user
-        const user = await Amplify.Auth.currentAuthenticatedUser();
-        currentEmail = user?.attributes?.email;
+     currentEmail = window.petstayCurrentEmail || '';
+
 
         const normalizedEmail = (currentEmail || "").trim().toLowerCase();
         const allowedNormalized = allowedStaffEmails.map(e => e.trim().toLowerCase());

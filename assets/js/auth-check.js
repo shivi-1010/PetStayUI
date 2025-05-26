@@ -46,6 +46,10 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
       const email = idTokenPayload?.email || user.getUsername() || "Email not available";
 
       console.log("Email from ID token payload:", email);
+
+      // MAKE THE EMAIL AVAILABLE TO ALL SCRIPTS
+      window.petstayCurrentEmail = email;   // <--- ADD THIS LINE
+
       updateAdminEmail(email);
 
 
