@@ -36,11 +36,15 @@
         console.log("Session active. Redirecting to dashboard...");
         const redirectURL = sessionStorage.getItem("redirectAfterLogin");
         if (redirectURL && redirectURL.includes("checkin.html")) {
-          window.location.href = redirectURL;
+          // Append &fromLogin=1 only if not present already
+          const url = new URL(redirectURL, window.location.origin);
+          if (!url.searchParams.get('fromLogin')) {
+            url.searchParams.set('fromLogin', '1');
+          }
+          window.location.href = url.toString();
         } else {
           window.location.href = 'admin_dashboard.html';
         }
-
       } catch (err) {
         console.error("User not authenticated yet:", err);
       }
