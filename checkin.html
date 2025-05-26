@@ -111,11 +111,21 @@
         const user = await Amplify.Auth.currentAuthenticatedUser();
         currentEmail = user?.attributes?.email;
 
-        // Check if the user is authorized to perform check-in
-        if (!allowedStaffEmails.includes(currentEmail)) {
-          alert("You are not authorized to perform check-in.");
+        const normalizedEmail = (currentEmail || "").trim().toLowerCase();
+        const allowedNormalized = allowedStaffEmails.map(e => e.trim().toLowerCase());
+        console.log("Normalized Cognito email:", JSON.stringify(normalizedEmail));
+        console.log("Allowed normalized emails:", JSON.stringify(allowedNormalized));
+        console.log("Comparison result:", allowedNormalized.includes(normalizedEmail));
+        console.log("Email char codes:", normalizedEmail.split('').map(c => c.charCodeAt(0)));
+        allowedNormalized.forEach(email => {
+          console.log("Allowed email char codes:", email.split('').map(c => c.charCodeAt(0)));
+        });
+        if (!allowedNormalized.includes(normalizedEmail)) {
+          alert(`You are not authorized to perform check-in.\nYour email: ${currentEmail}`);
           return;
         }
+
+
 
         // Get the authentication token
         const session = await Amplify.Auth.currentSession();
