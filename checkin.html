@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>PetStay Check-In</title>
@@ -7,6 +8,7 @@
   <link rel="stylesheet" href="assets/css/checkin.css">
   <script src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
 </head>
+
 <body class="bg-light">
   <div class="container mt-5 text-center">
     <h2 class="mb-4">🐾 PetStay Check-In</h2>
@@ -16,7 +18,8 @@
 
   <!-- Toast -->
   <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
-    <div id="checkinToast" class="toast text-white bg-success border-0" role="alert" aria-live="polite" aria-atomic="true">
+    <div id="checkinToast" class="toast text-white bg-success border-0" role="alert" aria-live="polite"
+      aria-atomic="true">
       <div class="d-flex">
         <div class="toast-body" id="checkinToastMsg">Check-in successful!</div>
         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
@@ -27,7 +30,6 @@
   <script>
     const allowedStaffEmails = ["petstayteam@gmail.com"];
     let currentEmail = null;
-    let isAdmin = false;
     let bookingId = null;
 
     document.addEventListener("DOMContentLoaded", async function () {
@@ -88,6 +90,7 @@
       try {
         const user = await Amplify.Auth.currentAuthenticatedUser();
         currentEmail = user?.attributes?.email;
+
         if (!allowedStaffEmails.includes(currentEmail)) {
           alert("You are not authorized to perform check-in.");
           return;
@@ -104,10 +107,24 @@
         if (res.ok) {
           const result = await res.json();
           document.getElementById("roomInfo").innerText = `Assigned Room: ${result.roomId}`;
+
+          // Show success toast
           const toastMsg = document.getElementById("checkinToastMsg");
-          toastMsg.textContent = `Check-in successful. Room Assigned: ${result.roomId}`;
+          toastMsg.textContent = `✅ Check-in successful. Room Assigned: ${result.roomId}`;
           const toast = new bootstrap.Toast(document.getElementById("checkinToast"));
           toast.show();
+
+          // After successful check-in, re-fetch booking and re-render
+          const updatedRes = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}`);
+          const updatedBooking = await updatedRes.json();
+          renderBookingInfo(updatedBooking);  // Re-render with new status
+
+          // Disable the Check-In button after successful check-in
+          const checkInButton = document.querySelector("button[onclick='loginThenCheckIn()']");
+          if (checkInButton) {
+            checkInButton.disabled = true;  // Disable the button
+            checkInButton.textContent = "Already Checked-In";  // Update button text
+          }
         } else {
           const errData = await res.json();
           alert(`Check-in failed: ${errData.message || 'Unknown error'}`);
@@ -124,4 +141,5 @@
     }
   </script>
 </body>
+
 </html>
