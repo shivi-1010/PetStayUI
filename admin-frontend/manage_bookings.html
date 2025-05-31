@@ -242,6 +242,25 @@
         </div>
 
       </div>
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="qrModalLabel">QR Code</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="qrModalImage" src="" alt="QR Code" class="img-fluid" />
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
     </section>
     <!-- ========== table components end ========== -->
 
@@ -332,6 +351,8 @@
         const showCheckout = b.Status === "Checked-In";
         const showConfirm = b.Status === "Pending";
         const showRestore = b.Status?.toLowerCase() === "cancelled";
+        const showQR = b.QRCodeURL;
+
 
         tbody.innerHTML += `
   <tr>
@@ -367,6 +388,10 @@ ${showRestore
       <i class="lni lni-undo" style="color: teal;"></i>
 
      </button>` : ""}
+${showQR ? `
+  <button class="text-secondary" title="View QR Code" onclick="showQRModal('${b.QRCodeURL}')">
+    <i class="lni lni-qrcode"></i>
+  </button>` : ""}
 
 
       </div>
@@ -494,6 +519,13 @@ ${showRestore
 
       new bootstrap.Toast(toastEl).show();
     }
+
+    function showQRModal(qrUrl) {
+  const img = document.getElementById("qrModalImage");
+  img.src = qrUrl;
+  new bootstrap.Modal(document.getElementById("qrModal")).show();
+}
+
   </script>
 
 </body>

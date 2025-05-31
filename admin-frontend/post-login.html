@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Redirecting...</title>
@@ -31,8 +32,13 @@
 
       try {
         console.log("🔐 Handling OAuth redirect...");
-        await Auth.currentAuthenticatedUser();
+        const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
+        const session = await Auth.currentSession();
+        const idToken = session.getIdToken();
+
         console.log("✅ Authenticated. Checking redirect target...");
+        console.log("🔍 Token Payload (post-login.html):", idToken.payload);  // NEW LOG
+
 
         const urlParams = new URLSearchParams(window.location.search);
         const bookingId = urlParams.get("bookingId");
@@ -60,4 +66,5 @@
 <body>
   <p>🔐 Logging you in... Please wait.</p>
 </body>
+
 </html>

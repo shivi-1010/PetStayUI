@@ -120,10 +120,19 @@ function loginThenCheckIn() {
     async function checkInAfterLogin() {
       try {
         // Get Cognito user email via Amplify Auth
-        const session = await Amplify.Auth.currentSession();
-        const idToken = session.getIdToken();
-        const email = idToken.payload.email || "";
-        const normalizedEmail = email.trim().toLowerCase();
+const user = await Amplify.Auth.currentAuthenticatedUser({ bypassCache: true });
+const session = await Amplify.Auth.currentSession();
+const idToken = session.getIdToken();
+
+console.log("🔍 Full ID Token Payload:", idToken.payload); // DEBUG
+
+// Attempt to extract email safely
+const email = idToken.payload.email || idToken.payload["cognito:username"] || "unknown";
+
+console.log("✅ Extracted email for auth:", email);
+
+const normalizedEmail = email.trim().toLowerCase();
+
 
         // Only allow staff/admin
         const allowedNormalized = allowedStaffEmails.map(e => e.trim().toLowerCase());

@@ -4,7 +4,7 @@ console.log("auth-check.js loaded");
 const Amplify = window.aws_amplify?.Amplify || window.Amplify;
 const Auth = window.aws_amplify?.Auth || window.Amplify?.Auth;
 const Hub = window.aws_amplify?.Hub || window.Amplify?.Hub;
-
+const currentUrl = window.location.origin + window.location.pathname;
 const amplifyAuthConfig = {
   region: 'us-east-1',
   userPoolId: 'us-east-1_I0PzIIZGM',
@@ -12,7 +12,7 @@ const amplifyAuthConfig = {
   oauth: {
     domain: 'us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com',
     scope: ['email', 'openid', 'phone'],
-    redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html,https://master.d3lmxb04veurt7.amplifyapp.com/checkin.html',
+    redirectSignIn: currentUrl,
     redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
     responseType: 'code',
   }
@@ -112,13 +112,19 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
     }
   }
 
-  Hub.listen('auth', (data) => {
+  Hub.listen('auth', async (data) => {
     const { payload } = data;
     if (payload.event === 'signIn') {
       console.log("Auth event: signIn");
-      checkUser();
-    } else if (payload.event === 'signOut') {
-      console.log("Auth event: signOut");
+      checkUser(true);  // force retry
+
+      try {
+        const session = await Auth.currentSession();
+        console.log("🔍 ID Token Payload (Hub):", session.getIdToken().decodePayload());
+        console.log("🔍 Access Token Payload (Hub):", session.getAccessToken().decodePayload());
+      } catch (err) {
+        console.warn("Failed to fetch token payload inside Hub listener:", err);
+      }
     }
   });
 
