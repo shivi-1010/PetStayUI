@@ -4,7 +4,19 @@
 <head>
   <meta charset="UTF-8">
   <title>Redirecting...</title>
-  <script src="/admin-frontend/aws-amplify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 100px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>🔐 Logging you in... Please wait.</h2>
+
   <script>
     window.addEventListener('load', async () => {
       const Amplify = window.aws_amplify?.default;
@@ -12,9 +24,11 @@
 
       if (!Amplify || !Auth) {
         console.error("Amplify not available.");
+        document.body.innerHTML = "<p style='color:red'>❌ Error loading AWS Amplify.</p>";
         return;
       }
 
+      // 🔧 Configure Amplify
       Amplify.configure({
         Auth: {
           region: 'us-east-1',
@@ -32,39 +46,48 @@
 
       try {
         console.log("🔐 Handling OAuth redirect...");
+
         const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
         const session = await Auth.currentSession();
         const idToken = session.getIdToken();
-
-        console.log("✅ Authenticated. Checking redirect target...");
-        console.log("🔍 Token Payload (post-login.html):", idToken.payload);  // NEW LOG
-
+        const token = idToken.getJwtToken();
 
         const urlParams = new URLSearchParams(window.location.search);
         const bookingId = urlParams.get("bookingId");
         const fromLogin = urlParams.get("fromLogin");
 
         if (bookingId && fromLogin === "1") {
-          // Redirect to check-in with preserved context
-          const redirectTo = `/checkin.html?bookingId=${bookingId}&fromLogin=1`;
-          console.log("➡️ Redirecting to:", redirectTo);
-          window.location.href = redirectTo;
+          console.log("🛎️ Detected QR login for booking:", bookingId);
+
+          // ✅ Trigger check-in via Lambda API
+          const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}/checkin`, {
+            method: "POST",
+            headers: { Authorization: token }
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            console.log("✅ Check-in successful:", result);
+            window.location.href = `/checkin.html?bookingId=${bookingId}&status=checkedin`;
+          } else {
+            console.error("❌ Check-in failed:", result.message);
+            alert("❌ Check-in failed: " + result.message);
+            window.location.href = `/checkin.html?bookingId=${bookingId}&status=error`;
+          }
+
         } else {
-          console.log("➡️ Redirecting to admin dashboard...");
-          window.location.href = "admin_dashboard.html";
+          console.log("➡️ Regular login: redirecting to admin dashboard");
+          window.location.href = "/admin-frontend/admin_dashboard.html";
         }
 
       } catch (err) {
-        console.error("❌ Authentication failed or user not logged in:", err);
-        // Optional: fallback redirect
+        console.error("❌ Authentication or check-in failed:", err);
+        alert("❌ Login failed. Redirecting to home.");
         window.location.href = "https://master.d3lmxb04veurt7.amplifyapp.com/index.html";
       }
     });
   </script>
-</head>
-
-<body>
-  <p>🔐 Logging you in... Please wait.</p>
 </body>
 
 </html>

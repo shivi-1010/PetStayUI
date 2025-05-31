@@ -520,11 +520,16 @@ ${showQR ? `
       new bootstrap.Toast(toastEl).show();
     }
 
-    function showQRModal(qrUrl) {
+function showQRModal(qrUrl) {
+  if (!qrUrl) {
+    alert("QR code not available.");
+    return;
+  }
   const img = document.getElementById("qrModalImage");
   img.src = qrUrl;
   new bootstrap.Modal(document.getElementById("qrModal")).show();
 }
+
 
   </script>
 
