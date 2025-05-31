@@ -62,7 +62,7 @@
           // ✅ Trigger check-in via Lambda API
           const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}/checkin`, {
             method: "POST",
-            headers: { Authorization: token }
+           headers: { Authorization: `Bearer ${token}` }
           });
 
           const result = await res.json();
