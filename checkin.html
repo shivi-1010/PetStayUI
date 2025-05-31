@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="assets/css/bootstrap.min.css">
   <link rel="stylesheet" href="assets/css/checkin.css">
   <script defer src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
-  <script defer src="/assets/js/auth-check.js"></script>
+  <!-- <script defer src="/assets/js/auth-check.js"></script> -->
 </head>
 
 <body class="bg-light">
@@ -78,12 +78,15 @@
     function renderBookingInfo(booking) {
       let checkInButtonHTML = "";
       if (booking.Status === 'Confirmed') {
-checkInButtonHTML = `
+        checkInButtonHTML = `
   <p class="text-muted">To protect your booking, a PetStay staff member will confirm check-in.</p>
   <button id="checkinButton" class="btn btn-primary mt-2" onclick="loginThenCheckIn()">Continue to Staff Check-In</button>
 `;
       } else if (booking.Status === 'Checked-In') {
         checkInButtonHTML = `<div class="text-success fw-bold">Already checked in.</div>`;
+        if (booking.RoomNumber) {
+          document.getElementById("roomInfo").innerText = `Room Assigned: ${booking.RoomNumber}`;
+        }
       } else if (booking.Status === 'Checked-Out') {
         checkInButtonHTML = `<div class="text-secondary fw-bold">🐾 Thank you for choosing PetStay!</div>`;
       } else {
@@ -142,6 +145,8 @@ checkInButtonHTML = `
         const allowedNormalized = allowedStaffEmails.map(e => e.trim().toLowerCase());
         if (!allowedNormalized.includes(normalizedEmail)) {
           alert(`You are not authorized to perform check-in.\nYour email: ${email}`);
+          sessionStorage.removeItem("fromLogin");
+
           return;
         }
 
@@ -175,8 +180,11 @@ checkInButtonHTML = `
 
           const toastMsg = document.getElementById("checkinToastMsg");
           toastMsg.textContent = `✅ Check-in successful. Room Assigned: ${result.roomId}`;
-          const toast = new bootstrap.Toast(document.getElementById("checkinToast"));
+          const toastEl = document.getElementById("checkinToast");
+          const toast = new bootstrap.Toast(toastEl);
           toast.show();
+
+
 
           // Force re-fetch after short delay
           setTimeout(() => fetchBookingDetails(bookingId), 1000);
