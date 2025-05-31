@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <title>Redirecting...</title>
@@ -31,22 +30,28 @@
       });
 
       try {
-        console.log("Handling OAuth redirect");
+        console.log("🔐 Handling OAuth redirect...");
         await Auth.currentAuthenticatedUser();
-        console.log("Session active. Redirecting to dashboard...");
-        const redirectURL = sessionStorage.getItem("redirectAfterLogin");
-        if (redirectURL && redirectURL.includes("checkin.html")) {
-          // Append &fromLogin=1 only if not present already
-          const url = new URL(redirectURL, window.location.origin);
-          if (!url.searchParams.get('fromLogin')) {
-            url.searchParams.set('fromLogin', '1');
-          }
-          window.location.href = url.toString();
+        console.log("✅ Authenticated. Checking redirect target...");
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookingId = urlParams.get("bookingId");
+        const fromLogin = urlParams.get("fromLogin");
+
+        if (bookingId && fromLogin === "1") {
+          // Redirect to check-in with preserved context
+          const redirectTo = `/checkin.html?bookingId=${bookingId}&fromLogin=1`;
+          console.log("➡️ Redirecting to:", redirectTo);
+          window.location.href = redirectTo;
         } else {
-          window.location.href = 'admin_dashboard.html';
+          console.log("➡️ Redirecting to admin dashboard...");
+          window.location.href = "admin_dashboard.html";
         }
+
       } catch (err) {
-        console.error("User not authenticated yet:", err);
+        console.error("❌ Authentication failed or user not logged in:", err);
+        // Optional: fallback redirect
+        window.location.href = "https://master.d3lmxb04veurt7.amplifyapp.com/index.html";
       }
     });
   </script>
@@ -55,5 +60,4 @@
 <body>
   <p>🔐 Logging you in... Please wait.</p>
 </body>
-
 </html>
