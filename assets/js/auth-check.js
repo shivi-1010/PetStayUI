@@ -48,7 +48,7 @@ if (!Amplify || typeof Amplify.configure !== 'function') {
       console.log("Email from ID token payload:", email);
 
       // MAKE THE EMAIL AVAILABLE TO ALL SCRIPTS
-      window.petstayCurrentEmail = email;   // <--- ADD THIS LINE
+      window.petstayCurrentEmail = email;   // 
 
       updateAdminEmail(email);
 

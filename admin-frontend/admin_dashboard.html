@@ -431,7 +431,14 @@
                     <div class="image">
                       <img src="/assets/images/pets/${species?.toLowerCase() || 'default'}.jpg" alt="${b.PetName}" />
                     </div>
-                    <p class="text-sm">${b.PetName} (${b.PetBreed || b.PetSpecies})</p>
+                <p class="text-sm">${b.PetName} (${b.PetBreed || b.PetSpecies})</p>
+${b.QRCodeURL || b.QRBase64 ? `
+  <div class="mt-2">
+    <img src="${b.QRCodeURL || 'data:image/png;base64,' + b.QRBase64}" 
+         alt="QR Code" style="width: 80px; border: 1px solid #ccc; border-radius: 6px;" />
+  </div>
+` : ''}
+
                   </div>
                 </td>
                 <td><p class="text-sm">${b.OwnerName}</p></td>
@@ -485,22 +492,22 @@
       }
     }
 
-window.addEventListener("DOMContentLoaded", () => {
-  // 1. Adds click listener to the Refresh button
-  document.getElementById("refreshBtn")?.addEventListener("click", () => {
-    loadDashboardData();
-    loadRoomAvailability();
-  });
+    window.addEventListener("DOMContentLoaded", () => {
+      // 1. Adds click listener to the Refresh button
+      document.getElementById("refreshBtn")?.addEventListener("click", () => {
+        loadDashboardData();
+        loadRoomAvailability();
+      });
 
-  // 2. Loads dashboard data on initial page load
-  loadDashboardData();
-  loadRoomAvailability();
+      // 2. Loads dashboard data on initial page load
+      loadDashboardData();
+      loadRoomAvailability();
 
-  // 3. Allows filter dropdown to change dashboard data view (Today, Weekly, Monthly)
-  document.querySelector("select.light-bg")?.addEventListener("change", (e) => {
-    loadDashboardData(e.target.value);
-  });
-});
+      // 3. Allows filter dropdown to change dashboard data view (Today, Weekly, Monthly)
+      document.querySelector("select.light-bg")?.addEventListener("change", (e) => {
+        loadDashboardData(e.target.value);
+      });
+    });
 
 
 
