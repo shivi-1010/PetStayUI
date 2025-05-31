@@ -12,7 +12,7 @@ const amplifyAuthConfig = {
   oauth: {
     domain: 'us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com',
     scope: ['email', 'openid', 'phone'],
-    redirectSignIn: currentUrl,
+    redirectSignIn: 'https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html',
     redirectSignOut: 'https://master.d3lmxb04veurt7.amplifyapp.com/index.html',
     responseType: 'code',
   }
