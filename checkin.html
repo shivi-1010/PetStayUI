@@ -27,33 +27,38 @@
     </div>
   </div>
   <script>
-    const allowedStaffEmails = ["petstayteam@gmail.com"];
+    const allowedStaffEmails = ["petstayteam@outlook.com"];
+
     let bookingId = null;
 
-    document.addEventListener("DOMContentLoaded", 
-    
-    async function () {
-      const urlParams = new URLSearchParams(window.location.search);
-      bookingId = urlParams.get('bookingId');
+    document.addEventListener("DOMContentLoaded",
 
-      if (!bookingId) {
-        document.getElementById("result").innerHTML = `
+      async function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.delete('status');
+        window.history.replaceState({}, document.title, `${window.location.pathname}?${urlParams}`);
+
+        bookingId = urlParams.get('bookingId');
+
+        if (!bookingId) {
+          document.getElementById("result").innerHTML = `
     <span class='text-danger'>❌ Invalid QR Code. Booking ID is missing.</span>
     <p class="mt-2">Please scan again or open the link in a browser.</p>
   `;
-        return;
-      }
+          return;
+        }
+        await fetchBookingDetails(bookingId);
 
-      await fetchBookingDetails(bookingId);
+        // Only trigger auth and check-in after login flow
+        const fromLogin = urlParams.get('fromLogin') || sessionStorage.getItem('fromLogin');
+        if (fromLogin === "1") {
+          await checkInAfterLogin();
+          sessionStorage.removeItem("fromLogin");
+          urlParams.delete('fromLogin');
+          window.history.replaceState({}, document.title, `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`);
+        }
 
-      // Only trigger auth and check-in after login flow
-      if (urlParams.get('fromLogin') === "1") {
-        checkInAfterLogin();
-        urlParams.delete('fromLogin');
-        window.history.replaceState({}, document.title, `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`);
-
-      }
-    });
+      });
 
     async function fetchBookingDetails(bookingId) {
       try {
@@ -73,7 +78,10 @@
     function renderBookingInfo(booking) {
       let checkInButtonHTML = "";
       if (booking.Status === 'Confirmed') {
-        checkInButtonHTML = `<button id="checkinButton" class="btn btn-success mt-3" onclick="loginThenCheckIn()">Mark as Checked-In</button>`;
+checkInButtonHTML = `
+  <p class="text-muted">To protect your booking, a PetStay staff member will confirm check-in.</p>
+  <button id="checkinButton" class="btn btn-primary mt-2" onclick="loginThenCheckIn()">Continue to Staff Check-In</button>
+`;
       } else if (booking.Status === 'Checked-In') {
         checkInButtonHTML = `<div class="text-success fw-bold">Already checked in.</div>`;
       } else if (booking.Status === 'Checked-Out') {
@@ -93,62 +101,50 @@
       `;
     }
 
-function loginThenCheckIn() {
-  try {
-    const bookingId = new URLSearchParams(window.location.search).get("bookingId");
-    if (!bookingId) {
-      alert("Booking ID missing from URL. Cannot proceed to login.");
-      return;
+    function loginThenCheckIn() {
+      try {
+        const bookingId = new URLSearchParams(window.location.search).get("bookingId");
+        if (!bookingId) {
+          alert("Booking ID missing from URL. Cannot proceed to login.");
+          return;
+        }
+
+        // Save the original link (with ?bookingId=...) so we can return after Cognito login
+        sessionStorage.setItem("redirectAfterLogin", window.location.href);
+        sessionStorage.setItem("fromLogin", "1");  // <-- Add this line
+
+
+        // Clean redirect_uri (must be exactly whitelisted in Cognito)
+        const redirectUri = `https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html`;
+
+        const loginURL = `https://us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com/login`
+          + `?client_id=4jfnrkopa8cb7r30i0i25gar8k`
+          + `&response_type=code`
+          + `&scope=email+openid+phone`
+          + `&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+        window.location.href = loginURL;
+      } catch (err) {
+        alert("An unexpected error occurred during login redirect.");
+        console.error(err);
+      }
     }
-
-    // Save the original link (with ?bookingId=...) so we can return after Cognito login
-    sessionStorage.setItem("redirectAfterLogin", window.location.href);
-
-    // Clean redirect_uri (must be exactly whitelisted in Cognito)
-    const redirectUri = `https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html`;
-
-    const loginURL = `https://us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com/login`
-      + `?client_id=4jfnrkopa8cb7r30i0i25gar8k`
-      + `&response_type=code`
-      + `&scope=email+openid+phone`
-      + `&redirect_uri=${encodeURIComponent(redirectUri)}`;
-
-    window.location.href = loginURL;
-  } catch (err) {
-    alert("An unexpected error occurred during login redirect.");
-    console.error(err);
-  }
-}
-
-
-
 
     // Only runs after Cognito redirect (with fromLogin=1)
     async function checkInAfterLogin() {
       try {
-        // Get Cognito user email via Amplify Auth
-const user = await Amplify.Auth.currentAuthenticatedUser({ bypassCache: true });
-const session = await Amplify.Auth.currentSession();
-const idToken = session.getIdToken();
+        const user = await Amplify.Auth.currentAuthenticatedUser({ bypassCache: true });
+        const session = await Amplify.Auth.currentSession();
+        const idToken = session.getIdToken();
+        const email = idToken.payload.email || idToken.payload["cognito:username"] || "unknown";
+        const normalizedEmail = email.trim().toLowerCase();
 
-console.log("🔍 Full ID Token Payload:", idToken.payload); // DEBUG
-
-// Attempt to extract email safely
-const email = idToken.payload.email || idToken.payload["cognito:username"] || "unknown";
-
-console.log("✅ Extracted email for auth:", email);
-
-const normalizedEmail = email.trim().toLowerCase();
-
-
-        // Only allow staff/admin
         const allowedNormalized = allowedStaffEmails.map(e => e.trim().toLowerCase());
         if (!allowedNormalized.includes(normalizedEmail)) {
           alert(`You are not authorized to perform check-in.\nYour email: ${email}`);
           return;
         }
 
-        // Staff/admin can check in
         const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}/checkin`, {
           method: "POST",
           headers: {
@@ -157,38 +153,41 @@ const normalizedEmail = email.trim().toLowerCase();
           }
         });
 
-        if (res.ok) {
-          const result = await res.json();
+        const result = await res.json();
+        console.log("📩 Check-In API Response:", result);
+
+        if (res.ok && result.newStatus === "Checked-In") {
+          console.log("✅ Check-in successful:", result);
           document.getElementById("roomInfo").innerText = `Assigned Room: ${result.roomId}`;
-          // Disable the button
+          document.getElementById("roomInfo").scrollIntoView({ behavior: "smooth" });
           const checkInButton = document.getElementById("checkinButton");
-  
           if (checkInButton) {
             checkInButton.disabled = true;
             checkInButton.innerText = "Checked In";
           }
-          // Update badge
+
           const statusElement = document.querySelector("span.badge");
           if (statusElement) {
             statusElement.textContent = "Checked-In";
             statusElement.classList.remove("bg-primary");
             statusElement.classList.add("bg-success");
           }
-          // Toast (success notification)
+
           const toastMsg = document.getElementById("checkinToastMsg");
           toastMsg.textContent = `✅ Check-in successful. Room Assigned: ${result.roomId}`;
           const toast = new bootstrap.Toast(document.getElementById("checkinToast"));
           toast.show();
 
-          // Refresh booking status to avoid double status issue
-          await fetchBookingDetails(bookingId);
+          // Force re-fetch after short delay
+          setTimeout(() => fetchBookingDetails(bookingId), 1000);
         } else {
-          alert("Check-in failed.");
+          alert("❌ Check-in failed: " + (result.message || "Unknown error"));
+          console.warn("⚠️ Failed Check-in Response:", result);
           await fetchBookingDetails(bookingId);
         }
       } catch (err) {
-        console.error("Error during check-in after login:", err);
-        alert("Session expired or unauthorized.");
+        console.error("❌ Error during check-in:", err);
+        alert("Session expired or check-in failed. Please try again.");
       }
     }
 

@@ -350,6 +350,7 @@
           "cancelled": "close-btn"
         }[status] || "info-btn";
         const showCheckout = b.Status === "Checked-In";
+        const showCheckIn = b.Status === "Confirmed";
         const showConfirm = b.Status === "Pending";
         const showRestore = b.Status?.toLowerCase() === "cancelled";
         const showQR = b.QRCodeURL;
@@ -379,10 +380,18 @@
             ? `<button class="text-warning" title="Confirm Booking" onclick="confirmBooking('${b.BookingID}')">
                <i class="lni lni-checkmark"></i>
              </button>` : ""}
+
+             ${showCheckIn
+            ? `<button class="text-info" title="Check In" onclick="checkinBooking('${b.BookingID}')">
+       <i class="lni lni-door"></i>
+     </button>` : ""}
+
         ${showCheckout
             ? `<button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')">
                <i class="lni lni-checkmark-circle"></i>
              </button>` : ""}
+
+
 
 ${showRestore
             ? `<button class="text-info" title="Restore Booking" onclick="restoreBooking('${b.BookingID}')">
@@ -409,7 +418,7 @@ ${showQR ? `
         const token = await getAuthToken();
         const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/cancel`, {
           method: "POST",
-          headers: { Authorization: token }
+          headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
         if (res.status === 403) {
@@ -431,7 +440,8 @@ ${showQR ? `
         const token = await getAuthToken();
         const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/checkout`, {
           method: "POST",
-          headers: { Authorization: token }
+         headers: { Authorization: `Bearer ${token}` }
+
         });
         const data = await res.json();
         if (res.status === 403) {
@@ -457,7 +467,8 @@ ${showQR ? `
         const token = await getAuthToken();
         const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/confirm`, {
           method: "POST",
-          headers: { Authorization: token }
+          headers: { Authorization: `Bearer ${token}` }
+
         });
         const data = await res.json();
         console.log("🔁 Confirm booking response:", data);
@@ -476,6 +487,30 @@ ${showQR ? `
       }
     }
 
+    async function checkinBooking(id) {
+      if (!confirm("Mark this guest as Checked-In?")) return;
+      try {
+        const token = await getAuthToken();
+        const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/checkin`, {
+          method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+
+        });
+        const data = await res.json();
+        if (res.status === 403) {
+          showToast("❌ You are not authorized to check in guests", true);
+        } else if (!res.ok) {
+          showToast(data.message || "Check-in failed", true);
+        } else {
+          showToast(data.message || "Guest checked in!");
+          await loadBookings();
+        }
+      } catch (err) {
+        showToast("Error checking in", true);
+        console.error(err);
+      }
+    }
+
 
     async function restoreBooking(id) {
       if (!confirm("Restore this cancelled booking?")) return;
@@ -483,7 +518,8 @@ ${showQR ? `
         const token = await getAuthToken();
         const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/restore`, {
           method: "POST",
-          headers: { Authorization: token }
+          headers: { Authorization: `Bearer ${token}` }
+
         });
         const data = await res.json();
         showToast(data.message || "Booking restored.");
