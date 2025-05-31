@@ -30,7 +30,9 @@
     const allowedStaffEmails = ["petstayteam@gmail.com"];
     let bookingId = null;
 
-    document.addEventListener("DOMContentLoaded", async function () {
+    document.addEventListener("DOMContentLoaded", 
+    
+    async function () {
       const urlParams = new URLSearchParams(window.location.search);
       bookingId = urlParams.get('bookingId');
 

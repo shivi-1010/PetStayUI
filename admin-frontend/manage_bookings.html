@@ -233,7 +233,8 @@
         <!-- Toast Container -->
         <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
           <div id="toast" class="toast align-items-center text-white bg-success border-0" role="alert"
-            aria-live="polite" aria-atomic="true">
+            aria-live="polite" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
+
             <div class="d-flex">
               <div class="toast-body" id="toastMessage">Success!</div>
               <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
@@ -243,20 +244,20 @@
 
       </div>
 
-<!-- QR Code Modal -->
-<div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-sm modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="qrModalLabel">QR Code</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <!-- QR Code Modal -->
+      <div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="qrModalLabel">QR Code</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+              <img id="qrModalImage" src="" alt="QR Code" class="img-fluid" />
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="modal-body text-center">
-        <img id="qrModalImage" src="" alt="QR Code" class="img-fluid" />
-      </div>
-    </div>
-  </div>
-</div>
 
 
 
@@ -459,8 +460,12 @@ ${showQR ? `
           headers: { Authorization: token }
         });
         const data = await res.json();
+        console.log("🔁 Confirm booking response:", data);
+
         if (res.status === 403) {
           showToast("❌ You are not authorized to confirm this booking", true);
+        } else if (!res.ok) {
+          showToast(data.message || "Confirmation failed", true);
         } else {
           showToast(data.message || "Booking confirmed!");
           await loadBookings();
@@ -517,18 +522,20 @@ ${showQR ? `
       toastEl.classList.remove("bg-success", "bg-danger");
       toastEl.classList.add(isError ? "bg-danger" : "bg-success");
 
-      new bootstrap.Toast(toastEl).show();
+      const toastInstance = bootstrap.Toast.getOrCreateInstance(toastEl);
+      toastInstance.show();
     }
 
-function showQRModal(qrUrl) {
-  if (!qrUrl) {
-    alert("QR code not available.");
-    return;
-  }
-  const img = document.getElementById("qrModalImage");
-  img.src = qrUrl;
-  new bootstrap.Modal(document.getElementById("qrModal")).show();
-}
+
+    function showQRModal(qrUrl) {
+      if (!qrUrl) {
+        alert("QR code not available.");
+        return;
+      }
+      const img = document.getElementById("qrModalImage");
+      img.src = qrUrl;
+      new bootstrap.Modal(document.getElementById("qrModal")).show();
+    }
 
 
   </script>
