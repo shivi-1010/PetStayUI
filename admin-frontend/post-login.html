@@ -19,9 +19,9 @@
 
   <script>
     window.addEventListener('load', async () => {
-      const Amplify = window.aws_amplify?.default;
-      const Auth = window.aws_amplify?.Auth;
-
+      // const Amplify = window.aws_amplify?.default;
+      // const Auth = window.aws_amplify?.Auth;
+      const { Amplify, Auth } = window.aws_amplify;
       if (!Amplify || !Auth) {
         console.error("Amplify not available.");
         document.body.innerHTML = "<p style='color:red'>❌ Error loading AWS Amplify.</p>";
@@ -48,7 +48,21 @@
         console.log("🔐 Handling OAuth redirect...");
 
         const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
-        const session = await Auth.currentSession();
+        let session;
+        for (let i = 0; i < 5; i++) {
+          try {
+           session = await Auth.currentSession();
+            break;
+          } catch (err) {
+            console.warn(`⏳ Waiting for Cognito session (attempt ${i + 1})...`);
+            await new Promise((r) => setTimeout(r, 1000));
+          }
+        }
+        if (!session) {
+          alert("❌ Session could not be established. Please refresh and try again.");
+          return;
+        }
+
         const idToken = session.getIdToken();
         const token = idToken.getJwtToken();
         const email = idToken.payload.email || idToken.payload["cognito:username"] || "unknown";
@@ -88,10 +102,11 @@
 
           if (res.ok) {
             console.log("✅ Check-in successful:", result);
-            window.location.href = `https://master.d3lmxb04veurt7.amplifyapp.com/checkin.html?bookingId=${bookingId}&status=checkedin`;
+            window.location.href = `https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/admin_dashboard.html?refresh=1`;
           } else {
             console.error("❌ Check-in failed:", result.message);
-            alert("❌ Check-in failed: " + result.message);
+            alert("❌ Check-in failed: " + (result.message || result.error || "Unexpected error"));
+
             window.location.href = `https://master.d3lmxb04veurt7.amplifyapp.com/checkin.html?bookingId=${bookingId}&status=error`;
           }
 

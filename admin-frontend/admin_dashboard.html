@@ -240,6 +240,9 @@
                       <h6 class="text-sm text-medium">Pet Name</h6>
                     </th>
                     <th class="min-width">
+                      <h6 class="text-sm text-medium">QR Code</h6>
+                    </th>
+                    <th class="min-width">
                       <h6 class="text-sm text-medium">Owner</h6>
                     </th>
                     <th class="min-width">
@@ -426,21 +429,35 @@
             const daysLeft = Math.max(0, Math.ceil((new Date(b.CheckOutDate) - new Date()) / (1000 * 60 * 60 * 24)));
             guestTable.innerHTML += `
               <tr>
-                <td>
-                  <div class="product">
-                    <div class="image">
-                      <img src="/assets/images/pets/${species?.toLowerCase() || 'default'}.jpg" alt="${b.PetName}" />
-                    </div>
-                <p class="text-sm">${b.PetName} (${b.PetBreed || b.PetSpecies})</p>
-${b.QRCodeURL || b.QRBase64 ? `
-  <div class="mt-2">
-    <img src="${b.QRCodeURL || 'data:image/png;base64,' + b.QRBase64}" 
-         alt="QR Code" style="width: 80px; border: 1px solid #ccc; border-radius: 6px;" />
+              
+<td>
+  <div class="product d-flex align-items-center gap-2">
+    <div class="image">
+      <img src="/assets/images/pets/${species?.toLowerCase() || 'default'}.jpg" alt="${b.PetName}" />
+    </div>
+    <div>
+      <p class="text-sm fw-bold mb-0">${b.PetName}</p>
+      <p class="text-xs text-muted mb-0">(${b.PetBreed || b.PetSpecies})</p>
+    </div>
   </div>
-` : ''}
+</td>
+<td>
+  ${b.QRCodeURL || b.QRBase64 ? `
+    <div style="text-align: center;">
+      <a href="https://master.d3lmxb04veurt7.amplifyapp.com/checkin.html?bookingId=${b.BookingID}&fromLogin=1" target="_blank">
+        <img 
+          src="${b.QRCodeURL || 'data:image/png;base64,' + b.QRBase64}" 
+          alt="QR Code"
+          style="width: 90px; height: auto; border: 1px solid #ccc; border-radius: 6px; padding: 4px; background-color: #fff;" 
+        />
+      </a>
+    </div>
+  ` : '<span class="text-muted text-sm">—</span>'}
+</td>
 
-                  </div>
-                </td>
+
+
+
                 <td><p class="text-sm">${b.OwnerName}</p></td>
                 <td><p class="text-sm">${b.RoomNumber}</p></td>
                 <td><p class="text-sm">${b.CheckInDate}</p></td>
@@ -492,22 +509,44 @@ ${b.QRCodeURL || b.QRBase64 ? `
       }
     }
 
-    window.addEventListener("DOMContentLoaded", () => {
-      // 1. Adds click listener to the Refresh button
+        window.addEventListener("DOMContentLoaded", () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const shouldRefresh = urlParams.get("refresh") === "1";
+
       document.getElementById("refreshBtn")?.addEventListener("click", () => {
         loadDashboardData();
         loadRoomAvailability();
       });
 
-      // 2. Loads dashboard data on initial page load
       loadDashboardData();
       loadRoomAvailability();
 
-      // 3. Allows filter dropdown to change dashboard data view (Today, Weekly, Monthly)
       document.querySelector("select.light-bg")?.addEventListener("change", (e) => {
         loadDashboardData(e.target.value);
       });
+
+      if (shouldRefresh) {
+        console.log("🔁 Auto-refresh triggered after check-in");
+        setTimeout(() => location.href = '/admin-frontend/admin_dashboard.html', 500);
+      }
     });
+    
+    // window.addEventListener("DOMContentLoaded", () => {
+    //   // 1. Adds click listener to the Refresh button
+    //   document.getElementById("refreshBtn")?.addEventListener("click", () => {
+    //     loadDashboardData();
+    //     loadRoomAvailability();
+    //   });
+
+    //   // 2. Loads dashboard data on initial page load
+    //   loadDashboardData();
+    //   loadRoomAvailability();
+
+    //   // 3. Allows filter dropdown to change dashboard data view (Today, Weekly, Monthly)
+    //   document.querySelector("select.light-bg")?.addEventListener("change", (e) => {
+    //     loadDashboardData(e.target.value);
+    //   });
+    // });
 
 
 
