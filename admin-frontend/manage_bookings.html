@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
   <!-- <link rel="stylesheet" href="/assets/css/lineicons.css" /> -->
 <link rel="stylesheet" href="https://cdn.lineicons.com/3.0/lineicons.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
   <!-- <link rel="stylesheet" href="/assets/css/fullcalendar.css" /> -->
   <link rel="stylesheet" href="/assets/css/main.css" />
@@ -386,8 +387,8 @@
           </button>` : ""}
         ${showCheckIn ? `<button class="text-info" title="Check In" onclick="checkinBooking('${b.BookingID}')"><i class="lni lni-door"></i></button>` : ""}
         ${showCheckout ? `<button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')"><i class="lni lni-checkmark-circle"></i></button>` : ""}
-        ${showRestore ? `<button class="text-info" title="Restore Booking" onclick="restoreBooking('${b.BookingID}')"><i class="lni lni-undo"></i></button>` : ""}
-       ${showQR ? `<button class="text-secondary" title="View QR Code" onclick="showQRModal('${b.QRCodeURL || 'data:image/png;base64,' + b.QRBase64}')"><i class="lni lni-qrcode"></i></button>` : ""}
+        ${showRestore ? `<button class="text-info" title="Restore Booking" onclick="restoreBooking('${b.BookingID}')"><span class="material-icons">restore</span></button>` : ""}
+       ${showQR ? `<button class="text-secondary" title="View QR Code" onclick="showQRModal('${b.QRCodeURL || 'data:image/png;base64,' + b.QRBase64}')"><span class="material-icons">qr_code</span></button>` : ""}
 
       </div>
     </td>
