@@ -355,7 +355,7 @@
         const showCheckout = b.Status === "Checked-In";
         const showCheckIn = b.Status === "Confirmed";
         const showConfirm = b.Status === "Pending";
-        const showRestore = b.Status?.toLowerCase() === "cancelled";
+        const showRestore = String(b.Status).toLowerCase() === "cancelled";
         const showQR = b.QRCodeURL;
 
         tbody.innerHTML += `
@@ -499,13 +499,16 @@
         const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/restore`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` }
-
         });
         const data = await res.json();
-        showToast(data.message || "Booking restored.");
-        await loadBookings();
+        if (!res.ok) {
+          showToast("❌ Failed to restore booking", true);
+        } else {
+          showToast(data.message || "Booking restored successfully");
+          await loadBookings(); // Refresh table
+        }
       } catch (err) {
-        showToast("Error restoring booking");
+        showToast("Error restoring booking", true);
         console.error(err);
       }
     }

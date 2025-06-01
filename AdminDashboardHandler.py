@@ -25,11 +25,11 @@ rooms_table = dynamodb.Table('Rooms')
 
 HEADERS = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*'
+    'Access-Control-Allow-Origin': '*',
+    'Cache-Control': 'no-store' 
 }
 
-
-
+allowed_staff = ["petstayteam@outlook.com", "petstayteam@gmail.com"]
 
 
 def is_admin(event):
@@ -41,28 +41,31 @@ def is_admin(event):
 def lambda_handler(event, context):
     method = event.get('httpMethod') or event.get('requestContext', {}).get('http', {}).get('method')
     path = event.get('rawPath') or event.get('path') or event.get('requestContext', {}).get('http', {}).get('path', '')
+    print("🔍 lambda_handler invoked. Path:", path, "Method:", method)
 
     try:
-        if method == 'GET' and path == '/bookings':
+        segments = path.strip('/').split('/')
+
+        if method == 'GET' and len(segments) == 2 and segments[0] == 'booking':
+            booking_id = segments[1]
+            return get_single_booking(booking_id)
+        elif method == 'GET' and path == '/bookings':
             return get_all_bookings()
         elif method == 'GET' and path == '/rooms/availability':
             return get_room_availability()
-        else:
-            segments = path.strip('/').split('/')
-            if len(segments) == 3 and segments[0] == 'booking':
-                booking_id = segments[1]
-                action = segments[2]
-                if method == 'POST':
-                    if action == 'confirm':
-                        return confirm_booking(event, booking_id)
-                    elif action == 'cancel':
-                        return cancel_booking(event, booking_id)
-                    elif action == 'checkout':
-                        return checkout_booking(event, booking_id)
-                    elif action == 'checkin':
-                        return checkin_booking(event, booking_id)
-                    elif action == 'restore':
-                        return restore_booking(event, booking_id)
+        elif method == 'POST' and len(segments) == 3 and segments[0] == 'booking':
+            booking_id = segments[1]
+            action = segments[2]
+            if action == 'confirm':
+                return confirm_booking(event, booking_id)
+            elif action == 'cancel':
+                return cancel_booking(event, booking_id)
+            elif action == 'checkout':
+                return checkout_booking(event, booking_id)
+            elif action == 'checkin':
+                return checkin_booking(event, booking_id)
+            elif action == 'restore':
+                return restore_booking(event, booking_id)
 
         return {
             'statusCode': 404,
@@ -75,6 +78,17 @@ def lambda_handler(event, context):
             'headers': HEADERS,
             'body': json.dumps({'error': str(e)})
         }
+
+
+
+def get_single_booking(booking_id):
+    try:
+        booking = bookings_table.get_item(Key={'BookingID': booking_id}).get('Item')
+        if not booking:
+            return {'statusCode': 404, 'headers': HEADERS, 'body': json.dumps({'message': 'Booking not found'})}
+        return {'statusCode': 200, 'headers': HEADERS, 'body': json.dumps(booking)}
+    except Exception as e:
+        return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'error': str(e)})}
 
 def generate_and_upload_qr(booking_id, checkin_url):
     qr = qrcode.make(checkin_url)
@@ -361,16 +375,18 @@ def checkout_booking(event, booking_id):
 
 
 def checkin_booking(event, booking_id):
+    print("✅ checkin_booking() triggered with booking_id:", booking_id)
     try:
-        if not is_admin(event):
-            return {
-                'statusCode': 403,
-                'headers': HEADERS,
-                'body': json.dumps({'message': 'Unauthorized: Only admin can check in'})
-            }
-            
         email = extract_email_from_token(event)
-        allowed_staff = ["petstayteam@outlook.com", "petstayteam@gmail.com"]
+        print("📧 Email from token:", email)
+
+        if not email:
+            return {
+                'statusCode': 401,
+                'headers': HEADERS,
+                'body': json.dumps({'message': 'Missing or invalid token'})
+            }
+
         if email not in allowed_staff:
             return {
                 'statusCode': 403,
@@ -378,6 +394,7 @@ def checkin_booking(event, booking_id):
                 'body': json.dumps({'message': 'Unauthorized email'})
             }
 
+        # Retrieve booking
         booking = bookings_table.get_item(Key={'BookingID': booking_id}).get('Item')
         if not booking:
             return {
@@ -393,12 +410,20 @@ def checkin_booking(event, booking_id):
                 'body': json.dumps({'message': 'Already checked in', 'roomId': booking.get('RoomNumber')})
             }
 
+        if booking.get('Status') == 'Checked-Out':
+            return {
+                'statusCode': 400,
+                'headers': HEADERS,
+                'body': json.dumps({'message': 'Guest has already checked out. Check-in not allowed.'})
+            }
+
         if booking.get('Status') != 'Confirmed':
             return {
                 'statusCode': 400,
                 'headers': HEADERS,
                 'body': json.dumps({'message': 'Booking must be confirmed before check-in'})
-            }
+             }
+
 
         pet_type = booking.get('PetSpecies', '')
         if pet_type not in ['Dog', 'Cat']:
@@ -408,6 +433,7 @@ def checkin_booking(event, booking_id):
                 'body': json.dumps({'message': 'Unsupported pet type'})
             }
 
+        # Find an available room for the pet type
         available_rooms = rooms_table.scan(
             FilterExpression=Attr('petType').eq(pet_type) & Attr('isOccupied').eq(False)
         )
@@ -424,8 +450,9 @@ def checkin_booking(event, booking_id):
         checkin_time = datetime.utcnow().isoformat()
         checkin_date = datetime.utcnow().date().isoformat()
 
-        print(f"Assigning Room: {room_id} to Booking: {booking_id}")
+        print(f"🏨 Assigning Room: {room_id} to Booking: {booking_id}")
 
+        # Perform atomic update using DynamoDB transaction
         dynamodb_client.transact_write_items(
             TransactItems=[
                 {
@@ -460,7 +487,11 @@ def checkin_booking(event, booking_id):
         return {
             'statusCode': 200,
             'headers': HEADERS,
-            'body': json.dumps({'message': f'Checked-in to room {room_id}', 'roomId': room_id})
+            'body': json.dumps({
+                'message': f'Checked-in to room {room_id}',
+                'roomId': room_id,
+                'newStatus': 'Checked-In'
+            })
         }
 
     except dynamodb_client.exceptions.TransactionCanceledException as e:
