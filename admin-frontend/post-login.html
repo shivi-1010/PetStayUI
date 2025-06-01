@@ -72,9 +72,10 @@
         sessionStorage.removeItem("fromLogin");
         sessionStorage.removeItem("bookingId");
 
-        const allowedStaff = ["petstayteam@outlook.com"];
+        const allowedStaff = ["petstayteam@outlook.com", "petstayteam@gmail.com"];
+        const normalizedAllowed = allowedStaff.map(e => e.trim().toLowerCase());
 
-        if (!allowedStaff.includes(email)) {
+        if (!normalizedAllowed.includes(email)) {
           alert(`❌ You (${email}) are not authorized to check in guests.`);
           const redirect = bookingId
             ? `https://master.d3lmxb04veurt7.amplifyapp.com/checkin.html?bookingId=${bookingId}&status=unauthorized`
@@ -82,6 +83,7 @@
           window.location.href = redirect;
           return;
         }
+
 
         // ✅ Redirect to checkin.html to perform the check-in
         if (bookingId && fromLogin === "1") {

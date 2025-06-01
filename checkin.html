@@ -236,10 +236,12 @@ if (!window.location.search.includes("code=") && !document.referrer.includes("am
         const result = await res.json();
         console.log("📩 Check-In API Response:", result);
 
-        if (res.ok && result.newStatus === "Checked-In") {
-          console.log("✅ Check-in successful:", result);
-          document.getElementById("roomInfo").innerText = `Assigned Room: ${result.roomId}`;
-          document.getElementById("roomInfo").scrollIntoView({ behavior: "smooth" });
+ if (res.ok && (result.message?.includes("Checked-In") || result.status === "Checked-In" || result.newStatus === "Checked-In")) {
+    await fetchBookingDetails(bookingId);
+
+    console.log("✅ Check-in successful:", result);
+    document.getElementById("roomInfo").innerText = `Assigned Room: ${result.roomId || booking.RoomNumber || '—'}`;
+    document.getElementById("roomInfo").scrollIntoView({ behavior: "smooth" });
 
           const checkInButton = document.getElementById("checkinButton");
           if (checkInButton) {
@@ -277,8 +279,6 @@ if (!window.location.search.includes("code=") && !document.referrer.includes("am
         alert("Session expired or check-in failed. Please try again.");
       }
     }
-
-
     // Attach function globally for button click
     window.loginThenCheckIn = loginThenCheckIn;
   </script>
