@@ -30,10 +30,10 @@
   </div>
   <script>
     // Clear old flags if not returning from login flow
-if (!window.location.search.includes("code=") && !document.referrer.includes("amazoncognito.com")) {
-  sessionStorage.removeItem("fromLogin");
-  sessionStorage.removeItem("bookingId");
-}
+    if (!window.location.search.includes("code=") && !document.referrer.includes("amazoncognito.com")) {
+      sessionStorage.removeItem("fromLogin");
+      sessionStorage.removeItem("bookingId");
+    }
 
     const allowedStaffEmails = ["petstayteam@outlook.com", "petstayteam@gmail.com"];
 
@@ -88,11 +88,13 @@ if (!window.location.search.includes("code=") && !document.referrer.includes("am
 
         // Only trigger auth and check-in after login flow
         // const fromLogin = urlParams.get('fromLogin') || sessionStorage.getItem('fromLogin');
-        const fromLogin = sessionStorage.getItem('fromLogin');
+        const fromLoginParam = urlParams.get("fromLogin");
+        const fromLogin = fromLoginParam || sessionStorage.getItem('fromLogin');
         if (fromLogin === "1") {
           await checkInAfterLogin();
           sessionStorage.removeItem("fromLogin");
         }
+
 
       });
 
@@ -215,7 +217,8 @@ if (!window.location.search.includes("code=") && !document.referrer.includes("am
 
         // Get bookingId from sessionStorage fallback
         const urlParams = new URLSearchParams(window.location.search);
-        bookingId = urlParams.get("bookingId") || sessionStorage.getItem("bookingId");
+        const bookingId = urlParams.get("bookingId");
+
 
         if (!bookingId) {
           alert("Booking ID missing. Cannot perform check-in.");
@@ -236,12 +239,12 @@ if (!window.location.search.includes("code=") && !document.referrer.includes("am
         const result = await res.json();
         console.log("📩 Check-In API Response:", result);
 
- if (res.ok && (result.message?.includes("Checked-In") || result.status === "Checked-In" || result.newStatus === "Checked-In")) {
-    await fetchBookingDetails(bookingId);
+        if (res.ok && (result.message?.includes("Checked-In") || result.status === "Checked-In" || result.newStatus === "Checked-In")) {
+          await fetchBookingDetails(bookingId);
 
-    console.log("✅ Check-in successful:", result);
-    document.getElementById("roomInfo").innerText = `Assigned Room: ${result.roomId || booking.RoomNumber || '—'}`;
-    document.getElementById("roomInfo").scrollIntoView({ behavior: "smooth" });
+          console.log("✅ Check-in successful:", result);
+          document.getElementById("roomInfo").innerText = `Assigned Room: ${result.roomId || booking.RoomNumber || '—'}`;
+          document.getElementById("roomInfo").scrollIntoView({ behavior: "smooth" });
 
           const checkInButton = document.getElementById("checkinButton");
           if (checkInButton) {
@@ -279,6 +282,8 @@ if (!window.location.search.includes("code=") && !document.referrer.includes("am
         alert("Session expired or check-in failed. Please try again.");
       }
     }
+
+
     // Attach function globally for button click
     window.loginThenCheckIn = loginThenCheckIn;
   </script>
