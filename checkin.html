@@ -51,9 +51,13 @@
   `;
           return;
         }
-        if (![401, 403].includes(res.status)) {
+
+        if (bookingId) {
   await fetchBookingDetails(bookingId);
 }
+
+        
+
 
 
         // Only trigger auth and check-in after login flow
