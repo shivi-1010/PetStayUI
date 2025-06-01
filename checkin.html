@@ -27,7 +27,7 @@
     </div>
   </div>
   <script>
-    const allowedStaffEmails = ["petstayteam@outlook.com"];
+    const allowedStaffEmails = ["petstayteam@outlook.com","petstayteam@gmail.com"];
 
     let bookingId = null;
 
@@ -62,7 +62,9 @@
 
     async function fetchBookingDetails(bookingId) {
       try {
-        const response = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}`);
+        // const response = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}`);
+        const response = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}?t=${Date.now()}`);
+        console.log("📥 Fetching booking details:", response.url);       
         const booking = await response.json();
 
         if (response.ok && booking.BookingID) {
@@ -149,8 +151,13 @@
 
           return;
         }
-
-        const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}/checkin`, {
+        console.log("🔐 User authenticated:", user.username);
+        console.log("📑 User ID Token:", idToken.getJwtToken());
+        console.log("📧 User Email:", email);
+        console.log("🔗 Booking ID for check-in:", bookingId);
+        console.log("🔑 JWT Token being sent:", idToken.getJwtToken());
+console.log("➡️ POSTing to:", `https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/admin/booking/${bookingId}/checkin`);
+        const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/admin/booking/${bookingId}/checkin`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${idToken.getJwtToken()}`,
@@ -160,6 +167,8 @@
 
         const result = await res.json();
         console.log("📩 Check-In API Response:", result);
+        console.log("📡 Re-fetching booking details after check-in...");
+
 
         if (res.ok && result.newStatus === "Checked-In") {
           console.log("✅ Check-in successful:", result);
