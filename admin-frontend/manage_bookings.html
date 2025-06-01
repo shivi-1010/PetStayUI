@@ -10,8 +10,9 @@
 
   <!-- ========== All CSS files linkup ========= -->
   <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="/assets/css/lineicons.css" />
-  <link rel="stylesheet" href="/assets/css/materialdesignicons.min.css" />
+  <!-- <link rel="stylesheet" href="/assets/css/lineicons.css" /> -->
+<link rel="stylesheet" href="https://cdn.lineicons.com/3.0/lineicons.css">
+
   <!-- <link rel="stylesheet" href="/assets/css/fullcalendar.css" /> -->
   <link rel="stylesheet" href="/assets/css/main.css" />
 
@@ -356,7 +357,9 @@
         const showCheckIn = b.Status === "Confirmed";
         const showConfirm = b.Status === "Pending";
         const showRestore = String(b.Status).toLowerCase() === "cancelled";
-        const showQR = b.QRCodeURL;
+   const showQR = (b.QRCodeURL || b.QRBase64) && b.Status.toLowerCase() !== "cancelled";
+
+
 
         tbody.innerHTML += `
   <tr>
@@ -378,11 +381,14 @@
           <button class="text-danger" title="Cancel Booking" onclick="cancelBooking('${b.BookingID}')">
             <i class="lni lni-trash-can"></i>
           </button>` : ""}
-        ${showConfirm ? `<button class="text-warning" title="Confirm Booking" onclick="confirmBooking('${b.BookingID}')"><i class="lni lni-checkmark"></i></button>` : ""}
+        ${showConfirm ? `<button class="text-warning" title="Confirm Booking" onclick="confirmBooking('${b.BookingID}')">
+          <i class="lni lni-checkmark"></i>
+          </button>` : ""}
         ${showCheckIn ? `<button class="text-info" title="Check In" onclick="checkinBooking('${b.BookingID}')"><i class="lni lni-door"></i></button>` : ""}
         ${showCheckout ? `<button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')"><i class="lni lni-checkmark-circle"></i></button>` : ""}
         ${showRestore ? `<button class="text-info" title="Restore Booking" onclick="restoreBooking('${b.BookingID}')"><i class="lni lni-undo"></i></button>` : ""}
-        ${showQR ? `<button class="text-secondary" title="View QR Code" onclick="showQRModal('${b.QRCodeURL}')"><i class="lni lni-qrcode"></i></button>` : ""}
+       ${showQR ? `<button class="text-secondary" title="View QR Code" onclick="showQRModal('${b.QRCodeURL || 'data:image/png;base64,' + b.QRBase64}')"><i class="lni lni-qrcode"></i></button>` : ""}
+
       </div>
     </td>
   </tr>
