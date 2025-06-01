@@ -19,8 +19,6 @@
 
   <script>
     window.addEventListener('load', async () => {
-      // const Amplify = window.aws_amplify?.default;
-      // const Auth = window.aws_amplify?.Auth;
       const { Amplify, Auth } = window.aws_amplify;
       if (!Amplify || !Auth) {
         console.error("Amplify not available.");
@@ -28,7 +26,6 @@
         return;
       }
 
-      // 🔧 Configure Amplify
       Amplify.configure({
         Auth: {
           region: 'us-east-1',
@@ -48,76 +45,54 @@
         console.log("🔐 Handling OAuth redirect...");
 
         const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
+
         let session;
         for (let i = 0; i < 5; i++) {
           try {
-           session = await Auth.currentSession();
+            session = await Auth.currentSession();
             break;
-          } catch (err) {
+          } catch {
             console.warn(`⏳ Waiting for Cognito session (attempt ${i + 1})...`);
-            await new Promise((r) => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 1000));
           }
         }
+
         if (!session) {
           alert("❌ Session could not be established. Please refresh and try again.");
           return;
         }
 
         const idToken = session.getIdToken();
-        const token = idToken.getJwtToken();
-        const email = idToken.payload.email || idToken.payload["cognito:username"] || "unknown";
-        const normalizedEmail = email.trim().toLowerCase();
+        const email = (idToken.payload.email || idToken.payload["cognito:username"] || "unknown").toLowerCase();
 
         const urlParams = new URLSearchParams(window.location.search);
-        const bookingId = urlParams.get("bookingId");
+        const bookingId = urlParams.get("bookingId") || sessionStorage.getItem("bookingId");
         const fromLogin = urlParams.get("fromLogin") || sessionStorage.getItem("fromLogin");
+
         sessionStorage.removeItem("fromLogin");
+        sessionStorage.removeItem("bookingId");
 
         const allowedStaff = ["petstayteam@outlook.com"];
 
-        // 🔐 Unauthorized redirect
-        if (!allowedStaff.includes(normalizedEmail)) {
+        if (!allowedStaff.includes(email)) {
           alert(`❌ You (${email}) are not authorized to check in guests.`);
-          if (bookingId) {
-            window.location.href = `https://master.d3lmxb04veurt7.amplifyapp.com/checkin.html?bookingId=${bookingId}&status=unauthorized`;
-          } else {
-            window.location.href = `https://master.d3lmxb04veurt7.amplifyapp.com/index.html`;
-          }
+          const redirect = bookingId
+            ? `https://master.d3lmxb04veurt7.amplifyapp.com/checkin.html?bookingId=${bookingId}&status=unauthorized`
+            : `https://master.d3lmxb04veurt7.amplifyapp.com/index.html`;
+          window.location.href = redirect;
           return;
         }
 
-        // ✅ Check-in flow
+        // ✅ Redirect to checkin.html to perform the check-in
         if (bookingId && fromLogin === "1") {
-          console.log("🛎️ Detected QR login for booking:", bookingId);
-
-          const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}/checkin`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-
-          const result = await res.json();
-
-          if (res.ok) {
-            console.log("✅ Check-in successful:", result);
-            window.location.href = `https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/admin_dashboard.html?refresh=1`;
-          } else {
-            console.error("❌ Check-in failed:", result.message);
-            alert("❌ Check-in failed: " + (result.message || result.error || "Unexpected error"));
-
-            window.location.href = `https://master.d3lmxb04veurt7.amplifyapp.com/checkin.html?bookingId=${bookingId}&status=error`;
-          }
-
+          console.log("🛎️ QR login detected, redirecting to checkin.html for booking:", bookingId);
+          window.location.href = `https://master.d3lmxb04veurt7.amplifyapp.com/checkin.html?bookingId=${bookingId}&fromLogin=1`;
         } else {
-          // ✅ Admin login fallback
           console.log("➡️ Regular login: redirecting to admin dashboard");
           window.location.href = "/admin-frontend/admin_dashboard.html";
         }
-
       } catch (err) {
-        console.error("❌ Authentication or check-in failed:", err);
+        console.error("❌ Authentication or redirect failed:", err);
         alert("❌ Login failed. Redirecting to home.");
         window.location.href = "https://master.d3lmxb04veurt7.amplifyapp.com/index.html";
       }

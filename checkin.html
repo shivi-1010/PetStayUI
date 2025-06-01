@@ -41,7 +41,8 @@
         urlParams.delete('status');
         window.history.replaceState({}, document.title, `${window.location.pathname}?${urlParams}`);
 
-        bookingId = urlParams.get('bookingId');
+        bookingId = urlParams.get('bookingId') || sessionStorage.getItem('bookingId');
+
 
         if (!bookingId) {
           document.getElementById("result").innerHTML = `
@@ -50,7 +51,10 @@
   `;
           return;
         }
-        await fetchBookingDetails(bookingId);
+        if (![401, 403].includes(res.status)) {
+  await fetchBookingDetails(bookingId);
+}
+
 
         // Only trigger auth and check-in after login flow
         const fromLogin = urlParams.get('fromLogin') || sessionStorage.getItem('fromLogin');
@@ -117,12 +121,17 @@
           return;
         }
 
-        // Save the original link (with ?bookingId=...) so we can return after Cognito login
-        sessionStorage.setItem("redirectAfterLogin", window.location.href);
-        sessionStorage.setItem("fromLogin", "1");  // <-- Add this line
+        // Store bookingId and fromLogin flag
+        sessionStorage.setItem("bookingId", bookingId);
+        sessionStorage.setItem("fromLogin", "1");
 
+        // Optional: disable button for user feedback
+        const checkInButton = document.getElementById("checkinButton");
+        if (checkInButton) {
+          checkInButton.disabled = true;
+          checkInButton.innerText = "Redirecting to login...";
+        }
 
-        // Clean redirect_uri (must be exactly whitelisted in Cognito)
         const redirectUri = `https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html`;
 
         const loginURL = `https://us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com/login`
@@ -138,26 +147,24 @@
       }
     }
 
-    // Only runs after Cognito redirect (with fromLogin=1)
     async function checkInAfterLogin() {
       try {
+        const { Auth } = window.aws_amplify;
         const user = await Auth.currentAuthenticatedUser({ bypassCache: true });
         console.log("🔐 Cognito user authenticated:", user.username);
-
 
         let session = null;
         for (let attempt = 0; attempt < 5; attempt++) {
           try {
             session = await Auth.currentSession();
             console.log("🔐 Cognito session established:", session);
-
-
-            break; // success
+            break;
           } catch (err) {
             console.warn("⏳ Waiting for Cognito session...", attempt + 1);
-            await new Promise(res => setTimeout(res, 800)); // Wait 800ms
+            await new Promise(res => setTimeout(res, 800));
           }
         }
+
         if (!session) {
           alert("❌ Could not initialize session. Try again.");
           return;
@@ -166,38 +173,42 @@
         const idToken = session.getIdToken();
         const email = idToken.payload.email || idToken.payload["cognito:username"] || "unknown";
         const normalizedEmail = email.trim().toLowerCase();
-
         const allowedNormalized = allowedStaffEmails.map(e => e.trim().toLowerCase());
+
         if (!allowedNormalized.includes(normalizedEmail)) {
           alert(`You are not authorized to perform check-in.\nYour email: ${email}`);
           sessionStorage.removeItem("fromLogin");
-
           return;
         }
-        console.log("🔐 User authenticated:", user.username);
-        console.log("📑 User ID Token:", idToken.getJwtToken());
-        console.log("📧 User Email:", email);
+
+        // Get bookingId from sessionStorage fallback
+        const urlParams = new URLSearchParams(window.location.search);
+        bookingId = urlParams.get("bookingId") || sessionStorage.getItem("bookingId");
+
+        if (!bookingId) {
+          alert("Booking ID missing. Cannot perform check-in.");
+          return;
+        }
+
         console.log("🔗 Booking ID for check-in:", bookingId);
         console.log("🔑 JWT Token being sent:", idToken.getJwtToken());
-        console.log("➡️ POSTing to:", `https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}/checkin`);
-        const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}/checkin`
-          , {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${idToken.getJwtToken()}`,
-              'Content-Type': 'application/json'
-            }
-          });
+
+        const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}/checkin`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken.getJwtToken()}`,
+            'Content-Type': 'application/json'
+          }
+        });
 
         const result = await res.json();
         console.log("📩 Check-In API Response:", result);
-        console.log("📡 Re-fetching booking details after check-in...");
-
 
         if (res.ok && result.newStatus === "Checked-In") {
           console.log("✅ Check-in successful:", result);
           document.getElementById("roomInfo").innerText = `Assigned Room: ${result.roomId}`;
           document.getElementById("roomInfo").scrollIntoView({ behavior: "smooth" });
+
           const checkInButton = document.getElementById("checkinButton");
           if (checkInButton) {
             checkInButton.disabled = true;
@@ -217,15 +228,13 @@
           const toast = new bootstrap.Toast(toastEl);
           toast.show();
 
+          // Clean up and reload updated info
+          sessionStorage.removeItem("fromLogin");
+          sessionStorage.removeItem("bookingId");
 
-
-          // Force re-fetch after short delay
-          // Force full page refresh to reload latest booking status
-setTimeout(() => {
-  window.location.href = `${window.location.pathname}?bookingId=${bookingId}`;
-}, 1500);
-
-          // setTimeout(() => fetchBookingDetails(bookingId), 1000);
+          setTimeout(() => {
+            window.location.href = `${window.location.pathname}?bookingId=${bookingId}`;
+          }, 1500);
         } else {
           alert("❌ Check-in failed: " + (result.message || "Unknown error"));
           console.warn("⚠️ Failed Check-in Response:", result);
@@ -236,6 +245,7 @@ setTimeout(() => {
         alert("Session expired or check-in failed. Please try again.");
       }
     }
+
 
     // Attach function globally for button click
     window.loginThenCheckIn = loginThenCheckIn;

@@ -200,12 +200,15 @@
                         <th>Customer</th>
                         <th>Pet Name</th>
                         <th>Species</th>
+                        <th>Breed</th>
+                        <th>Age</th>
                         <th>Check-In</th>
                         <th>Check-Out</th>
                         <th>Status</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
+
                     <tbody id="bookingsTableBody"> </tbody>
                   </table>
                 </div>
@@ -355,13 +358,14 @@
         const showRestore = b.Status?.toLowerCase() === "cancelled";
         const showQR = b.QRCodeURL;
 
-
         tbody.innerHTML += `
   <tr>
     <td>${index + 1}</td>
     <td>${b.OwnerName}</td>
     <td>${b.PetName}</td>
-     <td>${b.PetSpecies || "N/A"}</td> 
+    <td>${b.PetSpecies || "N/A"}</td>
+    <td>${b.PetBreed || "N/A"}</td>
+    <td>${b.PetAge || "N/A"}</td>
     <td>${b.CheckInDate}</td>
     <td>${b.CheckOutDate}</td>
     <td><span class="status-btn ${statusClass}">${b.Status}</span></td>
@@ -370,44 +374,20 @@
         <button class="text-primary" title="View Details" onclick='viewBooking(${JSON.stringify(b)})'>
           <i class="lni lni-eye"></i>
         </button>
- ${b.Status !== "Cancelled" ? `
-  <button class="text-danger" title="Cancel Booking" onclick="cancelBooking('${b.BookingID}')">
-    <i class="lni lni-trash-can"></i>
-  </button>` : ""
-          }
-
-        ${showConfirm
-            ? `<button class="text-warning" title="Confirm Booking" onclick="confirmBooking('${b.BookingID}')">
-               <i class="lni lni-checkmark"></i>
-             </button>` : ""}
-
-             ${showCheckIn
-            ? `<button class="text-info" title="Check In" onclick="checkinBooking('${b.BookingID}')">
-       <i class="lni lni-door"></i>
-     </button>` : ""}
-
-        ${showCheckout
-            ? `<button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')">
-               <i class="lni lni-checkmark-circle"></i>
-             </button>` : ""}
-
-
-
-${showRestore
-            ? `<button class="text-info" title="Restore Booking" onclick="restoreBooking('${b.BookingID}')">
-      <i class="lni lni-undo" style="color: teal;"></i>
-
-     </button>` : ""}
-${showQR ? `
-  <button class="text-secondary" title="View QR Code" onclick="showQRModal('${b.QRCodeURL}')">
-    <i class="lni lni-qrcode"></i>
-  </button>` : ""}
-
-
+        ${b.Status !== "Cancelled" ? `
+          <button class="text-danger" title="Cancel Booking" onclick="cancelBooking('${b.BookingID}')">
+            <i class="lni lni-trash-can"></i>
+          </button>` : ""}
+        ${showConfirm ? `<button class="text-warning" title="Confirm Booking" onclick="confirmBooking('${b.BookingID}')"><i class="lni lni-checkmark"></i></button>` : ""}
+        ${showCheckIn ? `<button class="text-info" title="Check In" onclick="checkinBooking('${b.BookingID}')"><i class="lni lni-door"></i></button>` : ""}
+        ${showCheckout ? `<button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')"><i class="lni lni-checkmark-circle"></i></button>` : ""}
+        ${showRestore ? `<button class="text-info" title="Restore Booking" onclick="restoreBooking('${b.BookingID}')"><i class="lni lni-undo"></i></button>` : ""}
+        ${showQR ? `<button class="text-secondary" title="View QR Code" onclick="showQRModal('${b.QRCodeURL}')"><i class="lni lni-qrcode"></i></button>` : ""}
       </div>
     </td>
   </tr>
 `;
+
 
       });
     }
@@ -440,7 +420,7 @@ ${showQR ? `
         const token = await getAuthToken();
         const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/checkout`, {
           method: "POST",
-         headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
 
         });
         const data = await res.json();
@@ -493,7 +473,7 @@ ${showQR ? `
         const token = await getAuthToken();
         const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${id}/checkin`, {
           method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
 
         });
         const data = await res.json();
