@@ -29,6 +29,12 @@
     </div>
   </div>
   <script>
+    // Clear old flags if not returning from login flow
+if (!window.location.search.includes("code=") && !document.referrer.includes("amazoncognito.com")) {
+  sessionStorage.removeItem("fromLogin");
+  sessionStorage.removeItem("bookingId");
+}
+
     const allowedStaffEmails = ["petstayteam@outlook.com", "petstayteam@gmail.com"];
 
     let bookingId = null;
@@ -81,12 +87,11 @@
 
 
         // Only trigger auth and check-in after login flow
-        const fromLogin = urlParams.get('fromLogin') || sessionStorage.getItem('fromLogin');
+        // const fromLogin = urlParams.get('fromLogin') || sessionStorage.getItem('fromLogin');
+        const fromLogin = sessionStorage.getItem('fromLogin');
         if (fromLogin === "1") {
           await checkInAfterLogin();
           sessionStorage.removeItem("fromLogin");
-          urlParams.delete('fromLogin');
-          window.history.replaceState({}, document.title, `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`);
         }
 
       });
