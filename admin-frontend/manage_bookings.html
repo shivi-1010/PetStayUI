@@ -374,24 +374,50 @@
     <td>${b.CheckOutDate}</td>
     <td><span class="status-btn ${statusClass}">${b.Status}</span></td>
     <td>
-      <div class="action">
-        <button class="text-primary" title="View Details" onclick='viewBooking(${JSON.stringify(b)})'>
-          <i class="lni lni-eye"></i>
-        </button>
-        ${b.Status !== "Cancelled" ? `
-          <button class="text-danger" title="Cancel Booking" onclick="cancelBooking('${b.BookingID}')">
-            <i class="lni lni-trash-can"></i>
-          </button>` : ""}
-        ${showConfirm ? `<button class="text-warning" title="Confirm Booking" onclick="confirmBooking('${b.BookingID}')">
-          <i class="lni lni-checkmark"></i>
-          </button>` : ""}
-        ${showCheckIn ? `<button class="text-info" title="Check In" onclick="checkinBooking('${b.BookingID}')"><i class="lni lni-door"></i></button>` : ""}
-        ${showCheckout ? `<button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')"><i class="lni lni-checkmark-circle"></i></button>` : ""}
-        ${showRestore ? `<button class="text-info" title="Restore Booking" onclick="restoreBooking('${b.BookingID}')"><span class="material-icons">restore</span></button>` : ""}
-       ${showQR ? `<button class="text-secondary" title="View QR Code" onclick="showQRModal('${b.QRCodeURL || 'data:image/png;base64,' + b.QRBase64}')"><span class="material-icons">qr_code</span></button>` : ""}
+  <div class="action">
+    <!-- View Details -->
+    <button class="text-primary" title="View Details" onclick='viewBooking(${JSON.stringify(b)})'>
+      <span class="material-icons">visibility</span>
+    </button>
 
-      </div>
-    </td>
+    <!-- Cancel Booking -->
+    ${b.Status !== "Cancelled" ? `
+      <button class="text-danger" title="Cancel Booking" onclick="cancelBooking('${b.BookingID}')">
+        <span class="material-icons">delete</span>
+      </button>` : ""}
+
+    <!-- Confirm Booking -->
+    ${showConfirm ? `
+      <button class="text-warning" title="Confirm Booking" onclick="confirmBooking('${b.BookingID}')">
+        <span class="material-icons">check_circle</span>
+      </button>` : ""}
+
+    <!-- Check In -->
+    ${showCheckIn ? `
+      <button class="text-info" title="Check In" onclick="checkinBooking('${b.BookingID}')">
+        <span class="material-icons">login</span>
+      </button>` : ""}
+
+    <!-- Check Out -->
+    ${showCheckout ? `
+      <button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')">
+        <span class="material-icons">logout</span>
+      </button>` : ""}
+
+    <!-- Restore Booking -->
+    ${showRestore ? `
+      <button class="text-info" title="Restore Booking" onclick="restoreBooking('${b.BookingID}')">
+        <span class="material-icons">restore</span>
+      </button>` : ""}
+
+    <!-- QR Code -->
+    ${showQR ? `
+      <button class="text-secondary" title="View QR Code" onclick="showQRModal('${b.QRCodeURL || 'data:image/png;base64,' + b.QRBase64}')">
+        <span class="material-icons">qr_code</span>
+      </button>` : ""}
+  </div>
+</td>
+
   </tr>
 `;
 
