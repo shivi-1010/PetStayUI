@@ -531,25 +531,6 @@
       }
     });
     
-    // window.addEventListener("DOMContentLoaded", () => {
-    //   // 1. Adds click listener to the Refresh button
-    //   document.getElementById("refreshBtn")?.addEventListener("click", () => {
-    //     loadDashboardData();
-    //     loadRoomAvailability();
-    //   });
-
-    //   // 2. Loads dashboard data on initial page load
-    //   loadDashboardData();
-    //   loadRoomAvailability();
-
-    //   // 3. Allows filter dropdown to change dashboard data view (Today, Weekly, Monthly)
-    //   document.querySelector("select.light-bg")?.addEventListener("change", (e) => {
-    //     loadDashboardData(e.target.value);
-    //   });
-    // });
-
-
-
     function loadCharts(petSpeciesCount, statusCount) {
       const ctxSpecies = document.getElementById("PetSpeciesChart")?.getContext("2d");
       if (ctxSpecies) {
