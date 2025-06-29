@@ -243,7 +243,7 @@
           await fetchBookingDetails(bookingId);
 
           console.log("✅ Check-in successful:", result);
-          document.getElementById("roomInfo").innerText = `Assigned Room: ${result.roomId || booking.RoomNumber || '—'}`;
+          document.getElementById("roomInfo").innerText = `Assigned Room: ${result.roomId || '—'}`;
           document.getElementById("roomInfo").scrollIntoView({ behavior: "smooth" });
 
           const checkInButton = document.getElementById("checkinButton");
