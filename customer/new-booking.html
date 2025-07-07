@@ -195,21 +195,21 @@
           throw new Error(`API error: ${response.status}`);
         }
 
-        const result = await response.json();
+const result = await response.json();
+console.log("📦 Raw result:", result);
 
-        // ✅ Step Functions wrap the real body → parse if needed:
-        const parsedBody = result.body ? JSON.parse(result.body) : result;
+let parsedBody = result;
+if (result.body && typeof result.body === "string") {
+  parsedBody = JSON.parse(result.body);
+}
 
-        // ✅ Save booking info for success page
-        sessionStorage.setItem("OwnerName", data.OwnerName);
-        sessionStorage.setItem("Email", data.Email);
+if (parsedBody && parsedBody.BookingID) {
+  sessionStorage.setItem("BookingID", parsedBody.BookingID);
+  window.location.href = `booking-success.html?bookingId=${parsedBody.BookingID}`;
+} else {
+  throw new Error("Missing Booking ID in response");
+}
 
-        if (parsedBody && parsedBody.BookingID) {
-          sessionStorage.setItem("BookingID", parsedBody.BookingID);
-          window.location.href = `booking-success.html?bookingId=${parsedBody.BookingID}`;
-        } else {
-          throw new Error("Missing Booking ID in response");
-        }
 
       } catch (err) {
         console.error(err);
