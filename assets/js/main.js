@@ -1,30 +1,14 @@
-(function () {
-  /* ========= Preloader ======== */
-  const preloader = document.querySelectorAll('#preloader')
+// main.js
 
-  window.addEventListener('load', function () {
-    if (preloader.length) {
-      this.document.getElementById('preloader').style.display = 'none'
-    }
-  })
+const sidebarNavWrapper = document.querySelector(".sidebar-nav-wrapper");
+const mainWrapper = document.querySelector(".main-wrapper");
+const overlay = document.querySelector(".overlay");
+const menuToggleButton = document.querySelector("#menu-toggle");
+const menuToggleButtonIcon = document.querySelector("#menu-toggle i");
+const sidebarClose = document.querySelector(".sidebar-close");
 
-  /* ========= Add Box Shadow in Header on Scroll ======== */
-  window.addEventListener('scroll', function () {
-    const header = document.querySelector('.header')
-    if (window.scrollY > 0) {
-      header.style.boxShadow = '0px 0px 30px 0px rgba(200, 208, 216, 0.30)'
-    } else {
-      header.style.boxShadow = 'none'
-    }
-  })
-
-  /* ========= sidebar toggle ======== */
-  const sidebarNavWrapper = document.querySelector(".sidebar-nav-wrapper");
-  const mainWrapper = document.querySelector(".main-wrapper");
-  const menuToggleButton = document.querySelector("#menu-toggle");
-  const menuToggleButtonIcon = document.querySelector("#menu-toggle i");
-  const overlay = document.querySelector(".overlay");
-
+// ✅ Toggle sidebar
+if (menuToggleButton && sidebarNavWrapper && overlay && mainWrapper && menuToggleButtonIcon) {
   menuToggleButton.addEventListener("click", () => {
     sidebarNavWrapper.classList.toggle("active");
     overlay.classList.add("active");
@@ -45,9 +29,31 @@
       }
     }
   });
+}
+
+// ✅ Close sidebar on overlay click
+if (overlay && sidebarNavWrapper && mainWrapper) {
   overlay.addEventListener("click", () => {
     sidebarNavWrapper.classList.remove("active");
     overlay.classList.remove("active");
     mainWrapper.classList.remove("active");
+    if (menuToggleButtonIcon && menuToggleButtonIcon.classList.contains("lni-chevron-left")) {
+      menuToggleButtonIcon.classList.remove("lni-chevron-left");
+      menuToggleButtonIcon.classList.add("lni-menu");
+    }
   });
-})();
+}
+
+// ✅ Close sidebar on sidebar close button click
+if (sidebarClose && sidebarNavWrapper && overlay && mainWrapper) {
+  sidebarClose.addEventListener("click", () => {
+    sidebarNavWrapper.classList.remove("active");
+    overlay.classList.remove("active");
+    mainWrapper.classList.remove("active");
+    if (menuToggleButtonIcon && menuToggleButtonIcon.classList.contains("lni-chevron-left")) {
+      menuToggleButtonIcon.classList.remove("lni-chevron-left");
+      menuToggleButtonIcon.classList.add("lni-menu");
+    }
+  });
+}
+

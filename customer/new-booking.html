@@ -178,9 +178,7 @@
   <p class="mt-3 fw-semibold">Processing your booking...</p>
 </div>
 
- <!-- JS -->
-  <script src="../assets/js/bootstrap.bundle.min.js"></script>
-<script src="../assets/js/main.js"></script>
+
 
 <!-- AWS SDK -->
 <script type="module">
@@ -188,11 +186,12 @@
     CognitoIdentityClient,
     GetIdCommand,
     GetCredentialsForIdentityCommand,
-  } from "https://cdn.jsdelivr.net/npm/@aws-sdk/client-cognito-identity/dist/index.min.js";
+  } from "https://esm.sh/@aws-sdk/client-cognito-identity";
+
   import {
     SFNClient,
     DescribeExecutionCommand
-  } from "https://cdn.jsdelivr.net/npm/@aws-sdk/client-sfn/dist/index.min.js";
+  } from "https://esm.sh/@aws-sdk/client-sfn";
 
   document.addEventListener("DOMContentLoaded", () => {
     const REGION = "us-east-1";
@@ -267,7 +266,7 @@
         });
 
         let tries = 0;
-        const maxTries = 30; // ~60 seconds max
+        const maxTries = 30;
 
         async function poll() {
           tries++;
@@ -304,6 +303,9 @@
 </script>
 
 
+ <!-- JS -->
+  <script src="../assets/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/main.js"></script>
 
 </body>
 
