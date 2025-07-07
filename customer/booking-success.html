@@ -30,7 +30,6 @@
             <div id="toast-msg" class="alert alert-success mt-3 d-none" role="alert">QR Code Downloaded</div>
           </div>
 
-          <!-- Status Message Display -->
           <div id="bookingStatusMessage" class="alert mt-4 d-none text-start" role="alert"></div>
 
           <a href="new-booking.html" class="btn btn-secondary mt-4">Make Another Booking</a>
@@ -44,7 +43,7 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
   <script>
-    document.addEventListener('DOMContentLoaded', async function () {
+    document.addEventListener('DOMContentLoaded', async () => {
       const params = new URLSearchParams(window.location.search);
       const bookingIdFromURL = params.get('bookingId');
 
@@ -73,16 +72,13 @@
         ownerName = ownerName || data.OwnerName;
         qrCodeData = qrCodeData || data.QRBase64;
 
-        // Confetti on valid load
         if (["Confirmed", "Pending", "Checked-In"].includes(data.Status)) {
-          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+          confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
         }
-
 
         const capName = ownerName ? ownerName.charAt(0).toUpperCase() + ownerName.slice(1) : '';
         title.innerText = `Booking Confirmed${capName ? ', ' + capName : ''}!`;
 
-        // Booking ID
         const bookingIdText = document.createElement('p');
         bookingIdText.className = 'mt-3 fw-semibold';
         bookingIdText.innerText = `Your Booking ID: ${bookingId}`;
@@ -99,8 +95,7 @@
           img.style.margin = '20px auto';
           qrWrapper.appendChild(img);
 
-          // Enable download
-          document.getElementById('downloadQR')?.addEventListener('click', function () {
+          document.getElementById('downloadQR').addEventListener('click', () => {
             const link = document.createElement('a');
             link.href = img.src;
             link.download = `PetStay-Booking-${bookingId}.png`;
@@ -109,11 +104,11 @@
             toast.classList.remove('d-none');
             setTimeout(() => toast.classList.add('d-none'), 3000);
           });
+
         } else {
           qrWrapper.innerHTML += "<p class='text-danger'>QR code not available. Please check your confirmation email.</p>";
         }
 
-        // Status message
         let message = '';
         let alertClass = 'alert-info';
 
@@ -131,7 +126,7 @@
             alertClass = 'alert-success';
             break;
           case 'Cancelled':
-            message = ' Your booking was cancelled. Please contact support.';
+            message = 'Your booking was cancelled. Please contact support.';
             alertClass = 'alert-danger';
             break;
           default:
@@ -143,7 +138,6 @@
         statusBox.className = `alert ${alertClass} mt-4`;
         statusBox.classList.remove('d-none');
 
-        // Optional: clear sessionStorage
         sessionStorage.removeItem('qrCodeBase64');
         sessionStorage.removeItem('BookingID');
         sessionStorage.removeItem('OwnerName');
@@ -155,5 +149,4 @@
   </script>
 
 </body>
-
 </html>

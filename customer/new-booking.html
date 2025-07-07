@@ -149,112 +149,112 @@
     <p class="mt-3 fw-semibold">Processing your booking...</p>
   </div>
 
-  <!-- AWS SDK v2 -->
-  <script src="https://unpkg.com/aws-sdk@2.1371.0/dist/aws-sdk.min.js"></script>
+<!-- ✅ AWS SDK v2 only — no module -->
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1371.0.min.js"></script>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const REGION = "us-east-1";
-      const IDENTITY_POOL_ID = "us-east-1:c7a2fc1a-defe-44f2-a081-15894b4ff215";
-      const STATE_MACHINE_ARN = "arn:aws:states:us-east-1:941377135801:stateMachine:PetStayStateMachine";
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const REGION = "us-east-1";
+    const IDENTITY_POOL_ID = "us-east-1:YOUR-IDENTITY-POOL-ID";
+    const STATE_MACHINE_ARN = "arn:aws:states:us-east-1:YOUR-ACCOUNT:stateMachine:YOUR-STATE-MACHINE-NAME";
 
-      const form = document.getElementById("bookingForm");
-      const overlay = document.getElementById("loadingOverlay");
+    const form = document.getElementById("bookingForm");
+    const overlay = document.getElementById("loadingOverlay");
 
-      const showLoading = () => {
-        overlay.style.display = "flex";
-        form.querySelector("button[type='submit']").disabled = true;
+    const showLoading = () => {
+      overlay.style.display = "flex";
+      form.querySelector("button[type='submit']").disabled = true;
+    };
+
+    const hideLoading = () => {
+      overlay.style.display = "none";
+      form.querySelector("button[type='submit']").disabled = false;
+    };
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      showLoading();
+
+      const formData = new FormData(form);
+      const data = {
+        OwnerName: formData.get("ownerName"),
+        Email: formData.get("email"),
+        PhoneNumber: formData.get("PhoneNumber"),
+        PetName: formData.get("petName"),
+        PetSpecies: formData.get("petSpecies"),
+        PetBreed: formData.get("petBreed"),
+        PetAge: formData.get("petAge"),
+        CheckInDate: formData.get("checkInDate"),
+        CheckOutDate: formData.get("checkOutDate"),
+        ArrivalTime: formData.get("arrivalTime")
       };
 
-      const hideLoading = () => {
-        overlay.style.display = "none";
-        form.querySelector("button[type='submit']").disabled = false;
-      };
+      AWS.config.region = REGION;
+      AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+        IdentityPoolId: IDENTITY_POOL_ID
+      });
 
-      form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        showLoading();
+      AWS.config.credentials.get(function (err) {
+        if (err) {
+          console.error(err);
+          hideLoading();
+          alert("Failed to get AWS credentials.");
+          return;
+        }
 
-        const formData = new FormData(this);
-        const data = {
-          OwnerName: formData.get("ownerName"),
-          Email: formData.get("email"),
-          PhoneNumber: formData.get("PhoneNumber"),
-          PetName: formData.get("petName"),
-          PetSpecies: formData.get("petSpecies"),
-          PetBreed: formData.get("petBreed"),
-          PetAge: formData.get("petAge"),
-          CheckInDate: formData.get("checkInDate"),
-          CheckOutDate: formData.get("checkOutDate"),
-          ArrivalTime: formData.get("arrivalTime")
-        };
+        const stepFunctions = new AWS.StepFunctions();
 
-        AWS.config.region = REGION;
-        AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-          IdentityPoolId: IDENTITY_POOL_ID
-        });
-
-        AWS.config.credentials.get(function (err) {
+        stepFunctions.startExecution({
+          stateMachineArn: STATE_MACHINE_ARN,
+          input: JSON.stringify(data)
+        }, function (err, startData) {
           if (err) {
-            console.log(err);
+            console.error(err);
             hideLoading();
-            alert("Error getting credentials");
+            alert("Failed to start booking.");
             return;
           }
 
-          const sfn = new AWS.StepFunctions();
+          const executionArn = startData.executionArn;
+          let tries = 0;
 
-          sfn.startExecution({
-            stateMachineArn: STATE_MACHINE_ARN,
-            input: JSON.stringify(data)
-          }, function (err, startData) {
-            if (err) {
-              console.log(err);
-              hideLoading();
-              alert("Failed to start booking");
-              return;
-            }
+          function poll() {
+            tries++;
+            stepFunctions.describeExecution({ executionArn }, function (err, desc) {
+              if (err) {
+                console.error(err);
+                hideLoading();
+                alert("Error polling execution.");
+                return;
+              }
 
-            const executionArn = startData.executionArn;
-            let tries = 0;
-            const maxTries = 30;
+              if (desc.status === "SUCCEEDED") {
+                const output = JSON.parse(desc.output);
+                sessionStorage.setItem("BookingID", output.BookingID);
+                window.location.href = `booking-success.html?bookingId=${output.BookingID}`;
+              } else if (desc.status === "FAILED" || desc.status === "TIMED_OUT") {
+                hideLoading();
+                alert("Booking failed.");
+              } else if (tries >= 30) {
+                hideLoading();
+                alert("Booking timed out.");
+              } else {
+                setTimeout(poll, 2000);
+              }
+            });
+          }
 
-            function poll() {
-              tries++;
-              sfn.describeExecution({ executionArn }, function (err, desc) {
-                if (err) {
-                  console.log(err);
-                  hideLoading();
-                  alert("Error describing execution");
-                  return;
-                }
-
-                if (desc.status === "SUCCEEDED") {
-                  const output = JSON.parse(desc.output);
-                  sessionStorage.setItem("BookingID", output.BookingID);
-                  sessionStorage.setItem("qrCodeBase64", output.qrCode || "");
-                  sessionStorage.setItem("OwnerName", data.OwnerName);
-
-                  window.location.href = `booking-success.html?bookingId=${output.BookingID}`;
-                } else if (desc.status === "FAILED" || desc.status === "TIMED_OUT") {
-                  hideLoading();
-                  alert("Booking failed.");
-                } else if (tries >= maxTries) {
-                  hideLoading();
-                  alert("Booking is taking too long.");
-                } else {
-                  setTimeout(poll, 2000);
-                }
-              });
-            }
-
-            poll();
-          });
+          poll();
         });
       });
     });
-  </script>
+  });
+</script>
 
+
+
+
+ <!-- Footer -->
   <script src="../assets/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/main.js"></script>
 </body>
