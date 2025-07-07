@@ -197,13 +197,16 @@
 
         const result = await response.json();
 
+        // ✅ Step Functions wrap the real body → parse if needed:
+        const parsedBody = result.body ? JSON.parse(result.body) : result;
+
         // ✅ Save booking info for success page
         sessionStorage.setItem("OwnerName", data.OwnerName);
         sessionStorage.setItem("Email", data.Email);
 
-        if (result && result.BookingID) {
-          sessionStorage.setItem("BookingID", result.BookingID);
-          window.location.href = `booking-success.html?bookingId=${result.BookingID}`;
+        if (parsedBody && parsedBody.BookingID) {
+          sessionStorage.setItem("BookingID", parsedBody.BookingID);
+          window.location.href = `booking-success.html?bookingId=${parsedBody.BookingID}`;
         } else {
           throw new Error("Missing Booking ID in response");
         }
@@ -217,6 +220,7 @@
     });
   });
 </script>
+
 
 
 
