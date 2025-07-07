@@ -4,7 +4,8 @@ frontend:
     preBuild:
       commands: []
     build:
-      commands: []
+      commands:
+        - echo "No build needed"
   artifacts:
     baseDirectory: /
     files:
