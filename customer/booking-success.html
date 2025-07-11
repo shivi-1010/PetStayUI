@@ -43,25 +43,31 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
 <script>
+  // When page loads: check URL for bookingId, else try sessionStorage fallback
   document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     const bookingIdFromURL = params.get('bookingId');
 
+    // Either from URL param or session storage fallback
     const bookingId = sessionStorage.getItem('BookingID') || bookingIdFromURL;
     const ownerNameStored = sessionStorage.getItem('OwnerName');
 
+    // References to DOM elements
     const title = document.querySelector('h2.fw-bold.mb-2');
     const qrWrapper = document.getElementById('qrcode');
     const statusBox = document.getElementById('bookingStatusMessage');
 
+    // Hide QR card by default
     document.querySelector('.qr-card').style.display = 'none';
 
+    // Booking ID not found → show error
     if (!bookingId) {
       qrWrapper.innerHTML = "<p class='text-danger'>Booking ID not found. Please try again.</p>";
       return;
     }
 
     try {
+      // Fetch booking details using your API Gateway
       const res = await fetch(`https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/booking/${bookingId}`);
       const data = await res.json();
 
@@ -70,35 +76,39 @@
         return;
       }
 
+      // Format name nicely if available
       const ownerName = ownerNameStored || data.OwnerName;
       const capName = ownerName ? ownerName.charAt(0).toUpperCase() + ownerName.slice(1) : '';
 
+      // Update main heading
       title.innerText = `Thank you${capName ? ', ' + capName : ''}!`;
 
+      // Show Booking ID below heading
       const bookingIdText = document.createElement('p');
       bookingIdText.className = 'mt-3 fw-semibold';
       bookingIdText.innerText = `Your Booking ID: ${bookingId}`;
       bookingIdText.style.textAlign = 'center';
       qrWrapper.appendChild(bookingIdText);
 
+      // Determine status message
       let statusMsg = '';
       let alertClass = 'alert-info';
 
       switch (data.Status) {
         case 'Pending':
-          statusMsg = '✅ Booking received! Please wait for admin confirmation. You’ll get an email once confirmed.';
+          statusMsg = 'Booking received! Please wait for admin confirmation. You’ll get an email once confirmed.';
           alertClass = 'alert-warning';
           break;
         case 'Confirmed':
-          statusMsg = '✅ Booking confirmed! Please bring your QR code for check-in.';
+          statusMsg = 'Booking confirmed! Please bring your QR code for check-in.';
           alertClass = 'alert-success';
           break;
         case 'Checked-In':
-          statusMsg = '✅ You are already checked in. Enjoy your pet’s stay!';
+          statusMsg = 'You are already checked in. Enjoy your pet’s stay!';
           alertClass = 'alert-success';
           break;
         case 'Cancelled':
-          statusMsg = '❌ Your booking was cancelled. Please contact support.';
+          statusMsg = 'Your booking was cancelled. Please contact support.';
           alertClass = 'alert-danger';
           break;
         default:
@@ -106,47 +116,57 @@
           alertClass = 'alert-secondary';
       }
 
-      if (["Confirmed", "Checked-In"].includes(data.Status) && data.QRBase64) {
+      // If confirmed or checked-in → show QR if found
+      if (["Confirmed", "Checked-In"].includes(data.Status) && data.QRCodeURL) {
+        // Unhide QR card section
         document.querySelector('.qr-card').style.display = 'block';
 
+        // Create QR image element
         const img = document.createElement('img');
-        img.src = `data:image/png;base64,${data.QRBase64}`;
+        img.src = data.QRCodeURL; // This is your pre-signed S3 URL
         img.alt = "QR Code";
         img.style.width = '200px';
         img.style.height = '200px';
         img.style.display = 'block';
         img.style.margin = '20px auto';
+
+        // Append QR image
         qrWrapper.appendChild(img);
 
+        // Fun confetti 🎉
         confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
 
+        // Download button logic
         document.getElementById('downloadQR').addEventListener('click', () => {
           const link = document.createElement('a');
           link.href = img.src;
           link.download = `PetStay-Booking-${bookingId}.png`;
           link.click();
+
+          // Show toast
           const toast = document.getElementById('toast-msg');
           toast.classList.remove('d-none');
           setTimeout(() => toast.classList.add('d-none'), 3000);
         });
 
       } else if (["Confirmed", "Checked-In"].includes(data.Status)) {
+        // If booking confirmed but no QR found → show error fallback
         qrWrapper.innerHTML += "<p class='text-danger'>QR code not found. Please check your confirmation email or contact support.</p>";
       }
 
+      // Show booking status alert
       statusBox.textContent = statusMsg;
       statusBox.className = `alert ${alertClass} mt-4`;
       statusBox.classList.remove('d-none');
 
+      // Clear session storage for cleanliness
       sessionStorage.clear();
     } catch (err) {
       qrWrapper.innerHTML = "<p class='text-danger'>Error loading booking. Please try again later.</p>";
       console.error('Fetch error:', err);
     }
   });
+  
 </script>
-
-
-
 </body>
 </html>
