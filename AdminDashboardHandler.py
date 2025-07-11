@@ -1,4 +1,3 @@
-#AdminDashboardHandler
 import json
 import boto3
 from datetime import datetime
@@ -6,27 +5,23 @@ from boto3.dynamodb.conditions import Attr
 import uuid
 import qrcode
 from io import BytesIO
-import base64
 
-from datetime import datetime
-
-# AWS service clients
+# AWS clients
 dynamodb = boto3.resource('dynamodb')
 dynamodb_client = boto3.client('dynamodb')
 ses = boto3.client('ses', region_name='us-east-1')
 s3 = boto3.client('s3')
+eventbridge = boto3.client('events')
 
-# S3 bucket name for QR image uploads
+# Constants
 S3_BUCKET = 'petstay-qr-images'
-
-# DynamoDB tables
 bookings_table = dynamodb.Table('Bookings')
 rooms_table = dynamodb.Table('Rooms')
 
 HEADERS = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
-    'Cache-Control': 'no-store' 
+    'Cache-Control': 'no-store'
 }
 
 allowed_staff = ["petstayteam@outlook.com", "petstayteam@gmail.com"]
@@ -34,14 +29,28 @@ allowed_staff = ["petstayteam@outlook.com", "petstayteam@gmail.com"]
 
 def is_admin(event):
     email = extract_email_from_token(event)
-    return email in ["petstayteam@outlook.com", "petstayteam@gmail.com"]
-
+    return email in allowed_staff
 
 
 def lambda_handler(event, context):
+    # Always log the raw event first
+    print("Lambda triggered. Raw event:", json.dumps(event))
+
+    # If EventBridge fired it, it won't have httpMethod/path
+    if 'detail-type' in event:
+        print("EventBridge event detected")
+        print("DetailType:", event['detail-type'])
+        print("Event Detail:", json.dumps(event['detail']))
+        # Example: you could do different logic based on detail-type
+        return {
+            'statusCode': 200,
+            'body': json.dumps({'message': f"Handled EventBridge: {event['detail-type']}"})
+        }
+
+    #  Else: normal API Gateway routing
     method = event.get('httpMethod') or event.get('requestContext', {}).get('http', {}).get('method')
     path = event.get('rawPath') or event.get('path') or event.get('requestContext', {}).get('http', {}).get('path', '')
-    print("🔍 lambda_handler invoked. Path:", path, "Method:", method)
+    print("🔍 API Gateway Path:", path, "Method:", method)
 
     try:
         segments = path.strip('/').split('/')
@@ -72,6 +81,7 @@ def lambda_handler(event, context):
             'headers': HEADERS,
             'body': json.dumps({'message': 'Route not found'})
         }
+
     except Exception as e:
         return {
             'statusCode': 500,
@@ -79,35 +89,12 @@ def lambda_handler(event, context):
             'body': json.dumps({'error': str(e)})
         }
 
-
-
-def get_single_booking(booking_id):
+def extract_email_from_token(event):
     try:
-        booking = bookings_table.get_item(Key={'BookingID': booking_id}).get('Item')
-        if not booking:
-            return {'statusCode': 404, 'headers': HEADERS, 'body': json.dumps({'message': 'Booking not found'})}
-        return {'statusCode': 200, 'headers': HEADERS, 'body': json.dumps(booking)}
+        return event["requestContext"]["authorizer"]["jwt"]["claims"]["email"]
     except Exception as e:
-        return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'error': str(e)})}
-
-def generate_and_upload_qr(booking_id, checkin_url):
-    qr = qrcode.make(checkin_url)
-    buffer = BytesIO()
-    qr.save(buffer, format="PNG")
-    buffer.seek(0)
-
-    qr_key = f"qr-codes/{booking_id}.png"
-
-    s3.upload_fileobj(
-        buffer,
-        S3_BUCKET,
-        qr_key,
-        ExtraArgs={"ContentType": "image/png", "ACL": "public-read"}
-    )
-
-    return f"https://{S3_BUCKET}.s3.amazonaws.com/{qr_key}"
-
-
+        print("JWT extraction failed:", e)
+        return None
 
 
 def upload_qr_to_s3(qr_data):
@@ -117,18 +104,20 @@ def upload_qr_to_s3(qr_data):
         Key=key,
         Body=qr_data,
         ContentType='image/png',
-        CacheControl='max-age=31536000',
-       
+        CacheControl='max-age=31536000', 
     )
-    return f"https://{S3_BUCKET}.s3.amazonaws.com/{key}"
+    return key
 
-
-def extract_email_from_token(event):
-    try:
-        return event["requestContext"]["authorizer"]["jwt"]["claims"]["email"]
-    except Exception as e:
-        print("JWT extraction failed:", e)
-        return None
+def generate_presigned_url(key, expiration=604800):
+    url = s3.generate_presigned_url(
+        ClientMethod='get_object',
+        Params={
+            'Bucket': S3_BUCKET,
+            'Key': key
+        },
+        ExpiresIn=expiration
+    )
+    return url
 
 def send_confirmation_email(owner_name, booking_id, qr_url):
     qr_link = f"https://master.d3lmxb04veurt7.amplifyapp.com/checkin.html?bookingId={booking_id}"
@@ -137,7 +126,7 @@ def send_confirmation_email(owner_name, booking_id, qr_url):
     body_html = f"""
     <html>
       <body style="font-family: Arial, sans-serif;">
-        <h2 style="color: #2e6c80;">🐾 PetStay Booking Confirmed</h2>
+        <h2 style="color: #2e6c80;">PetStay Booking Confirmed</h2>
         <p><strong>Owner:</strong> {owner_name}</p>
         <p><strong>Booking ID:</strong> {booking_id}</p>
         <p>Click this link to check-in: <a href="{qr_link}">{qr_link}</a></p>
@@ -149,9 +138,8 @@ def send_confirmation_email(owner_name, booking_id, qr_url):
     """
 
     try:
-        print("📤 Email sending START at:", datetime.utcnow())
         response = ses.send_email(
-            Source='petstayteam@gmail.com',  # Make sure this is verified
+            Source='petstayteam@gmail.com',
             Destination={"ToAddresses": ["petstayteam@outlook.com"]},
             Message={
                 "Subject": {"Data": f"PetStay Booking Confirmed - {owner_name}"},
@@ -161,8 +149,6 @@ def send_confirmation_email(owner_name, booking_id, qr_url):
                 }
             }
         )
-        print("Email sent with Message ID:", response['MessageId'], "at", datetime.utcnow())
-
         bookings_table.update_item(
             Key={'BookingID': booking_id},
             UpdateExpression='SET EmailStatus = :status, EmailSentAt = :time',
@@ -173,37 +159,46 @@ def send_confirmation_email(owner_name, booking_id, qr_url):
         )
         return "Email sent to PetStay team"
 
-    except ses.exceptions.MessageRejected as e:
-        print("❌ Message rejected:", str(e))
-        error = str(e)
-
-    except ses.exceptions.MailFromDomainNotVerifiedException as e:
-        print("❌ From address not verified:", str(e))
-        error = str(e)
-
     except Exception as e:
-        print("❌ General SES send error:", str(e))
-        error = str(e)
+        bookings_table.update_item(
+            Key={'BookingID': booking_id},
+            UpdateExpression='SET EmailStatus = :status, EmailSentAt = :time',
+            ExpressionAttributeValues={
+                ':status': f'Failed: {str(e)}',
+                ':time': datetime.utcnow().isoformat()
+            }
+        )
+        return f"Email failed: {str(e)}"
 
-    # Update DynamoDB even if email fails
-    bookings_table.update_item(
-        Key={'BookingID': booking_id},
-        UpdateExpression='SET EmailStatus = :status, EmailSentAt = :time',
-        ExpressionAttributeValues={
-            ':status': f'Failed: {error}',
-            ':time': datetime.utcnow().isoformat()
-        }
-    )
-    return f"Email failed: {error}"
+
+def get_single_booking(booking_id):
+    try:
+        booking = bookings_table.get_item(Key={'BookingID': booking_id}).get('Item')
+        if not booking:
+            return {'statusCode': 404, 'headers': HEADERS, 'body': json.dumps({'message': 'Booking not found'})}
+
+        if 'QRCodeKey' in booking:
+            booking['QRCodeURL'] = generate_presigned_url(booking['QRCodeKey'])
+
+        return {'statusCode': 200, 'headers': HEADERS, 'body': json.dumps(booking)}
+    except Exception as e:
+        return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'error': str(e)})}
+
+
 
 def get_all_bookings():
     try:
         response = bookings_table.scan()
         bookings = response.get('Items', [])
+        for b in bookings:
+            if 'QRCodeKey' in b:
+                b['QRCodeURL'] = generate_presigned_url(b['QRCodeKey'])
         bookings.sort(key=lambda x: x.get("CheckInDate", ""), reverse=True)
         return {'statusCode': 200, 'headers': HEADERS, 'body': json.dumps({'bookings': bookings})}
     except Exception as e:
         return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'error': str(e)})}
+
+
 
 def get_room_availability():
     try:
@@ -225,7 +220,6 @@ def get_room_availability():
     except Exception as e:
         return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'error': str(e)})}
 
-
 def confirm_booking(event, booking_id):
     try:
         if not is_admin(event):
@@ -241,19 +235,41 @@ def confirm_booking(event, booking_id):
         img.save(buffer, format="PNG")
         buffer.seek(0)
         qr_data = buffer.read()
-        qr_url = upload_qr_to_s3(qr_data)
 
+        # Upload QR and get key
+        qr_key = upload_qr_to_s3(qr_data)
+
+        # Update booking with status and QR key
         bookings_table.update_item(
             Key={'BookingID': booking_id},
-            UpdateExpression='SET #s = :status, QRCodeURL = :qr',
+            UpdateExpression='SET #s = :status, QRCodeKey = :qrkey',
             ExpressionAttributeNames={'#s': 'Status'},
             ExpressionAttributeValues={
                 ':status': 'Confirmed',
-                ':qr': qr_url
+                ':qrkey': qr_key
             }
         )
 
-       
+        # Generate pre-signed URL for email
+        qr_url = generate_presigned_url(qr_key)
+
+        # Emit EventBridge event
+        eventbridge.put_events(
+            Entries=[
+                {
+                    'Source': 'PetStay.Booking',
+                    'DetailType': 'BookingConfirmed',
+                    'Detail': json.dumps({
+                        'BookingID': booking_id,
+                        'OwnerName': booking['OwnerName'],
+                        'Status': 'Confirmed'
+                    }),
+                    'EventBusName': 'PetStayBus'
+                }
+            ]
+        )
+
+        # Send email with pre-signed URL
         email_result = send_confirmation_email(booking['OwnerName'], booking_id, qr_url)
 
         return {
@@ -270,19 +286,11 @@ def confirm_booking(event, booking_id):
 def cancel_booking(event, booking_id):
     try:
         if not is_admin(event):
-            return {
-                'statusCode': 403,
-                'headers': HEADERS,
-                'body': json.dumps({'message': 'Unauthorized: Only admin can cancel'})
-            }
+            return {'statusCode': 403, 'headers': HEADERS, 'body': json.dumps({'message': 'Unauthorized: Only admin can cancel'})}
 
         booking = bookings_table.get_item(Key={'BookingID': booking_id}).get('Item')
         if not booking:
-            return {
-                'statusCode': 404,
-                'headers': HEADERS,
-                'body': json.dumps({'message': 'Booking not found'})
-            }
+            return {'statusCode': 404, 'headers': HEADERS, 'body': json.dumps({'message': 'Booking not found'})}
 
         transact_items = [{
             'Update': {
@@ -306,6 +314,19 @@ def cancel_booking(event, booking_id):
             })
 
         dynamodb_client.transact_write_items(TransactItems=transact_items)
+
+        # Emit event to EventBridge
+        eventbridge.put_events(
+            Entries=[
+                {
+                    'Source': 'PetStay.Booking',
+                    'DetailType': 'BookingCancelled',
+                    'Detail': json.dumps({'BookingID': booking_id}),
+                    'EventBusName': 'PetStayBus'
+                }
+            ]
+        )
+
         return {
             'statusCode': 200,
             'headers': HEADERS,
@@ -313,11 +334,8 @@ def cancel_booking(event, booking_id):
         }
 
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': HEADERS,
-            'body': json.dumps({'error': str(e)})
-        }
+        return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'error': str(e)})}
+
 
 def restore_booking(event, booking_id):
     try:
@@ -337,9 +355,22 @@ def restore_booking(event, booking_id):
             ExpressionAttributeValues={':status': 'Pending'}
         )
 
+        # Emit event to EventBridge
+        eventbridge.put_events(
+            Entries=[
+                {
+                    'Source': 'PetStay.Booking',
+                    'DetailType': 'BookingRestored',
+                    'Detail': json.dumps({'BookingID': booking_id}),
+                    'EventBusName': 'PetStayBus'
+                }
+            ]
+        )
+
         return {'statusCode': 200, 'headers': HEADERS, 'body': json.dumps({'message': 'Booking restored'})}
     except Exception as e:
         return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'error': str(e)})}
+
 
 def checkout_booking(event, booking_id):
     try:
@@ -369,16 +400,26 @@ def checkout_booking(event, booking_id):
             }
         )
 
+        # Emit event to EventBridge
+        eventbridge.put_events(
+            Entries=[
+                {
+                    'Source': 'PetStay.Booking',
+                    'DetailType': 'BookingCheckedOut',
+                    'Detail': json.dumps({'BookingID': booking_id}),
+                    'EventBusName': 'PetStayBus'
+                }
+            ]
+        )
+
         return {'statusCode': 200, 'headers': HEADERS, 'body': json.dumps({'message': 'Guest checked out'})}
     except Exception as e:
         return {'statusCode': 500, 'headers': HEADERS, 'body': json.dumps({'error': str(e)})}
 
 
 def checkin_booking(event, booking_id):
-    print("✅ checkin_booking() triggered with booking_id:", booking_id)
     try:
         email = extract_email_from_token(event)
-        print("📧 Email from token:", email)
 
         if not email:
             return {
@@ -394,7 +435,6 @@ def checkin_booking(event, booking_id):
                 'body': json.dumps({'message': 'Unauthorized email'})
             }
 
-        # Retrieve booking
         booking = bookings_table.get_item(Key={'BookingID': booking_id}).get('Item')
         if not booking:
             return {
@@ -424,7 +464,6 @@ def checkin_booking(event, booking_id):
                 'body': json.dumps({'message': 'Booking must be confirmed before check-in'})
              }
 
-
         pet_type = booking.get('PetSpecies', '')
         if pet_type not in ['Dog', 'Cat']:
             return {
@@ -433,7 +472,6 @@ def checkin_booking(event, booking_id):
                 'body': json.dumps({'message': 'Unsupported pet type'})
             }
 
-        # Find an available room for the pet type
         available_rooms = rooms_table.scan(
             FilterExpression=Attr('petType').eq(pet_type) & Attr('isOccupied').eq(False)
         )
@@ -450,9 +488,6 @@ def checkin_booking(event, booking_id):
         checkin_time = datetime.utcnow().isoformat()
         checkin_date = datetime.utcnow().date().isoformat()
 
-        print(f"🏨 Assigning Room: {room_id} to Booking: {booking_id}")
-
-        # Perform atomic update using DynamoDB transaction
         dynamodb_client.transact_write_items(
             TransactItems=[
                 {
@@ -484,6 +519,18 @@ def checkin_booking(event, booking_id):
             ]
         )
 
+        # Emit event to EventBridge
+        eventbridge.put_events(
+            Entries=[
+                {
+                    'Source': 'PetStay.Booking',
+                    'DetailType': 'BookingCheckedIn',
+                    'Detail': json.dumps({'BookingID': booking_id}),
+                    'EventBusName': 'PetStayBus'
+                }
+            ]
+        )
+
         return {
             'statusCode': 200,
             'headers': HEADERS,
@@ -495,15 +542,12 @@ def checkin_booking(event, booking_id):
         }
 
     except dynamodb_client.exceptions.TransactionCanceledException as e:
-        print("❌ DynamoDB transaction failed:", str(e))
         return {
             'statusCode': 409,
             'headers': HEADERS,
             'body': json.dumps({'error': 'Check-in failed. Room might already be occupied.', 'details': str(e)})
         }
-
     except Exception as e:
-        print("❌ General error during check-in:", str(e))
         return {
             'statusCode': 500,
             'headers': HEADERS,
