@@ -6,25 +6,19 @@ document.getElementById('left-button')?.addEventListener('click', () => {
   window.location.href = '/customer/new-booking.html';
 });
 
-// Redirect to Admin Dashboard page
-// document.getElementById('right-button').addEventListener('click', function() {
-//   window.location.href = '/admin-frontend/admin_dashboard.html';
-// });
 
-
-// Redirect to Admin Login via Cognito Hosted UI
 // Redirect to Admin Login via Cognito Hosted UI
 document.getElementById('right-button')?.addEventListener('click', () => {
-  const clientId = '4jfnrkopa8cb7r30i0i25gar8k';
-  const domain = 'us-east-1i0pziizgm.auth.us-east-1.amazoncognito.com'; 
- const redirectUri = encodeURIComponent('https://master.d3lmxb04veurt7.amplifyapp.com/admin-frontend/post-login.html');
+  sessionStorage.setItem("adminLogin", "1"); // Set session storage flag
 
+  const clientId = window.PETSTAY_CONFIG.COGNITO_USER_POOL_CLIENT_ID;
+  const domain = window.PETSTAY_CONFIG.COGNITO_DOMAIN;
+  const redirectUri = encodeURIComponent(window.PETSTAY_CONFIG.REDIRECT_ADMIN_SIGN_IN_URL);
 
   const loginUrl = `https://${domain}/login?client_id=${clientId}&response_type=code&scope=email+openid+phone&redirect_uri=${redirectUri}`;
 
   window.location.href = loginUrl;
 });
-
 
 // Hover effect logic for split landing page
 const content = document.querySelector(".content");

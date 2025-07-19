@@ -7,7 +7,7 @@ const menuToggleButton = document.querySelector("#menu-toggle");
 const menuToggleButtonIcon = document.querySelector("#menu-toggle i");
 const sidebarClose = document.querySelector(".sidebar-close");
 
-// ✅ Toggle sidebar
+//  Toggle sidebar
 if (menuToggleButton && sidebarNavWrapper && overlay && mainWrapper && menuToggleButtonIcon) {
   menuToggleButton.addEventListener("click", () => {
     sidebarNavWrapper.classList.toggle("active");
@@ -31,7 +31,7 @@ if (menuToggleButton && sidebarNavWrapper && overlay && mainWrapper && menuToggl
   });
 }
 
-// ✅ Close sidebar on overlay click
+//  Close sidebar on overlay click
 if (overlay && sidebarNavWrapper && mainWrapper) {
   overlay.addEventListener("click", () => {
     sidebarNavWrapper.classList.remove("active");
@@ -44,7 +44,7 @@ if (overlay && sidebarNavWrapper && mainWrapper) {
   });
 }
 
-// ✅ Close sidebar on sidebar close button click
+// Close sidebar on sidebar close button click
 if (sidebarClose && sidebarNavWrapper && overlay && mainWrapper) {
   sidebarClose.addEventListener("click", () => {
     sidebarNavWrapper.classList.remove("active");

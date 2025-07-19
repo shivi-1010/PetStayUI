@@ -6071,3 +6071,50 @@ h6,
   font-style: italic;
   opacity: 0.8;
 }
+.dashboard-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.card-box {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  flex: 1 1 calc(25% - 1.5rem); /* 4 cards per row with spacing */
+  min-width: 220px;
+  max-width: 100%;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.card-box:hover {
+  transform: translateY(-3px);
+}
+
+@media (max-width: 768px) {
+  .card-box {
+    flex: 1 1 48%; /* 2 cards per row on small screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .card-box {
+    flex: 1 1 100%; /* 1 card per row on mobile */
+  }
+}
+.icon-card {
+  height: 100%;
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.icon-card:hover {
+  transform: translateY(-4px);
+}
