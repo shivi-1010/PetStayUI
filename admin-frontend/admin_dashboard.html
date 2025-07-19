@@ -77,44 +77,39 @@
         </div>
         <div class="col-lg-7 col-md-7 col-6">
           <div class="header-right">
-            <div class="profile-box ml-15">
-              <button class="dropdown-toggle bg-transparent border-0" type="button" id="profile"
-                data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="profile-info">
-                  <div class="info d-flex align-items-center">
-                    <div class="image">
-                      <img src="/assets/images/profile/profile-image.png" alt="Profile image" />
-                    </div>
-                    <div>
-                      <h6 class="fw-500 mb-0" id="adminEmail">
-                        <span class="spinner-border spinner-border-sm" role="status"></span>
-                        Loading...
-                      </h6>
-                      <p class="mb-0">Admin</p>
-                    </div>
-                  </div>
-                </div>
-              </button>
-              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profile">
-                <li>
-                  <div class="author-info d-flex align-items-center p-2">
-                    <div class="image">
-                      <img src="/assets/images/profile/profile-image.png" alt="Dropdown image">
-                    </div>
-                    <div class="content ms-2">
-                      <h4 class="text-sm mb-1">Admin</h4>
-                      <a id="adminEmailDropdown" class="text-muted text-xs" href="#">Loading...</a>
-                    </div>
-                  </div>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                  <a href="javascript:void(0);" id="signOutBtn" class="dropdown-item">
-                    <i class="lni lni-exit me-1"></i> Sign Out
-                  </a>
-                </li>
-              </ul>
-            </div>
+
+<div class="profile-box ms-3 position-relative">
+  <button class="dropdown-toggle bg-transparent border-0 d-flex align-items-center gap-2" type="button" id="profile"
+    data-bs-toggle="dropdown" aria-expanded="false">
+    <img src="/assets/images/profile/profile-image.png" alt="Profile" class="rounded-circle" width="40" height="40">
+    <div class="d-none d-md-block text-start">
+      <h6 class="fw-semibold mb-0 text-sm" id="adminEmail">
+        <span class="spinner-border spinner-border-sm" role="status"></span> Loading...
+      </h6>
+      <p class="mb-0 text-xs text-muted">Admin</p>
+    </div>
+  </button>
+
+  <ul class="dropdown-menu dropdown-menu-end shadow-lg p-2" aria-labelledby="profile" style="min-width: 240px;">
+    <li>
+      <div class="d-flex align-items-center px-3 py-2">
+        <img src="/assets/images/profile/profile-image.png" alt="Profile" class="rounded-circle" width="40" height="40">
+        <div class="ms-3">
+          <h6 class="mb-0 text-sm fw-semibold">Admin</h6>
+          <a id="adminEmailDropdown" href="#" class="text-xs text-muted">Loading...</a>
+        </div>
+      </div>
+    </li>
+    <li><hr class="dropdown-divider"></li>
+    <li>
+      <a href="javascript:void(0);" id="signOutBtn" class="dropdown-item text-danger">
+        <i class="lni lni-exit me-2"></i> Sign Out
+      </a>
+    </li>
+  </ul>
+</div>
+
+
           </div>
         </div>
       </div>

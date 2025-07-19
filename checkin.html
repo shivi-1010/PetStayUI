@@ -9,6 +9,10 @@
   <script defer src="https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/assets/js/config.js"></script>
+  <!-- Toastify (for stylish toast messages) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
 </head>
 
 <body class="bg-light">
@@ -133,14 +137,14 @@
         return;
       }
 
-      // ✅ Store values in sessionStorage so they persist across the redirect
+      // Store values in sessionStorage so they persist across the redirect
       sessionStorage.setItem("bookingId", bookingId);
       sessionStorage.setItem("fromLogin", "1");
 
-      // ❗️Use only static URI that is whitelisted in Cognito console
+      //Use only static URI that is whitelisted in Cognito console
       const redirectUri = `${window.location.origin}/checkin.html`;
 
-      // ✅ Construct login URL with static redirectUri
+      // Construct login URL with static redirectUri
       const loginURL = `https://${window.PETSTAY_CONFIG.COGNITO_DOMAIN}/login` +
         `?client_id=${window.PETSTAY_CONFIG.COGNITO_USER_POOL_CLIENT_ID}` +
         `&response_type=code&scope=email+openid+phone` +
@@ -219,13 +223,43 @@
           }, 800);
 
         } else {
-          alert("Check-in failed: " + (result.message || "Unknown error"));
+          const errorMsg = result.message || "Unknown error";
+          const lowerMsg = errorMsg.toLowerCase();
+
+          if (lowerMsg.includes("room is full")) {
+            Toastify({
+              text: errorMsg.includes("dog")
+                ? "Dog room is full. Please try another room."
+                : errorMsg.includes("cat")
+                  ? "Cat room is full. Please try another room."
+                  : "Room is full. Please try again later.",
+              duration: 4000,
+              gravity: "top",
+              position: "center",
+              backgroundColor: "#ef4444"
+            }).showToast();
+          } else {
+            Toastify({
+              text: "🐾 Check-in failed: " + errorMsg,
+              duration: 4000,
+              gravity: "top",
+              position: "center",
+              backgroundColor: "#ef4444"
+            }).showToast();
+          }
+
           await fetchBookingDetails(bookingId);
         }
 
       } catch (err) {
         console.error("Check-in error:", err);
-        alert("Session expired or check-in failed. Please try again.");
+        Toastify({
+          text: "Session expired or check-in failed. Please try again.",
+          duration: 4000,
+          gravity: "top",
+          position: "center",
+          backgroundColor: "#f97316"
+        }).showToast();
       }
     }
 
