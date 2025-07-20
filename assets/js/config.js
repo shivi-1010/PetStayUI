@@ -18,7 +18,9 @@ window.PETSTAY_CONFIG = {
   CANCEL_BOOKING_URL: 'https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/cancel',
   CHECKIN_BOOKING_URL: 'https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/checkin',
   CHECKOUT_BOOKING_URL: 'https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/checkout',
-  RESTORE_BOOKING_URL: 'https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/restore'
+  RESTORE_BOOKING_URL: 'https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/restore',
+  PET_PHOTO_UPLOAD_URL: 'https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/upload-url',
+  PET_PHOTO_PUBLIC_URL_BASE: 'https://petstay-pet-photos-101481565.s3.amazonaws.com'
 };
 
 for (const key in window.PETSTAY_CONFIG) {
