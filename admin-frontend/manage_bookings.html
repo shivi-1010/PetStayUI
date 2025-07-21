@@ -337,78 +337,77 @@
       );
 
       tbody.innerHTML = "";
-
       filtered.forEach((b, index) => {
-        const status = b.Status?.toLowerCase() || "";
-        const statusClass = {
-          "pending": "info-btn",
-          "confirmed": "active-btn",
-          "checked-in": "success-btn",
-          "checked-out": "warning-btn",
-          "cancelled": "close-btn"
-        }[status] || "info-btn";
+        // Determine status class and which actions to show
+        let statusClass = "";
+        let showConfirm = b.Status === "Pending";
+        let showCheckIn = b.Status === "Confirmed";
+        let showCheckout = b.Status === "Checked-In";
+        let showRestore = b.Status === "Cancelled";
+        let showQR = b.QRCodeURL || b.QRBase64;
 
-        const showCheckout = b.Status === "Checked-In";
-        const showCheckIn = b.Status === "Confirmed";
-        const showConfirm = b.Status === "Pending";
-        const showRestore = status === "cancelled";
-        const showQR = (b.QRCodeURL || b.QRBase64) && !showRestore;
+        switch (b.Status) {
+          case "Pending": statusClass = "bg-warning"; break;
+          case "Confirmed": statusClass = "bg-primary"; break;
+          case "Checked-In": statusClass = "bg-info"; break;
+          case "Checked-Out": statusClass = "bg-success"; break;
+          case "Cancelled": statusClass = "bg-danger"; break;
+          default: statusClass = "bg-secondary";
+        }
 
         tbody.innerHTML += `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${b.OwnerName}</td>
-          <td>${b.PetName}</td>
-          <td>
-  ${b.PetPhotoURL ? `
-    <a href="${b.PetPhotoURL}" target="_blank">
-      <img src="${b.PetPhotoURL}" 
-        alt="${b.PetName}" 
-        style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #ccc;" 
-        onerror="this.src='/assets/images/pets/default.jpg'"
-      />
-    </a>
-  ` : 'N/A'}
-</td>
-<td>${b.PetSpecies || "N/A"}</td>
-
-          <td>${b.PetBreed || "N/A"}</td>
-          <td>${b.PetAge || "N/A"}</td>
-          <td>${b.CheckInDate}</td>
-          <td>${b.CheckOutDate}</td>
-          <td><span class="status-btn ${statusClass}">${b.Status}</span></td>
-          <td>
-            <div class="action">
-              <button class="text-primary" title="View Details" onclick='viewBooking(${JSON.stringify(b)})'>
-                <span class="material-icons">visibility</span>
-              </button>
-              ${!showRestore ? `
-              <button class="text-danger" title="Cancel Booking" onclick="cancelBooking('${b.BookingID}')">
-                <span class="material-icons">delete</span>
-              </button>` : ""}
-              ${showConfirm ? `
-              <button class="text-warning" title="Confirm Booking" onclick="confirmBooking('${b.BookingID}')">
-                <span class="material-icons">check_circle</span>
-              </button>` : ""}
-              ${showCheckIn ? `
-              <button class="text-info" title="Check In" onclick="checkinBooking('${b.BookingID}')">
-                <span class="material-icons">login</span>
-              </button>` : ""}
-              ${showCheckout ? `
-              <button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')">
-                <span class="material-icons">logout</span>
-              </button>` : ""}
-              ${showRestore ? `
-              <button class="text-info" title="Restore Booking" onclick="restoreBooking('${b.BookingID}')">
-                <span class="material-icons">restore</span>
-              </button>` : ""}
-              ${showQR ? `
-              <button class="text-secondary" title="View QR Code" data-url="${b.QRCodeURL || 'data:image/png;base64,' + b.QRBase64}" onclick="showQRModal(this)">
-                <span class="material-icons">qr_code</span>
-              </button>` : ""}
-            </div>
-          </td>
-        </tr>`;
+<tr>
+  <td>${index + 1}</td>
+  <td>${b.OwnerName}</td>
+  <td>${b.PetName}</td>
+  <td>${b.PetSpecies || "N/A"}</td>
+  <td>
+    ${b.PetPhotoURL ? `
+      <a href="${b.PetPhotoURL}" target="_blank">
+        <img src="${b.PetPhotoURL}" 
+             alt="${b.PetName}" 
+             style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #ccc;" 
+             onerror="this.src='/assets/images/pets/default.jpg'" />
+      </a>
+    ` : 'N/A'}
+  </td>
+  <td>${b.PetBreed || "N/A"}</td>
+  <td>${b.PetAge || "N/A"}</td>
+  <td>${b.CheckInDate}</td>
+  <td>${b.CheckOutDate}</td>
+  <td><span class="status-btn ${statusClass}">${b.Status}</span></td>
+  <td>
+    <div class="action">
+      <button class="text-primary" title="View Details" onclick='viewBooking(${JSON.stringify(b)})'>
+        <span class="material-icons">visibility</span>
+      </button>
+      ${!showRestore ? `
+      <button class="text-danger" title="Cancel Booking" onclick="cancelBooking('${b.BookingID}')">
+        <span class="material-icons">delete</span>
+      </button>` : ""}
+      ${showConfirm ? `
+      <button class="text-warning" title="Confirm Booking" onclick="confirmBooking('${b.BookingID}')">
+        <span class="material-icons">check_circle</span>
+      </button>` : ""}
+      ${showCheckIn ? `
+      <button class="text-info" title="Check In" onclick="checkinBooking('${b.BookingID}')">
+        <span class="material-icons">login</span>
+      </button>` : ""}
+      ${showCheckout ? `
+      <button class="text-success" title="Check Out" onclick="checkoutBooking('${b.BookingID}')">
+        <span class="material-icons">logout</span>
+      </button>` : ""}
+      ${showRestore ? `
+      <button class="text-info" title="Restore Booking" onclick="restoreBooking('${b.BookingID}')">
+        <span class="material-icons">restore</span>
+      </button>` : ""}
+      ${showQR ? `
+      <button class="text-secondary" title="View QR Code" data-url="${b.QRCodeURL || 'data:image/png;base64,' + b.QRBase64}" onclick="showQRModal(this)">
+        <span class="material-icons">qr_code</span>
+      </button>` : ""}
+    </div>
+  </td>
+</tr>`;
       });
     }
 

@@ -160,8 +160,6 @@
     </div>
     <p class="mt-3 fw-semibold">Processing your booking...</p>
   </div>
-
-
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const form = document.getElementById("bookingForm");
@@ -217,30 +215,74 @@
         });
       }
 
-      async function uploadPetPhoto(file, species) {
-        const response = await fetch(window.PETSTAY_CONFIG.PET_PHOTO_UPLOAD_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ petSpecies: species })
-        });
+      async function uploadPetPhoto(file, speciesRaw) {
+        const species = speciesRaw?.trim();
+        const allowedSpecies = ["Dog", "Cat"];
 
-        if (!response.ok) throw new Error("Failed to get upload URL");
+        if (!allowedSpecies.includes(species)) {
+          throw new Error("Invalid pet species. Must be 'Dog' or 'Cat'.");
+        }
 
-        const { uploadUrl, key: photoKey } = await response.json();
+        console.log("Uploading pet photo for species:", species);
 
-        const uploadRes = await fetch(uploadUrl, {
-          method: "PUT",
-          headers: {
-            "Content-Type": file.type
-          },
-          body: file
-        });
+        // Step 1: Get a presigned URL from the API
+        let response;
+        try {
+          response = await fetch(window.PETSTAY_CONFIG.PET_PHOTO_UPLOAD_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              petSpecies: species,
+              contentType: file.type
+            })
 
-        if (!uploadRes.ok) throw new Error("Failed to upload pet photo");
+          });
+        } catch (err) {
+          throw new Error("Network error while requesting upload URL: " + err.message);
+        }
 
-        return photoKey;
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Upload URL fetch failed:", errorText);
+          throw new Error(`Upload URL request failed: ${response.statusText}`);
+        }
+
+        let uploadData;
+        try {
+          uploadData = await response.json();
+        } catch (err) {
+          throw new Error("Invalid JSON from upload URL response.");
+        }
+
+        const { uploadUrl, key: photoKey } = uploadData;
+        if (!uploadUrl || !photoKey) {
+          throw new Error("Missing upload URL or photo key in response.");
+        }
+
+        // Step 2: Upload the actual file to S3
+        try {
+          const uploadRes = await fetch(uploadUrl, {
+            method: "PUT",
+            headers: {
+              "Content-Type": file.type
+            },
+            body: file
+          });
+
+          if (!uploadRes.ok) {
+            const errorText = await uploadRes.text();
+            console.error("S3 upload failed:", errorText);
+            throw new Error("Failed to upload photo to S3.");
+          }
+
+          console.log("Upload successful. S3 key:", photoKey);
+          return photoKey;
+
+        } catch (err) {
+          throw new Error("Photo upload error: " + err.message);
+        }
       }
 
       form.addEventListener("submit", async (e) => {
@@ -346,8 +388,6 @@
       });
     });
   </script>
-
-
   <!-- Footer -->
   <script src="../assets/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/main.js"></script>
