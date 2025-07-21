@@ -390,37 +390,26 @@
   ` : "";
 
             guestTable.innerHTML += `
-    <tr>
-      <td>
-        <div class="product d-flex align-items-center gap-2">
-          <div class="image">
-            ${petPhotoHTML}
-          </div>
-          <div>
-            <p class="text-sm fw-bold mb-0">${b.PetName}</p>
-            <p class="text-xs text-muted mb-0">(${b.PetBreed || b.PetSpecies})</p>
-          </div>
-        </div>
-      </td>
-      <td>
-        ${b.QRCodeURL ? `
-          <div style="text-align: center;">
-            <a href="/admin-frontend/checkin/?bookingId=${b.BookingID}" target="_blank">
-              <img 
-                src="${b.QRCodeURL}" 
-                alt="QR Code"
-                style="width: 90px; height: auto; border: 1px solid #ccc; border-radius: 6px; padding: 4px; background: #fff;" 
-              />
-            </a>
-          </div>
-        ` : '<span class="text-muted text-sm">—</span>'}
-      </td>
-      <td><p class="text-sm">${b.OwnerName}</p></td>
-      <td><p class="text-sm">${b.RoomNumber || '—'}</p></td>
-      <td><p class="text-sm">${b.CheckInDate}</p></td>
-      <td><p class="text-sm">${daysLeft} day${daysLeft !== 1 ? 's' : ''}</p></td>
-      <td><span class="status-btn success-btn">Checked In</span></td>
-    </tr>`;
+<tr>
+  <td>
+    <img src="${b.PetPhotoURL}" alt="${b.PetName}" class="rounded" style="width: 50px; height: 50px; object-fit: cover; border: 1px solid #ccc;" />
+  </td>
+  <td>
+    <p class="text-sm fw-bold mb-0">${b.PetName}</p>
+    <p class="text-xs text-muted mb-0">(${b.PetBreed || b.PetSpecies})</p>
+  </td>
+  <td>
+    ${b.QRCodeURL ? `
+      <img src="${b.QRCodeURL}" alt="QR Code" class="qr-thumbnail" style="width: 60px; cursor: pointer;" onclick="showQRModal('${b.QRCodeURL}')" />
+    ` : '<span class="text-muted text-sm">—</span>'}
+  </td>
+  <td><p class="text-sm">${b.OwnerName}</p></td>
+  <td><p class="text-sm">${b.RoomNumber || '—'}</p></td>
+  <td><p class="text-sm">${b.CheckInDate}</p></td>
+  <td><p class="text-sm">${daysLeft} day${daysLeft !== 1 ? 's' : ''}</p></td>
+  <td><span class="status-btn success-btn">${b.Status}</span></td>
+</tr>`;
+
 
 
           }
@@ -561,6 +550,14 @@
         });
       }
     }
+
+    function showQRModal(url) {
+      const modalImg = document.getElementById("qrModalImage");
+      modalImg.src = url;
+      const qrModal = new bootstrap.Modal(document.getElementById("qrModal"));
+      qrModal.show();
+    }
+
   </script>
 
 

@@ -6118,3 +6118,12 @@ h6,
 .icon-card:hover {
   transform: translateY(-4px);
 }
+
+.qr-thumbnail {
+  max-width: 90px;
+  object-fit: contain;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 4px;
+  background: #fff;
+}
