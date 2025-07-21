@@ -215,75 +215,75 @@
         });
       }
 
-      async function uploadPetPhoto(file, speciesRaw) {
-        const species = speciesRaw?.trim();
-        const allowedSpecies = ["Dog", "Cat"];
+    async function uploadPetPhoto(file, speciesRaw) {
+  // Normalize species input
+  const species = speciesRaw?.trim().charAt(0).toUpperCase() + speciesRaw?.trim().slice(1).toLowerCase();
 
-        if (!allowedSpecies.includes(species)) {
-          throw new Error("Invalid pet species. Must be 'Dog' or 'Cat'.");
-        }
+  const allowedSpecies = ["Dog", "Cat"];
+  if (!allowedSpecies.includes(species)) {
+    throw new Error("Invalid pet species. Must be 'Dog' or 'Cat'.");
+  }
 
-        console.log("Uploading pet photo for species:", species);
+  console.log("Uploading pet photo for species:", species);
 
-        // Step 1: Get a presigned URL from the API
-        let response;
-        try {
-          response = await fetch(window.PETSTAY_CONFIG.PET_PHOTO_UPLOAD_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              petSpecies: species,
-              contentType: file.type
-            })
+  // Step 1: Get a presigned URL from the API
+  let response;
+  try {
+    response = await fetch(window.PETSTAY_CONFIG.PET_PHOTO_UPLOAD_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        petSpecies: species,
+        contentType: file.type
+      })
+    });
+  } catch (err) {
+    throw new Error("Network error while requesting upload URL: " + err.message);
+  }
 
-          });
-        } catch (err) {
-          throw new Error("Network error while requesting upload URL: " + err.message);
-        }
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Upload URL fetch failed:", errorText);
+    throw new Error(`Upload URL request failed: ${response.statusText}`);
+  }
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("Upload URL fetch failed:", errorText);
-          throw new Error(`Upload URL request failed: ${response.statusText}`);
-        }
+  let uploadData;
+  try {
+    uploadData = await response.json();
+  } catch (err) {
+    throw new Error("Invalid JSON from upload URL response.");
+  }
 
-        let uploadData;
-        try {
-          uploadData = await response.json();
-        } catch (err) {
-          throw new Error("Invalid JSON from upload URL response.");
-        }
+  const { uploadUrl, key: photoKey } = uploadData;
+  if (!uploadUrl || !photoKey) {
+    throw new Error("Missing upload URL or photo key in response.");
+  }
 
-        const { uploadUrl, key: photoKey } = uploadData;
-        if (!uploadUrl || !photoKey) {
-          throw new Error("Missing upload URL or photo key in response.");
-        }
+  // Step 2: Upload the actual file to S3
+  try {
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type
+      },
+      body: file
+    });
 
-        // Step 2: Upload the actual file to S3
-        try {
-          const uploadRes = await fetch(uploadUrl, {
-            method: "PUT",
-            headers: {
-              "Content-Type": file.type
-            },
-            body: file
-          });
+    if (!uploadRes.ok) {
+      const errorText = await uploadRes.text();
+      console.error("S3 upload failed:", errorText);
+      throw new Error("Failed to upload photo to S3.");
+    }
 
-          if (!uploadRes.ok) {
-            const errorText = await uploadRes.text();
-            console.error("S3 upload failed:", errorText);
-            throw new Error("Failed to upload photo to S3.");
-          }
+    console.log("Upload successful. S3 key:", photoKey);
+    return photoKey;
 
-          console.log("Upload successful. S3 key:", photoKey);
-          return photoKey;
-
-        } catch (err) {
-          throw new Error("Photo upload error: " + err.message);
-        }
-      }
+  } catch (err) {
+    throw new Error("Photo upload error: " + err.message);
+  }
+}
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
