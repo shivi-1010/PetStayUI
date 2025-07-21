@@ -362,15 +362,15 @@
   <td>${b.PetName}</td>
   <td>${b.PetSpecies || "N/A"}</td>
   <td>
-    ${b.PetPhotoURL ? `
-      <a href="${b.PetPhotoURL}" target="_blank">
-        <img src="${b.PetPhotoURL}" 
-             alt="${b.PetName}" 
-             style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #ccc;" 
-             onerror="this.src='/assets/images/pets/default.jpg'" />
-      </a>
-    ` : 'N/A'}
-  </td>
+  ${b.PetPhotoURL ? `
+    <a href="${b.PetPhotoURL}" target="_blank">
+      <img src="${b.PetPhotoURL}" 
+           alt="${b.PetName}" 
+           style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #ccc;" 
+           onerror="this.style.display='none'" />
+    </a>
+  ` : 'N/A'}
+</td>
   <td>${b.PetBreed || "N/A"}</td>
   <td>${b.PetAge || "N/A"}</td>
   <td>${b.CheckInDate}</td>
@@ -474,13 +474,13 @@
     <p><strong>Pet:</strong> ${b.PetName} (${b.PetSpecies}, ${b.PetBreed || "N/A"})</p>
     <p><strong>Pet Age:</strong> ${b.PetAge}</p>
     <p><strong>Pet Photo:</strong><br>
-      ${b.PetPhotoURL ? `
-        <img src="${b.PetPhotoURL}" 
-             alt="Pet Photo" 
-             style="width: 100%; max-width: 200px; border-radius: 8px; border: 1px solid #ccc;"
-             onerror="this.src='/assets/images/pets/default.jpg'" />
-      ` : 'No photo available'}
-    </p>
+  ${b.PetPhotoURL ? `
+    <img src="${b.PetPhotoURL}" 
+         alt="Pet Photo" 
+         style="width: 100%; max-width: 200px; border-radius: 8px; border: 1px solid #ccc;"
+         onerror="this.style.display='none'" />
+  ` : 'No photo available'}
+</p>
     <hr>
     <p><strong>Check-In:</strong> ${b.CheckInDate}</p>
     <p><strong>Check-Out:</strong> ${b.CheckOutDate}</p>
