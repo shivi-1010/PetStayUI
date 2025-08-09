@@ -20,15 +20,24 @@ window.PETSTAY_CONFIG = {
   CHECKOUT_BOOKING_URL: 'https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/checkout',
   RESTORE_BOOKING_URL: 'https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/restore',
   PET_PHOTO_UPLOAD_URL: 'https://howm2f0jc9.execute-api.us-east-1.amazonaws.com/upload-url',
-  PET_PHOTO_PUBLIC_URL_BASE: 'https://petstay-pet-photos-101481565.s3.amazonaws.com'
+  PET_PHOTO_PUBLIC_URL_BASE: 'https://petstay-pet-photos-101481565.s3.amazonaws.com',
+
+  // Chatbot (Amazon Lex V2)
+  LEX: {
+    REGION: 'us-east-1',
+    IDENTITY_POOL_ID: 'us-east-1:c7a2fc1a-defe-44f2-a081-15894b4ff215',
+    BOT_ID: 'S1HI9REYR4',
+    BOT_ALIAS_ID: 'RI03IXGQ8Q',
+    LOCALE_ID: 'en_US'
+  }
 };
 
 for (const key in window.PETSTAY_CONFIG) {
-  if (window.PETSTAY_CONFIG[key].includes("{{") || window.PETSTAY_CONFIG[key].includes("}}")) {
+  const val = window.PETSTAY_CONFIG[key];
+  if (typeof val === 'string' && (val.includes('{{') || val.includes('}}'))) {
     throw new Error(`Missing config value: ${key}. Did you forget to set environment variables?`);
   }
 }
-
 
 
 
