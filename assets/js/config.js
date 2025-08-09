@@ -27,7 +27,7 @@ window.PETSTAY_CONFIG = {
     REGION: 'us-east-1',
     IDENTITY_POOL_ID: 'us-east-1:c7a2fc1a-defe-44f2-a081-15894b4ff215',
     BOT_ID: 'S1HI9REYR4',
-    BOT_ALIAS_ID: 'RI03IXGQ8Q',
+    BOT_ALIAS_ID: 'TSTALIASID',
     LOCALE_ID: 'en_US'
   }
 };
