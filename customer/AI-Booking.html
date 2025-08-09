@@ -1,389 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  />
-  <title>Book via Chat | PetStay</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>PetStay — Book via Chat</title>
+  <meta name="color-scheme" content="dark light" />
 
-  <!-- Your existing styles -->
-  <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="../assets/css/main.css" />
-  <link rel="stylesheet" href="../assets/css/customer.css" />
+  <!-- AWS SDK (Lex V2 client is included here) -->
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1488.0.min.js"></script>
+
+  <!-- Your global config: must define window.PETSTAY_CONFIG.LEX {...} -->
   <script src="/assets/js/config.js"></script>
 
   <style>
     :root{
-      --ps-bg:#0b1220; --ps-panel:#0f172a; --ps-surface:#111827;
-      --ps-accent:#7c3aed; --ps-accent-2:#22d3ee; --ps-text:#e5e7eb;
-      --ps-muted:#94a3b8; --ps-border:#1f2937; --ps-danger:#ef4444;
-      --ps-success:#22c55e;
+      --bg:#0f172a;--card:#111827;--muted:#94a3b8;--text:#e5e7eb;--ring:#1f2937;
+      --bubble-user:#1f2937;--bubble-bot:#0b1220
     }
-    body{background:radial-gradient(1200px 600px at 10% -10%, rgba(124,58,237,.25), transparent),
-                      radial-gradient(1000px 500px at 110% -20%, rgba(34,211,238,.18), transparent),
-                      #0b1220;color:var(--ps-text)}
-    .ps-wrap{max-width:960px;margin:40px auto;padding:0 16px}
-    .ps-card{background:var(--ps-panel);border:1px solid var(--ps-border);border-radius:18px;overflow:hidden;
-      box-shadow:0 20px 60px rgba(0,0,0,.35)}
-    .ps-header{padding:16px 18px;background:linear-gradient(180deg,#0d1426, #0b1220);
-      border-bottom:1px solid var(--ps-border);display:flex;align-items:center;gap:12px}
-    .ps-dot{width:10px;height:10px;border-radius:50%;background:var(--ps-success);
-      box-shadow:0 0 0 5px rgba(34,197,94,.18)}
-    .ps-title{font-weight:800;letter-spacing:.2px}
-    .ps-body{display:grid;grid-template-columns:1fr 340px}
-    @media (max-width: 900px){ .ps-body{grid-template-columns:1fr} }
-    .ps-chat{min-height:560px;display:grid;grid-template-rows:1fr auto;background:linear-gradient(180deg,rgba(124,58,237,.06),transparent)}
-    .ps-messages{padding:16px;height:100%;overflow:auto}
-    .ps-msg{display:flex;gap:10px;margin:10px 0}
-    .ps-bot .ps-bubble{background:#101a33;border:1px solid var(--ps-border)}
-    .ps-user{justify-content:flex-end}
-    .ps-user .ps-bubble{background:#1a2440;border:1px solid rgba(124,58,237,.35)}
-    .ps-avatar{width:30px;height:30px;border-radius:50%;background:#1f2937;display:grid;place-items:center;flex:0 0 30px}
-    .ps-bubble{max-width:78%;padding:10px 12px;border-radius:12px;font-size:14px;line-height:1.45}
-    .ps-input{display:flex;gap:8px;padding:12px;border-top:1px solid var(--ps-border);background:var(--ps-surface)}
-    .ps-input input{flex:1;background:#0d1426;border:1px solid var(--ps-border);color:var(--ps-text);border-radius:10px;padding:11px}
-    .ps-input button{background:linear-gradient(135deg,var(--ps-accent),var(--ps-accent-2));color:#fff;border:0;border-radius:10px;padding:11px 14px;font-weight:800}
-    .ps-side{border-left:1px solid var(--ps-border);background:linear-gradient(180deg,#0b1220, #0c1427)}
-    .ps-side .box{padding:16px;border-bottom:1px solid var(--ps-border)}
-    .ps-side h6{margin:0 0 6px;font-weight:800;color:#fff}
-    .ps-summary{padding:16px}
-    .ps-summary .row-line{display:flex;justify-content:space-between;gap:16px;padding:6px 0;border-bottom:1px dashed #263248}
-    .ps-kv{color:var(--ps-muted);font-size:13px}
-    .ps-tag{display:inline-block; padding:3px 8px;border-radius:99px;border:1px solid var(--ps-border);font-size:12px;color:var(--ps-muted)}
-    .ps-btn-secondary{background:#0d1426;border:1px solid var(--ps-border);color:#cbd5e1;border-radius:10px;padding:10px 12px;font-weight:700}
-    .ps-danger{color:var(--ps-danger)}
-    .ps-hidden{display:none !important;}
-    .ps-small{font-size:12px;color:var(--ps-muted)}
-    .ps-progress{height:3px;background:#0d1426}
-    .ps-progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--ps-accent),var(--ps-accent-2));transition:width .3s}
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+      background:radial-gradient(1200px 800px at 10% -10%,#1b1f3a 0%,transparent 50%),
+                 radial-gradient(1200px 800px at 110% 10%,#0a2a3a 0%,transparent 50%),var(--bg);
+      color:var(--text)}
+    .container{max-width:1200px;margin:40px auto;padding:0 16px}
+    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:20px}
+    @media (max-width:960px){.grid{grid-template-columns:1fr}}
+    .card{background:linear-gradient(180deg,#0d1223 0%,#0b0f1d 100%);border:1px solid var(--ring);
+      border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.02);overflow:hidden}
+    .card-header{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--ring);padding:16px 18px}
+    .dot{width:10px;height:10px;border-radius:50%;background:#10b981;box-shadow:0 0 16px #10b981}
+    .title{font-weight:700;letter-spacing:.2px}.subtitle{color:var(--muted);font-size:14px;margin-left:6px}
+    .chat{height:clamp(520px,70vh,720px);display:grid;grid-template-rows:1fr auto}
+    .log{overflow:auto;padding:18px;display:flex;flex-direction:column;gap:12px}
+    .msg{max-width:72ch;width:fit-content;padding:12px 14px;border-radius:14px;line-height:1.4;border:1px solid var(--ring);
+      box-shadow:0 6px 18px rgba(0,0,0,.25);white-space:pre-wrap;animation:pop .12s ease-out}
+    @keyframes pop{from{transform:scale(.98);opacity:.6}to{transform:scale(1);opacity:1}}
+    .msg.bot{background:var(--bubble-bot);border-color:#0f172a}
+    .msg.user{margin-left:auto;background:var(--bubble-user);border-color:#111827}
+    .inputbar{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px;border-top:1px solid var(--ring)}
+    .inputbar input{width:100%;padding:14px;border-radius:12px;background:#0b1020;color:var(--text);border:1px solid var(--ring);outline:none}
+    .inputbar input:focus{border-color:#334155;box-shadow:0 0 0 3px rgba(125,211,252,.1)}
+    .btn{padding:12px 16px;border-radius:12px;border:1px solid #3b0764;background:linear-gradient(180deg,#6d28d9,#5b21b6);color:#fff;font-weight:600;cursor:pointer}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .side{display:grid;grid-template-rows:auto auto 1fr;gap:16px;padding-bottom:8px}
+    .panel{border-top:1px solid var(--ring);padding:16px 18px}
+    .panel h4{margin:0 0 10px;font-size:14px;letter-spacing:.3px;color:#cbd5e1}
+    .tips li{color:var(--muted);font-size:13px;margin:8px 0}
+    .summary{display:grid;gap:8px;font-size:13px;color:var(--muted)}
+    .summary-row{display:flex;justify-content:space-between;border-bottom:1px dashed #1f2937;padding:6px 0}
+    .pill{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid #334155;color:#cbd5e1;background:#0a1324}
+    .muted{color:var(--muted)}
+      .summary-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed #eee}
+  .summary-row:last-child{border-bottom:0}
+  .pill{padding:2px 8px;border-radius:999px;background:#f3f4f6;font-weight:600}
+  .pill.ok{background:#e6f7ed}
+  .pill.warn{background:#fff7ea}
   </style>
 </head>
-
 <body>
-  <div class="ps-wrap">
-    <div class="ps-card">
-      <div class="ps-header">
-        <div class="ps-dot"></div>
-        <div>
-          <div class="ps-title">PetStay — Book via Chat</div>
-          <div class="ps-small">I’ll collect the details and create your booking.</div>
+  <div class="container">
+    <div class="grid">
+      <section class="card chat">
+        <header class="card-header">
+          <span class="dot" aria-hidden="true"></span>
+          <div class="title">PetStay — Book via Chat</div>
+          <div class="subtitle">I’ll collect the details and create your booking.</div>
+          <span class="pill" style="margin-left:auto;">Beta</span>
+        </header>
+
+        <div id="chat-log" class="log" aria-live="polite" aria-label="Chat transcript"></div>
+
+        <div class="inputbar">
+          <input id="chat-text" type="text" placeholder="Type your reply… (or 'cancel')" autocomplete="off" />
+          <button id="chat-send" class="btn">Send</button>
         </div>
-        <div style="margin-left:auto" class="ps-tag">Beta</div>
-      </div>
+      </section>
 
-      <div class="ps-body">
-        <!-- Chat Column -->
-        <div class="ps-chat">
-          <div class="ps-messages" id="msgs"></div>
-          <div class="ps-progress"><div id="psProgress"></div></div>
-          <div class="ps-input">
-            <input id="chatInput" type="text" placeholder="Type your reply… (or 'cancel')" />
-            <input id="chatFile" type="file" class="ps-hidden" accept="image/jpeg,image/png" />
-            <button id="chatSend" type="button">Send</button>
-          </div>
+      <aside class="card side">
+        <header class="card-header">
+          <div class="title">Assistant</div>
+          <div class="subtitle">Fewer clicks. Faster booking.</div>
+        </header>
+
+        <div class="panel">
+          <h4>Quick Tips</h4>
+          <ul class="tips">
+            <li>Type <strong>skip</strong> for optional questions.</li>
+            <li>Type <strong>upload</strong> when I ask for a pet photo.</li>
+            <li>Type <strong>cancel</strong> to stop anytime.</li>
+          </ul>
         </div>
 
-        <!-- Side Column -->
-        <aside class="ps-side">
-          <div class="box">
-            <h6>Quick Tips</h6>
-            <div class="ps-small">
-              • You can type <b>skip</b> for optional questions.<br/>
-              • Type <b>upload</b> when I ask for a pet photo.<br/>
-              • Type <b>cancel</b> to stop anytime.
-            </div>
-          </div>
+        <div class="panel" style="padding-top:0">
+          <h4>Status</h4>
+          <div id="status" class="muted">Connecting…</div>
+        </div>
 
-          <div class="box">
-            <h6>Status</h6>
-            <div id="status" class="ps-small">Waiting for your first reply…</div>
+        <div class="panel" style="padding-top:0">
+          <h4>Live Summary</h4>
+          <div class="summary">
+            <div class="summary-row"><span>Owner</span><span id="sOwner" class="pill">—</span></div>
+            <div class="summary-row"><span>Email</span><span id="sEmail" class="pill">—</span></div>
+            <div class="summary-row"><span>Phone</span><span id="sPhone" class="pill">—</span></div>
+            <div class="summary-row"><span>Pet</span><span id="sPet" class="pill">—</span></div>
+            <div class="summary-row"><span>Breed</span><span id="sBreed" class="pill">—</span></div>
+            <div class="summary-row"><span>Age</span><span id="sAge" class="pill">—</span></div>
+            <div class="summary-row"><span>Dates</span><span id="sDates" class="pill">—</span></div>
+            <div class="summary-row"><span>Arrival</span><span id="sArrival" class="pill">—</span></div>
+            <div class="summary-row"><span>Photo</span><span id="sPhoto" class="pill">No</span></div>
           </div>
-
-          <div class="ps-summary">
-            <h6 class="mb-2">Live Summary</h6>
-            <div id="summary"></div>
-          </div>
-        </aside>
-      </div>
+        </div>
+      </aside>
     </div>
   </div>
 
-  <!-- Bootstrap (optional) -->
-  <script src="../assets/js/bootstrap.bundle.min.js"></script>
-  <script>
-  (function(){
-    const cfg = window.PETSTAY_CONFIG || {};
-    const API_NEW = cfg.NEW_BOOKING_API_URL;
-    const API_STATUS = cfg.BOOKING_STATUS_API_URL;
-    const API_UPLOAD = cfg.PET_PHOTO_UPLOAD_URL;
-
-    const $ = (q, p=document)=>p.querySelector(q);
-    const msgs = $('#msgs');
-    const input = $('#chatInput');
-    const sendBtn = $('#chatSend');
-    const fileInput = $('#chatFile');
-    const statusEl = $('#status');
-    const progress = $('#psProgress');
-    const summary = $('#summary');
-
-    const state = {
-      step: 0,
-      data: {
-        OwnerName: '', Email: '', PhoneNumber: '',
-        PetName: '', PetSpecies: '', PetBreed: '',
-        PetAge: '', CheckInDate: '', CheckOutDate: '', ArrivalTime: '',
-        PetPhotoKey: ''
-      },
-      pendingPhotoFile: null,
-      makingBooking: false
-    };
-
-    const steps = [
-      { key:'OwnerName',    ask:`What’s your full name?`, validate: v => v.length>1 || 'Please enter your name.' },
-      { key:'Email',        ask:`Your email address?`,    validate: v => /.+@.+\..+/.test(v) || 'Please enter a valid email.' },
-      { key:'PhoneNumber',  ask:`Best phone number?`,     validate: v => v.replace(/[^\d+]/g,'').length>=7 || 'Please enter a valid phone.' },
-      { key:'PetName',      ask:`Your pet’s name?`,       validate: v => v.length>0 || 'Please enter the pet name.' },
-      { key:'PetSpecies',   ask:`Is it a Dog or Cat?`,    validate: v => ['dog','cat'].includes(v.toLowerCase()) || "Please answer 'Dog' or 'Cat'." },
-      { key:'PetBreed',     ask:`Pet breed (optional). Type 'skip' to skip.`, optional:true },
-      { key:'PetAge',       ask:`Pet age in years? (e.g., 2)`, validate: v => !isNaN(parseFloat(v)) || 'Please enter a number.' },
-      { key:'CheckInDate',  ask:`Check-in date (YYYY-MM-DD)?`, validate: v => /^\d{4}-\d{2}-\d{2}$/.test(v) || 'Format must be YYYY-MM-DD.' },
-      { key:'CheckOutDate', ask:`Check-out date (YYYY-MM-DD)?`, validate: v => /^\d{4}-\d{2}-\d{2}$/.test(v) || 'Format must be YYYY-MM-DD.' },
-      { key:'ArrivalTime',  ask:`Time of arrival (HH:MM, e.g., 10:00)?`, validate: v => /^\d{2}:\d{2}$/.test(v) || 'Format must be HH:MM.' },
-      { key:'PetPhotoKey',  ask:`Optional: upload a pet photo? Type 'upload' to select a file or 'skip' to continue.`, optional:true, photo:true },
-    ];
-
-    // UI helpers
-    function m(role, html){
-      const wrap = document.createElement('div');
-      wrap.className = 'ps-msg ' + (role==='bot' ? 'ps-bot' : 'ps-user');
-      wrap.innerHTML = role==='bot'
-        ? `<div class="ps-avatar">🤖</div><div class="ps-bubble">${html}</div>`
-        : `<div class="ps-bubble">${html}</div>`;
-      msgs.appendChild(wrap);
-      msgs.scrollTop = msgs.scrollHeight;
-    }
-    function setStatus(txt){ statusEl.textContent = txt; }
-    function setProgress(stepIndex){
-      const pct = Math.min(100, Math.round((stepIndex/ (steps.length+1)) * 100));
-      progress.style.width = pct + '%';
-    }
-    function renderSummary(){
-      const d = state.data;
-      const rows = [
-        ['Owner', d.OwnerName],
-        ['Email', d.Email],
-        ['Phone', d.PhoneNumber],
-        ['Pet', `${d.PetName || '—'} ${d.PetSpecies? '('+d.PetSpecies+')':''}`.trim()],
-        ['Breed', d.PetBreed || '—'],
-        ['Age', d.PetAge ? d.PetAge + 'y' : '—'],
-        ['Dates', d.CheckInDate && d.CheckOutDate ? `${d.CheckInDate} → ${d.CheckOutDate}` : '—'],
-        ['Arrival', d.ArrivalTime || '—'],
-        ['Photo', d.PetPhotoKey ? 'Yes' : 'No'],
-      ];
-      summary.innerHTML = rows.map(([k,v])=>(
-        `<div class="row-line"><div class="ps-kv">${k}</div><div>${v || '—'}</div></div>`
-      )).join('');
-    }
-
-    // Normalize fields for API
-    function normalize(){
-      const s = state.data.PetSpecies || '';
-      state.data.PetSpecies = s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); // Dog/Cat
-      if (state.data.PetAge != null && state.data.PetAge !== '') {
-        state.data.PetAge = String(parseInt(state.data.PetAge,10));
-      }
-      if (/^skip$/i.test(state.data.PetBreed)) state.data.PetBreed = '';
-    }
-
-    // Photo upload via your API
-    async function uploadPetPhoto(file, species){
-      const res = await fetch(API_UPLOAD, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ petSpecies: species, contentType: file.type })
-      });
-      if(!res.ok){
-        const t = await res.text();
-        throw new Error('Failed to get upload URL: ' + t.slice(0,120));
-      }
-      const j = await res.json();
-      const put = await fetch(j.uploadUrl, { method:'PUT', headers:{'Content-Type': file.type}, body: file });
-      if(!put.ok){
-        const t=await put.text();
-        throw new Error('S3 upload failed: ' + t.slice(0,120));
-      }
-      return j.key;
-    }
-
-    // Booking API + polling
-    async function createBooking(payload){
-      const r = await fetch(API_NEW, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
-      if(!r.ok) throw new Error('Booking API error ' + r.status);
-      return r.json();
-    }
-    async function pollStatus(executionArn){
-      const encoded = encodeURIComponent(executionArn);
-      for(let i=0;i<10;i++){
-        const r = await fetch(`${API_STATUS}/${encoded}`);
-        let j;
-        try{ j = await r.json(); }catch{ j = {}; }
-        if(j.status === 'SUCCEEDED' && j.output?.BookingID){
-          return j.output.BookingID;
-        }
-        await new Promise(res=>setTimeout(res, 800 * Math.pow(1.35,i)));
-      }
-      return null;
-    }
-
-    // Flow control
-    function askNext(){
-      setProgress(state.step);
-      renderSummary();
-      if (state.step < steps.length){
-        const s = steps[state.step];
-        m('bot', s.ask);
-        setStatus(`Collecting: ${s.key}`);
-      } else {
-        confirmSummary();
-      }
-    }
-
-    function confirmSummary(){
-      normalize();
-      const d = state.data;
-      const html = `
-        <strong>Please confirm:</strong><br>
-        Owner: ${d.OwnerName}<br>
-        Email: ${d.Email}<br>
-        Phone: ${d.PhoneNumber}<br>
-        Pet: ${d.PetName} (${d.PetSpecies}${d.PetBreed? ', '+d.PetBreed:''}, ${d.PetAge||'—'}y)<br>
-        Dates: ${d.CheckInDate} → ${d.CheckOutDate} @ ${d.ArrivalTime}<br>
-        Photo: ${d.PetPhotoKey ? 'Yes' : 'No'}<br><br>
-        Type <strong>confirm</strong> to create your booking, or <strong>cancel</strong> to stop.
-      `;
-      m('bot', html);
-      setStatus('Awaiting confirmation…');
-      setProgress(steps.length);
-    }
-
-    async function handleFinalCommand(text){
-      if(/^confirm$/i.test(text)){
-        try{
-          state.makingBooking = true;
-          setStatus('Creating booking…');
-          m('bot','Creating your booking…');
-
-          // Upload pending file if needed
-          if(state.pendingPhotoFile && !state.data.PetPhotoKey){
-            const key = await uploadPetPhoto(state.pendingPhotoFile, state.data.PetSpecies || 'Dog');
-            state.data.PetPhotoKey = key;
-            renderSummary();
-          }
-
-          const payload = {
-            OwnerName: state.data.OwnerName,
-            Email: state.data.Email,
-            PhoneNumber: state.data.PhoneNumber,
-            PetName: state.data.PetName,
-            PetSpecies: state.data.PetSpecies,
-            PetBreed: state.data.PetBreed || '',
-            PetAge: state.data.PetAge || '',
-            CheckInDate: state.data.CheckInDate,
-            CheckOutDate: state.data.CheckOutDate,
-            ArrivalTime: state.data.ArrivalTime,
-            PetPhotoKey: state.data.PetPhotoKey || ''
-          };
-
-          const start = await createBooking(payload);
-          const arn = start.executionArn;
-          let bookingId = null;
-          if(arn){ bookingId = await pollStatus(arn); }
-
-          if(bookingId){
-            sessionStorage.setItem('BookingID', bookingId);
-            sessionStorage.setItem('OwnerName', state.data.OwnerName);
-            const link = `booking-success.html?bookingId=${encodeURIComponent(bookingId)}`;
-            m('bot', `🎉 Booking created! Ref: <strong>${bookingId}</strong><br><a href="${link}" class="link-primary">Open confirmation</a>`);
-            setStatus('Done!');
-            // Redirect after a short pause
-            setTimeout(()=>{ window.location.href = link; }, 700);
-          } else {
-            m('bot', `✅ Request submitted! We’ll email your booking reference shortly.`);
-            setStatus('Submitted — awaiting reference.');
-          }
-        }catch(e){
-          console.error(e);
-          m('bot', `<span class="ps-danger">Booking failed: ${e.message || e}</span>`);
-          setStatus('Error creating booking.');
-        } finally {
-          state.makingBooking = false;
-        }
-      } else if(/^(cancel|quit|stop)$/i.test(text)){
-        m('bot','Okay, cancelled. Refresh the page to start over anytime.');
-        setStatus('Cancelled');
-      } else {
-        m('bot','Please type <strong>confirm</strong> to proceed, or <strong>cancel</strong> to abort.');
-      }
-    }
-
-    async function onUserInput(text){
-      if(!text) return;
-      if(/^(cancel|quit|stop)$/i.test(text)){ m('bot','Booking cancelled.'); setStatus('Cancelled'); return; }
-
-      const s = steps[state.step];
-      if(!s){
-        return handleFinalCommand(text);
-      }
-
-      if(s.photo){
-        if(/^skip$/i.test(text)){ state.step++; askNext(); return; }
-        if(/^upload$/i.test(text)){
-          fileInput.click();
-          m('bot','Choose a JPG/PNG (≤5MB). After selecting, type anything to continue.');
-          return;
-        }
-        m('bot',`Type 'upload' to add a photo or 'skip' to continue without one.`);
-        return;
-      }
-
-      if(s.optional && /^skip$/i.test(text)){ state.data[s.key]=''; state.step++; askNext(); return; }
-
-      const verdict = s.validate ? s.validate(text.trim()) : true;
-      if(verdict !== true){ m('bot', verdict); return; }
-
-      state.data[s.key] = text.trim();
-      state.step++;
-      askNext();
-    }
-
-    // Events
-    sendBtn.addEventListener('click', ()=>{
-      const v = input.value.trim();
-      if(!v) return;
-      m('user', v);
-      input.value = '';
-      onUserInput(v);
-    });
-    input.addEventListener('keydown', (e)=>{
-      if(e.key === 'Enter'){ e.preventDefault(); sendBtn.click(); }
-    });
-    fileInput.addEventListener('change', ()=>{
-      const f = fileInput.files[0];
-      if(!f) return;
-      if(!['image/jpeg','image/png'].includes(f.type)){ m('bot','Only JPG or PNG allowed.'); fileInput.value=''; return; }
-      if(f.size > 5*1024*1024){ m('bot','Max size is 5MB.'); fileInput.value=''; return; }
-      state.pendingPhotoFile = f;
-      m('user', `📎 Selected photo: ${f.name}`);
-    });
-
-    // Kickoff
-    m('bot', `Hi! I can create a booking right here in chat. I’ll ask a few quick questions. You can type <em>cancel</em> anytime to stop. Ready?`);
-    askNext();
-    renderSummary();
-    setProgress(0);
-  })();
-  </script>
+  <!-- Your Lex client logic -->
+  <script src="/assets/js/ai-booking-lex.js"></script>
 </body>
 </html>
