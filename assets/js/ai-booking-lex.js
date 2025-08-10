@@ -10,7 +10,7 @@
   }
   const LEX = window.PETSTAY_CONFIG.LEX;
 
-  // --- AWS + Lex client init (unauth Cognito identity) ---
+  // AWS + Lex client init
   AWS.config.region = LEX.REGION;
   AWS.config.credentials = new AWS.CognitoIdentityCredentials({
     IdentityPoolId: LEX.IDENTITY_POOL_ID
@@ -19,7 +19,7 @@
   const lexV2 = new AWS.LexRuntimeV2({ region: LEX.REGION });
   const sessionId = 'web-' + Math.random().toString(36).slice(2);
 
-  // --- Basic render helpers ---
+  // --- Helpers ---
   function bubble(who, text) {
     const msg = document.createElement('div');
     msg.className = `msg ${who}`;
@@ -33,7 +33,34 @@
     sendBtn.disabled = b;
   }
 
-  // --- Send to Lex and render response ---
+  function sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+
+  // Poll booking status until ready
+  async function pollBookingStatus(executionArn, maxAttempts = 8, delayMs = 1500) {
+    if (!executionArn) return null;
+    const encodedArn = encodeURIComponent(executionArn);
+    const apiUrl = `${window.PETSTAY_CONFIG.API_BASE_URL}/bookingStatus/${encodedArn}`;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const res = await fetch(apiUrl);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === "SUCCEEDED" && data.output?.BookingID) {
+            return data.output.BookingID;
+          }
+        }
+      } catch (err) {
+        console.warn("Booking status poll error:", err);
+      }
+      await sleep(delayMs);
+    }
+    return null;
+  }
+
+  // Send to Lex
   async function sendToLex(text) {
     const params = {
       botId: LEX.BOT_ID,
@@ -55,32 +82,38 @@
     try {
       const resp = await sendToLex(text);
 
-      // Lex messages → render in order
       const msgs = resp.messages || [];
       if (msgs.length === 0) {
-        // Some bots rely on sessionState dialogAction/messages; still be graceful
         bubble('bot', '…');
       } else {
         msgs.forEach(m => bubble('bot', m.content || ''));
       }
 
-      // If your fulfillment Lambda returns booking details, we can react here.
-      // Option A: It returns plain text with a link – nothing else to do.
-      // Option B: It sets sessionAttributes or intent state with BookingID.
       const ss = resp.sessionState || {};
-      const attrs = (ss.sessionAttributes || {});
-      const bookingId = attrs.BookingID || attrs.bookingId;
+      const attrs = ss.sessionAttributes || {};
+      const bookingId = attrs.BookingID;
+      const pendingId = attrs.PendingBookingID;
+      const ownerName = attrs.OwnerName || "";
 
-      // Or: If your Lambda puts it into the final message, parse it out here instead.
+      if (ss.intent && ss.intent.state === 'Fulfilled') {
+        if (ownerName) sessionStorage.setItem('OwnerName', ownerName);
 
-      if ((ss.intent && ss.intent.state === 'Fulfilled') && bookingId) {
-        try {
-          // Optional: OwnerName if provided
-          if (attrs.OwnerName) sessionStorage.setItem('OwnerName', attrs.OwnerName);
+        if (bookingId) {
+          // Booking ready immediately
           sessionStorage.setItem('BookingID', bookingId);
-        } catch (_) {}
-        // Redirect to your standard success page
-        window.location.href = `/customer/booking-success.html?bookingId=${encodeURIComponent(bookingId)}`;
+          window.location.href = `/customer/booking-success.html?bookingId=${encodeURIComponent(bookingId)}`;
+        } else if (pendingId) {
+          // Booking still processing
+          bubble('bot', 'One moment while I confirm your booking…');
+          const finalId = await pollBookingStatus(pendingId, 8, 1500);
+
+          if (finalId) {
+            sessionStorage.setItem('BookingID', finalId);
+            window.location.href = `/customer/booking-success.html?bookingId=${encodeURIComponent(finalId)}`;
+          } else {
+            bubble('bot', 'Your booking is still processing. You’ll receive an email with details shortly.');
+          }
+        }
       }
 
     } catch (err) {
@@ -92,12 +125,11 @@
     }
   }
 
-  // --- UI events ---
   sendBtn?.addEventListener('click', handleUserSend);
   inputEl?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') handleUserSend();
   });
 
-  // Greet once
-  bubble('bot', 'Hi! I can create a booking right here in chat. Ready to start?');
+  // Greet user
+  bubble('bot', 'Hi! I can create a booking right here in chat.');
 })();
