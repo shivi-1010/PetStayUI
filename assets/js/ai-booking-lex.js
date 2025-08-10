@@ -1,5 +1,13 @@
-// ai-booking-lex.js (photo-upload enabled, CustomPayload/ImageResponseCard supported)
+// ai-booking-lex.js (photo-upload enabled, CustomPayload/ImageResponseCard supported + DEBUG LOGS)
 (function () {
+  // --- Global error logging ---
+  window.addEventListener("error", e => {
+    console.error("Global error:", e.error || e.message, e);
+  });
+  window.addEventListener("unhandledrejection", e => {
+    console.error("Unhandled promise rejection:", e.reason, e);
+  });
+
   // --- DOM refs ---
   const logEl = document.getElementById('chat-log');
   const inputEl = document.getElementById('chat-text');
@@ -10,6 +18,7 @@
     return;
   }
   const LEX = window.PETSTAY_CONFIG.LEX;
+  console.log("PETSTAY_CONFIG.LEX:", LEX);
 
   // --- AWS + Lex client init ---
   AWS.config.region = LEX.REGION;
@@ -18,6 +27,7 @@
   });
   const lexV2 = new AWS.LexRuntimeV2({ region: LEX.REGION });
   const sessionId = 'web-' + Math.random().toString(36).slice(2);
+  console.log("Session ID:", sessionId);
 
   // Track latest intent and slots so we can set/override slots (e.g., petPhotoKey)
   let lastIntentName = null;
@@ -55,21 +65,31 @@
       ? speciesRaw.trim().charAt(0).toUpperCase() + speciesRaw.trim().slice(1).toLowerCase()
       : 'Dog'; // default if not filled yet
 
+    console.log("Requesting upload URL:", { species, type: file.type });
     const res = await fetch(window.PETSTAY_CONFIG.PET_PHOTO_UPLOAD_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ petSpecies: species, contentType: file.type })
     });
-    if (!res.ok) throw new Error("Failed to get upload URL");
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      console.error("Failed to get upload URL:", res.status, txt);
+      throw new Error("Failed to get upload URL");
+    }
     const { uploadUrl, key } = await res.json();
+    console.log("Got upload URL + key:", { key, uploadUrlLen: (uploadUrl || "").length });
 
     const put = await fetch(uploadUrl, {
       method: "PUT",
       headers: { "Content-Type": file.type },
       body: file
     });
-    if (!put.ok) throw new Error("Failed to upload to S3");
-
+    if (!put.ok) {
+      const txt = await put.text().catch(() => "");
+      console.error("Failed to upload to S3:", put.status, txt);
+      throw new Error("Failed to upload to S3");
+    }
+    console.log("Upload success:", key);
     return key; // S3 object key
   }
 
@@ -138,15 +158,19 @@
     if (!executionArn) return null;
     const encodedArn = encodeURIComponent(executionArn);
     const apiUrl = `${window.PETSTAY_CONFIG.BOOKING_STATUS_API_URL}/${encodedArn}`;
+    console.log("Polling booking status:", apiUrl);
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         const res = await fetch(apiUrl);
         if (res.ok) {
           const data = await res.json();
+          console.log("Booking status poll", attempt + 1, "/", maxAttempts, data);
           if (data.status === "SUCCEEDED" && data.output?.BookingID) {
             return data.output.BookingID;
           }
+        } else {
+          console.warn("Status poll HTTP", res.status);
         }
       } catch (err) {
         console.warn("Booking status poll error:", err);
@@ -172,6 +196,7 @@
       btn.className = 'btn';
       btn.textContent = it.label;
       btn.onclick = async () => {
+        console.log("Button clicked:", it);
         bubble('user', it.label);
         setBusy(true);
         try {
@@ -192,6 +217,7 @@
 
   function renderLexMessage(m) {
     const type = m.contentType || 'PlainText';
+    console.log("Render message:", { type, m });
 
     // Plain text
     if (type === 'PlainText') {
@@ -215,7 +241,8 @@
     // CustomPayload (can contain an embedded imageResponseCard or generic options)
     if (type === 'CustomPayload') {
       let p;
-      try { p = JSON.parse(m.content || '{}'); } catch {
+      try { p = JSON.parse(m.content || '{}'); } catch (err) {
+        console.warn("CustomPayload JSON parse error:", err, m.content);
         bubble('bot', m.content || '');
         return;
       }
@@ -225,13 +252,13 @@
         ? p.imageResponseCard
         : p.imageResponseCard;
       if (card) {
+        console.log("Rendering embedded ImageResponseCard:", card);
         if (card.title) bubble('bot', card.title + (card.subtitle ? `\n${card.subtitle}` : ''));
         const items = (card.buttons || []).map(b => ({
           label: b.text || b.value || 'Choose',
           value: b.value || b.text || 'Choose'
         }));
         if (items.length) renderButtons(items);
-
         return;
       }
 
@@ -264,11 +291,14 @@
   }
 
   function handleLexTurn(resp) {
+    console.log("Lex response:", resp);
+
     // Remember latest intent/slots
     if (resp.sessionState?.intent) {
       lastIntentName = resp.sessionState.intent.name || lastIntentName;
       lastSlots = resp.sessionState.intent.slots || lastSlots;
     }
+    console.log("Session snapshot:", { lastIntentName, lastSlots });
 
     // Live summary
     if (resp.sessionState?.intent?.slots) {
@@ -287,6 +317,7 @@
     const ownerName = attrs.OwnerName || '';
 
     if (ss.intent && ss.intent.state === 'Fulfilled') {
+      console.log("Fulfilled with attributes:", attrs);
       if (ownerName) sessionStorage.setItem('OwnerName', ownerName);
       if (bookingId) {
         sessionStorage.setItem('BookingID', bookingId);
@@ -294,6 +325,7 @@
       } else if (pendingId) {
         bubble('bot', 'One moment while I confirm your booking…');
         pollBookingStatus(pendingId, 8, 1500).then(finalId => {
+          console.log("Final bookingId after poll:", finalId);
           if (finalId) {
             sessionStorage.setItem('BookingID', finalId);
             window.location.href = `/customer/booking-success.html?bookingId=${encodeURIComponent(finalId)}`;
@@ -324,7 +356,16 @@
       };
     }
 
-    return lexV2.recognizeText(params).promise();
+    console.log("Sending to Lex:", params);
+    try {
+      const r = await lexV2.recognizeText(params).promise();
+      console.log("Received from Lex:", r);
+      return r;
+    } catch (err) {
+      // Log helpful context
+      console.error("Lex recognizeText error:", err, { params });
+      throw err;
+    }
   }
 
   async function handleUserSend() {
@@ -338,6 +379,7 @@
     if (text.toLowerCase() === 'upload') {
       const picker = document.getElementById('chat-photo');
       if (!picker) {
+        console.warn("No #chat-photo input found.");
         bubble('bot', 'Upload is not available right now.');
         setBusy(false);
         return;
@@ -363,7 +405,7 @@
           const resp2 = await sendToLex('photo uploaded', newSlots);
           handleLexTurn(resp2);
         } catch (err) {
-          console.error(err);
+          console.error("Upload flow error:", err);
           bubble('bot', 'Sorry—the upload failed. Please try again.');
         } finally {
           setBusy(false);
@@ -381,7 +423,7 @@
       const resp = await sendToLex(text);
       handleLexTurn(resp);
     } catch (err) {
-      console.error('Lex error:', err);
+      console.error('Lex error (user send):', err);
       bubble('bot', 'Sorry—something went wrong. Please try again.');
     } finally {
       setBusy(false);
@@ -396,17 +438,24 @@
   });
 
   // --- Ensure AWS creds ready, then trigger Welcome so buttons show immediately ---
-  // --- Ensure AWS creds ready, then trigger Welcome so buttons show immediately ---
   (async () => {
     try {
       if (AWS.config.credentials?.get) {
-        await new Promise((res, rej) => AWS.config.credentials.get(err => err ? rej(err) : res()));
+        await new Promise((res, rej) => AWS.config.credentials.get(err => {
+          if (err) {
+            console.error("Cognito credentials error:", err);
+            rej(err);
+          } else {
+            console.log("AWS credentials resolved:", AWS.config.credentials);
+            res();
+          }
+        }));
       }
       const statusEl = document.getElementById('status');
       if (statusEl) statusEl.textContent = 'Connected';
 
       // Try: force context to WelcomeIntent on first turn
-      const resp = await lexV2.recognizeText({
+      const initParams = {
         botId: LEX.BOT_ID,
         botAliasId: LEX.BOT_ALIAS_ID,
         localeId: LEX.LOCALE_ID || 'en_US',
@@ -415,25 +464,27 @@
         sessionState: {
           intent: {
             name: "WelcomeIntent",
-            state: "InProgress",
-            // slots: {} // (optional) prefill if you want
+            state: "InProgress"
           },
-          dialogAction: { type: "ElicitIntent" } // keeps it in welcome phase
+          dialogAction: { type: "ElicitIntent" }
         }
-      }).promise();
-
+      };
+      console.log("Initial recognizeText (force WelcomeIntent):", initParams);
+      const resp = await lexV2.recognizeText(initParams).promise();
       handleLexTurn(resp);
     } catch (e) {
       console.error('Init welcome (forced intent) failed:', e);
-      // Fallback: use your existing utterance like "hi"
+      // Fallback: use a simple utterance like "hi"
       try {
-        const resp2 = await lexV2.recognizeText({
+        const initParams2 = {
           botId: LEX.BOT_ID,
           botAliasId: LEX.BOT_ALIAS_ID,
           localeId: LEX.LOCALE_ID || 'en_US',
           sessionId,
           text: "hi"
-        }).promise();
+        };
+        console.log("Initial recognizeText (fallback 'hi'):", initParams2);
+        const resp2 = await lexV2.recognizeText(initParams2).promise();
         handleLexTurn(resp2);
       } catch (e2) {
         console.error('Init fallback failed:', e2);
@@ -441,5 +492,4 @@
       }
     }
   })();
-
 })();
