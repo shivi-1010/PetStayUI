@@ -1,4 +1,4 @@
-// ai-booking-lex.js (photo-upload enabled, CustomPayload/ImageResponseCard supported + DEBUG LOGS)
+// ai-booking-lex.js (photo-upload enabled, CustomPayload/ImageResponseCard supported + DEBUG LOGS + Progress UI)
 (function () {
   // --- Global error logging ---
   window.addEventListener("error", e => {
@@ -40,6 +40,7 @@
     msg.textContent = text;
     logEl.appendChild(msg);
     logEl.scrollTop = logEl.scrollHeight;
+    return msg; // return node so we can update/remove it
   }
 
   function setBusy(b) {
@@ -49,6 +50,31 @@
 
   function sleep(ms) {
     return new Promise(r => setTimeout(r, ms));
+  }
+
+  // --- Progress UI (simulates Lex Fulfillment Updates with RecognizeText) ---
+  let progressTimer = null;
+  let progressBubble = null;
+
+  function startProgressUI() {
+    stopProgressUI();
+    // mirrors: “Fulfillment started → Message”
+    progressBubble = bubble('bot', "Thanks! I’ve got everything. Creating your booking now…");
+    // mirrors: “Periodic update → Message” every 10s (match your Lex console settings)
+    progressTimer = setInterval(() => {
+      if (progressBubble) {
+        progressBubble.textContent = "Still working—this usually takes a few seconds…";
+      }
+    }, 10000);
+  }
+
+  function stopProgressUI() {
+    if (progressTimer) clearInterval(progressTimer);
+    progressTimer = null;
+    if (progressBubble?.parentNode) {
+      progressBubble.parentNode.removeChild(progressBubble); // remove transient bubble so final messages take focus
+    }
+    progressBubble = null;
   }
 
   // Build a Lex-style slot object with a value
@@ -200,9 +226,12 @@
         bubble('user', it.label);
         setBusy(true);
         try {
+          startProgressUI(); // simulate fulfillment updates during button-triggered turns
           const resp = await sendToLex(it.value);
+          stopProgressUI();
           handleLexTurn(resp);
         } catch (e) {
+          stopProgressUI();
           console.error(e);
           bubble('bot', 'Sorry—something went wrong. Please try again.');
         } finally { setBusy(false); inputEl.focus(); }
@@ -305,9 +334,15 @@
       updateSummary(resp.sessionState.intent.slots);
     }
 
-    // Render all messages
+    // Render all messages — if Lex is quiet, let progress UI cover it (no "…")
     const msgs = resp.messages || [];
-    if (msgs.length === 0) bubble('bot', '…'); else msgs.forEach(renderLexMessage);
+    if (msgs.length > 0) msgs.forEach(renderLexMessage);
+
+    // Optional: surface failure line if Lex marks the turn failed
+    const state = resp.sessionState?.intent?.state;
+    if (state === 'Failed') {
+      bubble('bot', "Sorry, something went wrong creating your booking. Please try again in a moment.");
+    }
 
     // Completion / redirect
     const ss = resp.sessionState || {};
@@ -397,14 +432,23 @@
 
           bubble('bot', 'Uploading your photo…');
           const key = await uploadPetPhotoViaAPI(file, species);
-          bubble('bot', 'Photo uploaded ✅');
+          bubble('bot', 'Photo uploaded successfully!');
 
           const newSlots = withSlot(lastSlots || {}, 'petPhotoKey', key);
           lastSlots = newSlots;
 
-          const resp2 = await sendToLex('photo uploaded', newSlots);
+          // Notify Lex that photo is available, with friendly progress UI
+          const resp2 = await (async () => {
+            startProgressUI();
+            try {
+              return await sendToLex('photo uploaded', newSlots);
+            } finally {
+              stopProgressUI();
+            }
+          })();
           handleLexTurn(resp2);
         } catch (err) {
+          stopProgressUI();
           console.error("Upload flow error:", err);
           bubble('bot', 'Sorry—the upload failed. Please try again.');
         } finally {
@@ -420,9 +464,12 @@
 
     // Normal Lex turn
     try {
+      startProgressUI(); // show friendly progress while Lambda runs
       const resp = await sendToLex(text);
+      stopProgressUI();
       handleLexTurn(resp);
     } catch (err) {
+      stopProgressUI();
       console.error('Lex error (user send):', err);
       bubble('bot', 'Sorry—something went wrong. Please try again.');
     } finally {
@@ -437,32 +484,32 @@
     if (e.key === 'Enter') handleUserSend();
   });
 
-// --- Ensure AWS creds ready, then trigger Welcome so buttons show immediately ---
-(async () => {
-  try {
-    if (AWS.config.credentials?.get) {
-      await new Promise((res, rej) => AWS.config.credentials.get(err => {
-        if (err) { console.error("Cognito credentials error:", err); rej(err); }
-        else { console.log("AWS credentials resolved:", AWS.config.credentials); res(); }
-      }));
+  // --- Ensure AWS creds ready, then trigger Welcome so buttons show immediately ---
+  (async () => {
+    try {
+      if (AWS.config.credentials?.get) {
+        await new Promise((res, rej) => AWS.config.credentials.get(err => {
+          if (err) { console.error("Cognito credentials error:", err); rej(err); }
+          else { console.log("AWS credentials resolved:", AWS.config.credentials); res(); }
+        }));
+      }
+      const statusEl = document.getElementById('status');
+      if (statusEl) statusEl.textContent = 'Connected';
+
+      // Send an utterance that maps to WelcomeIntent (make sure it's in sample utterances)
+      const resp = await lexV2.recognizeText({
+        botId: LEX.BOT_ID,
+        botAliasId: LEX.BOT_ALIAS_ID,
+        localeId: LEX.LOCALE_ID || 'en_US',
+        sessionId,
+        text: "hi"       // or "welcome", "start", etc.
+      }).promise();
+
+      handleLexTurn(resp);
+    } catch (e) {
+      console.error('Init welcome failed:', e);
+      bubble('bot', 'Hi! I can create a booking right here in chat.');
     }
-    const statusEl = document.getElementById('status');
-    if (statusEl) statusEl.textContent = 'Connected';
-
-    // Send an utterance that maps to WelcomeIntent (make sure it's in sample utterances)
-    const resp = await lexV2.recognizeText({
-      botId: LEX.BOT_ID,
-      botAliasId: LEX.BOT_ALIAS_ID,
-      localeId: LEX.LOCALE_ID || 'en_US',
-      sessionId,
-      text: "hi"       // or "welcome", "start", etc.
-    }).promise();
-
-    handleLexTurn(resp);
-  } catch (e) {
-    console.error('Init welcome failed:', e);
-    bubble('bot', 'Hi! I can create a booking right here in chat.');
-  }
-})();
+  })();
 
 })();
