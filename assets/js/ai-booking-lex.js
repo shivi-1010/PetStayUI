@@ -1,5 +1,6 @@
-// ai-booking-lex.js (photo-upload enabled)
+// ai-booking-lex.js (photo-upload enabled, CustomPayload/ImageResponseCard supported)
 (function () {
+  // --- DOM refs ---
   const logEl   = document.getElementById('chat-log');
   const inputEl = document.getElementById('chat-text');
   const sendBtn = document.getElementById('chat-send');
@@ -10,12 +11,11 @@
   }
   const LEX = window.PETSTAY_CONFIG.LEX;
 
-  // AWS + Lex client init
+  // --- AWS + Lex client init ---
   AWS.config.region = LEX.REGION;
   AWS.config.credentials = new AWS.CognitoIdentityCredentials({
     IdentityPoolId: LEX.IDENTITY_POOL_ID
   });
-
   const lexV2 = new AWS.LexRuntimeV2({ region: LEX.REGION });
   const sessionId = 'web-' + Math.random().toString(36).slice(2);
 
@@ -156,7 +156,136 @@
     return null;
   }
 
-  // Send to Lex (supports overriding slots so we can set petPhotoKey, etc.)
+  // --- UI renderers for structured Lex messages ---
+  function renderButtons(items) {
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.flexWrap = 'wrap';
+    row.style.gap = '8px';
+    items.forEach(it => {
+      const btn = document.createElement('button');
+      btn.className = 'btn';
+      btn.textContent = it.label;
+      btn.onclick = async () => {
+        bubble('user', it.label);
+        setBusy(true);
+        try {
+          const resp = await sendToLex(it.value);
+          handleLexTurn(resp);
+        } catch (e) {
+          console.error(e);
+          bubble('bot', 'Sorry—something went wrong. Please try again.');
+        } finally { setBusy(false); inputEl.focus(); }
+      };
+      row.appendChild(btn);
+    });
+    logEl.appendChild(row);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function renderLexMessage(m) {
+    const type = m.contentType || 'PlainText';
+
+    // Plain text
+    if (type === 'PlainText') {
+      bubble('bot', m.content || '');
+      return;
+    }
+
+    // ImageResponseCard
+    if (type === 'ImageResponseCard' && m.imageResponseCard) {
+      const { title, subtitle, buttons } = m.imageResponseCard;
+      if (title) bubble('bot', subtitle ? `${title}\n${subtitle}` : title);
+      if (Array.isArray(buttons)) {
+        renderButtons(buttons.map(b => ({
+          label: b.text || b.value || 'Choose',
+          value: b.value || b.text || 'Choose'
+        })));
+      }
+      return;
+    }
+
+    // CustomPayload (supports Messenger-style "template/button" + generic {text,buttons})
+    if (type === 'CustomPayload') {
+      let p = null;
+      try { p = JSON.parse(m.content || '{}'); } catch {}
+      if (!p) { bubble('bot', m.content || ''); return; }
+
+      // Messenger-style
+      if (p?.type === 'template' && p.payload?.template_type === 'button') {
+        const text = p.payload.text || '';
+        if (text) bubble('bot', text);
+        const btns = Array.isArray(p.payload.buttons) ? p.payload.buttons : [];
+        renderButtons(btns.map(b => ({
+          label: b.title || b.payload || 'Choose',
+          value: b.payload || b.title || 'Choose'
+        })));
+        return;
+      }
+
+      // Generic { text, buttons|actions|suggestions|options }
+      if (p.text) bubble('bot', p.text);
+      const opts = p.buttons || p.actions || p.suggestions || p.options;
+      if (Array.isArray(opts)) {
+        renderButtons(opts.map(o => ({
+          label: o.text || o.title || o.label || o.value || 'Select',
+          value: o.value || o.intent || o.text || o.title || 'Select'
+        })));
+        return;
+      }
+
+      // Fallback: show raw text
+      bubble('bot', m.content || '');
+      return;
+    }
+
+    // Unknown → fallback
+    bubble('bot', m.content || '');
+  }
+
+  function handleLexTurn(resp) {
+    // Remember latest intent/slots
+    if (resp.sessionState?.intent) {
+      lastIntentName = resp.sessionState.intent.name || lastIntentName;
+      lastSlots = resp.sessionState.intent.slots || lastSlots;
+    }
+
+    // Live summary
+    if (resp.sessionState?.intent?.slots) {
+      updateSummary(resp.sessionState.intent.slots);
+    }
+
+    // Render all messages
+    const msgs = resp.messages || [];
+    if (msgs.length === 0) bubble('bot', '…'); else msgs.forEach(renderLexMessage);
+
+    // Completion / redirect
+    const ss = resp.sessionState || {};
+    const attrs = ss.sessionAttributes || {};
+    const bookingId = attrs.BookingID;
+    const pendingId = attrs.PendingBookingID;
+    const ownerName = attrs.OwnerName || '';
+
+    if (ss.intent && ss.intent.state === 'Fulfilled') {
+      if (ownerName) sessionStorage.setItem('OwnerName', ownerName);
+      if (bookingId) {
+        sessionStorage.setItem('BookingID', bookingId);
+        window.location.href = `/customer/booking-success.html?bookingId=${encodeURIComponent(bookingId)}`;
+      } else if (pendingId) {
+        bubble('bot', 'One moment while I confirm your booking…');
+        pollBookingStatus(pendingId, 8, 1500).then(finalId => {
+          if (finalId) {
+            sessionStorage.setItem('BookingID', finalId);
+            window.location.href = `/customer/booking-success.html?bookingId=${encodeURIComponent(finalId)}`;
+          } else {
+            bubble('bot', 'Your booking is still processing. You’ll receive an email with details shortly.');
+          }
+        });
+      }
+    }
+  }
+
+  // --- Lex I/O ---
   async function sendToLex(text, overrideSlots) {
     const params = {
       botId: LEX.BOT_ID,
@@ -212,44 +341,7 @@
           lastSlots = newSlots;
 
           const resp2 = await sendToLex('photo uploaded', newSlots);
-
-          if (resp2.sessionState?.intent) {
-            lastIntentName = resp2.sessionState.intent.name || lastIntentName;
-            lastSlots = resp2.sessionState.intent.slots || newSlots;
-            updateSummary(lastSlots);
-          }
-
-          const msgs = resp2.messages || [];
-          if (msgs.length === 0) {
-            bubble('bot', '…');
-          } else {
-            msgs.forEach(m => bubble('bot', m.content || ''));
-          }
-
-          const ss = resp2.sessionState || {};
-          const attrs = ss.sessionAttributes || {};
-          const bookingId = attrs.BookingID;
-          const pendingId = attrs.PendingBookingID;
-          const ownerName = attrs.OwnerName || "";
-
-          if (ss.intent && ss.intent.state === 'Fulfilled') {
-            if (ownerName) sessionStorage.setItem('OwnerName', ownerName);
-
-            if (bookingId) {
-              sessionStorage.setItem('BookingID', bookingId);
-              window.location.href = `/customer/booking-success.html?bookingId=${encodeURIComponent(bookingId)}`;
-            } else if (pendingId) {
-              bubble('bot', 'One moment while I confirm your booking…');
-              const finalId = await pollBookingStatus(pendingId, 8, 1500);
-
-              if (finalId) {
-                sessionStorage.setItem('BookingID', finalId);
-                window.location.href = `/customer/booking-success.html?bookingId=${encodeURIComponent(finalId)}`;
-              } else {
-                bubble('bot', 'Your booking is still processing. You’ll receive an email with details shortly.');
-              }
-            }
-          }
+          handleLexTurn(resp2);
         } catch (err) {
           console.error(err);
           bubble('bot', 'Sorry—the upload failed. Please try again.');
@@ -267,53 +359,7 @@
     // Normal Lex turn
     try {
       const resp = await sendToLex(text);
-
-      // Remember latest intent/slots
-      if (resp.sessionState?.intent) {
-        lastIntentName = resp.sessionState.intent.name || lastIntentName;
-        lastSlots = resp.sessionState.intent.slots || lastSlots;
-      }
-
-      // Live summary refresh
-      if (resp.sessionState?.intent?.slots) {
-        updateSummary(resp.sessionState.intent.slots);
-      }
-
-      // Show bot messages
-      const msgs = resp.messages || [];
-      if (msgs.length === 0) {
-        bubble('bot', '…');
-      } else {
-        msgs.forEach(m => bubble('bot', m.content || ''));
-      }
-
-      const ss = resp.sessionState || {};
-      const attrs = ss.sessionAttributes || {};
-      const bookingId = attrs.BookingID;
-      const pendingId = attrs.PendingBookingID;
-      const ownerName = attrs.OwnerName || "";
-
-      if (ss.intent && ss.intent.state === 'Fulfilled') {
-        if (ownerName) sessionStorage.setItem('OwnerName', ownerName);
-
-        if (bookingId) {
-          // Booking ready immediately
-          sessionStorage.setItem('BookingID', bookingId);
-          window.location.href = `/customer/booking-success.html?bookingId=${encodeURIComponent(bookingId)}`;
-        } else if (pendingId) {
-          // Booking still processing
-          bubble('bot', 'One moment while I confirm your booking…');
-          const finalId = await pollBookingStatus(pendingId, 8, 1500);
-
-          if (finalId) {
-            sessionStorage.setItem('BookingID', finalId);
-            window.location.href = `/customer/booking-success.html?bookingId=${encodeURIComponent(finalId)}`;
-          } else {
-            bubble('bot', 'Your booking is still processing. You’ll receive an email with details shortly.');
-          }
-        }
-      }
-
+      handleLexTurn(resp);
     } catch (err) {
       console.error('Lex error:', err);
       bubble('bot', 'Sorry—something went wrong. Please try again.');
@@ -323,11 +369,25 @@
     }
   }
 
+  // --- Wire events ---
   sendBtn?.addEventListener('click', handleUserSend);
   inputEl?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') handleUserSend();
   });
 
-  // Greet user
-  bubble('bot', 'Hi! I can create a booking right here in chat.');
+  // --- Ensure AWS creds ready, then trigger Welcome so buttons show immediately ---
+  (async () => {
+    try {
+      if (AWS.config.credentials?.get) {
+        await new Promise((res, rej) => AWS.config.credentials.get(err => err ? rej(err) : res()));
+      }
+      // Kick off welcome turn (ensure your WelcomeIntent handles a generic greeting like "hi")
+      const resp = await sendToLex('hi');
+      handleLexTurn(resp);
+    } catch (e) {
+      console.error('Init welcome failed:', e);
+      // Optional: static fallback
+      bubble('bot', 'Hi! I can create a booking right here in chat.');
+    }
+  })();
 })();

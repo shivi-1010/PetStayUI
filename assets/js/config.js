@@ -28,7 +28,11 @@ window.PETSTAY_CONFIG = {
     IDENTITY_POOL_ID: 'us-east-1:c7a2fc1a-defe-44f2-a081-15894b4ff215',
     BOT_ID: 'S1HI9REYR4',
     BOT_ALIAS_ID: 'RI03IXGQ8Q',
-    LOCALE_ID: 'en_US'
+    LOCALE_ID: 'en_US',
+    BOT_ALIAS_NAME : 'prod',
+    BOT_NAME : 'PetStayChatBot',
+   BOT_VERSION: "3",
+
   }
 };
 
