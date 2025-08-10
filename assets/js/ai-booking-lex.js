@@ -1,4 +1,4 @@
-// ai-booking-lex.js (photo-upload enabled, CustomPayload/ImageResponseCard supported + DEBUG LOGS + Progress UI)
+// ai-booking-lex.js (photo-upload enabled, CustomPayload/ImageResponseCard supported + DEBUG LOGS + Progress UI + Outcome Guard)
 (function () {
   // --- Global error logging ---
   window.addEventListener("error", e => {
@@ -32,6 +32,10 @@
   // Track latest intent and slots so we can set/override slots (e.g., petPhotoKey)
   let lastIntentName = null;
   let lastSlots = null;
+
+  // Track terminal outcome of the current booking attempt
+  // 'success' | 'pending' | 'failed' | null
+  let lastOutcome = null;
 
   // --- Helpers ---
   function bubble(who, text) {
@@ -233,7 +237,11 @@
         } catch (e) {
           stopProgressUI();
           console.error(e);
-          bubble('bot', 'Sorry—something went wrong. Please try again.');
+          // Only show error if no success/pending outcome has been seen
+          if (lastOutcome !== 'success' && lastOutcome !== 'pending') {
+            bubble('bot', 'We hit a connection hiccup. Please try again in a moment.');
+            lastOutcome = 'failed';
+          }
         } finally { setBusy(false); inputEl.focus(); }
       };
       row.appendChild(btn);
@@ -334,19 +342,26 @@
       updateSummary(resp.sessionState.intent.slots);
     }
 
+    // -------- outcome guard (set outcome BEFORE rendering failure text) --------
+    const ss = resp.sessionState || {};
+    const attrs = ss.sessionAttributes || {};
+    const state = ss.intent?.state;
+
+    if (state === 'Fulfilled' && (attrs.BookingID || attrs.PendingBookingID)) {
+      lastOutcome = attrs.BookingID ? 'success' : 'pending';
+    }
+
     // Render all messages — if Lex is quiet, let progress UI cover it (no "…")
     const msgs = resp.messages || [];
     if (msgs.length > 0) msgs.forEach(renderLexMessage);
 
-    // Optional: surface failure line if Lex marks the turn failed
-    const state = resp.sessionState?.intent?.state;
-    if (state === 'Failed') {
+    // Only surface failure if we haven't already seen success/pending
+    if (state === 'Failed' && lastOutcome !== 'success' && lastOutcome !== 'pending') {
       bubble('bot', "Sorry, something went wrong creating your booking. Please try again in a moment.");
+      lastOutcome = 'failed';
     }
 
     // Completion / redirect
-    const ss = resp.sessionState || {};
-    const attrs = ss.sessionAttributes || {};
     const bookingId = attrs.BookingID;
     const pendingId = attrs.PendingBookingID;
     const ownerName = attrs.OwnerName || '';
@@ -406,6 +421,12 @@
   async function handleUserSend() {
     const text = (inputEl.value || '').trim();
     if (!text) return;
+
+    // If user types anything after a terminal outcome, assume a fresh attempt
+    if (lastOutcome === 'success' || lastOutcome === 'failed') {
+      lastOutcome = null;
+    }
+
     bubble('user', text);
     inputEl.value = '';
     setBusy(true);
@@ -471,7 +492,11 @@
     } catch (err) {
       stopProgressUI();
       console.error('Lex error (user send):', err);
-      bubble('bot', 'Sorry—something went wrong. Please try again.');
+      // Only show an error if we haven't already gotten a success/pending signal
+      if (lastOutcome !== 'success' && lastOutcome !== 'pending') {
+        bubble('bot', 'We hit a connection hiccup. Please try again in a moment.');
+        lastOutcome = 'failed';
+      }
     } finally {
       setBusy(false);
       inputEl.focus();
