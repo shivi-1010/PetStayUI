@@ -41,40 +41,64 @@
 function updateSummary(slots) {
   if (!slots) return;
 
+  const requiredSlots = [
+    'petOwnerName', 'email', 'phoneNumber',
+    'petName', 'checkInDate', 'checkOutDate'
+  ];
+
   const val = name => {
     const s = slots[name];
     if (!s || !s.value) return '';
     return s.value.interpretedValue || s.value.originalValue || '';
   };
 
-  const set = (id, v, empty = '—') => {
+  const setPill = (id, slotName, displayValue) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.textContent = v || empty;
-    el.classList.remove('ok', 'warn');
-    return el;
+
+    const value = displayValue !== undefined ? displayValue : val(slotName);
+    el.textContent = value || '—';
+
+    // Reset status classes
+    el.classList.remove('ok', 'warn', 'err');
+
+    // Apply class based on fill state
+    if (value) {
+      el.classList.add('ok');
+    } else if (slots[slotName] && slots[slotName].value === null) {
+      el.classList.add('warn'); // skipped
+    } else if (requiredSlots.includes(slotName)) {
+      el.classList.add('err');  // required but missing
+    }
   };
 
-  set('sOwner', val('petOwnerName'));
-  set('sEmail', val('email'));
-  set('sPhone', val('phoneNumber'));
-  set('sPet', val('petName') + (val('petSpecies') ? ` (${val('petSpecies')})` : ''));
-  set('sBreed', val('petBreed'));
-  set('sAge', val('petAge'));
+  setPill('sOwner', 'petOwnerName');
+  setPill('sEmail', 'email');
+  setPill('sPhone', 'phoneNumber');
+  setPill('sPet', 'petName', val('petName') + (val('petSpecies') ? ` (${val('petSpecies')})` : ''));
+  setPill('sBreed', 'petBreed');
+  setPill('sAge', 'petAge');
   if (val('checkInDate') || val('checkOutDate')) {
-    set('sDates', `${val('checkInDate')} → ${val('checkOutDate')}`);
+    setPill('sDates', 'checkInDate', `${val('checkInDate')} → ${val('checkOutDate')}`);
+  } else {
+    setPill('sDates', 'checkInDate'); // will mark err if missing
   }
-  set('sArrival', val('arrivalTime'));
+  setPill('sArrival', 'arrivalTime');
 
-  const photoEl = set('sPhoto', val('petPhotoKey') ? 'Yes' : 'No', 'No');
+  // Photo special case
+  const hasPhoto = !!val('petPhotoKey');
+  const photoEl = document.getElementById('sPhoto');
   if (photoEl) {
-    if (val('petPhotoKey')) {
-      photoEl.classList.add('ok');     // green pill
+    photoEl.textContent = hasPhoto ? 'Yes' : 'No';
+    photoEl.classList.remove('ok', 'warn', 'err');
+    if (hasPhoto) {
+      photoEl.classList.add('ok');
     } else if (slots.petPhotoKey && slots.petPhotoKey.value === null) {
-      photoEl.classList.add('warn');   // yellow pill if explicitly skipped
+      photoEl.classList.add('warn');
     }
   }
 }
+
 
 
   // Poll booking status until ready
