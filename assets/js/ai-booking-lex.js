@@ -37,11 +37,51 @@
     return new Promise(r => setTimeout(r, ms));
   }
 
+  // Update Live Summary from Lex slots
+function updateSummary(slots) {
+  if (!slots) return;
+
+  const val = name => {
+    const s = slots[name];
+    if (!s || !s.value) return '';
+    return s.value.interpretedValue || s.value.originalValue || '';
+  };
+
+  const set = (id, v, empty = '—') => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = v || empty;
+    el.classList.remove('ok', 'warn');
+    return el;
+  };
+
+  set('sOwner', val('petOwnerName'));
+  set('sEmail', val('email'));
+  set('sPhone', val('phoneNumber'));
+  set('sPet', val('petName') + (val('petSpecies') ? ` (${val('petSpecies')})` : ''));
+  set('sBreed', val('petBreed'));
+  set('sAge', val('petAge'));
+  if (val('checkInDate') || val('checkOutDate')) {
+    set('sDates', `${val('checkInDate')} → ${val('checkOutDate')}`);
+  }
+  set('sArrival', val('arrivalTime'));
+
+  const photoEl = set('sPhoto', val('petPhotoKey') ? 'Yes' : 'No', 'No');
+  if (photoEl) {
+    if (val('petPhotoKey')) {
+      photoEl.classList.add('ok');     // green pill
+    } else if (slots.petPhotoKey && slots.petPhotoKey.value === null) {
+      photoEl.classList.add('warn');   // yellow pill if explicitly skipped
+    }
+  }
+}
+
+
   // Poll booking status until ready
   async function pollBookingStatus(executionArn, maxAttempts = 8, delayMs = 1500) {
     if (!executionArn) return null;
     const encodedArn = encodeURIComponent(executionArn);
-    const apiUrl = `${window.PETSTAY_CONFIG.API_BASE_URL}/bookingStatus/${encodedArn}`;
+    const apiUrl = `${window.PETSTAY_CONFIG.BOOKING_STATUS_API_URL}/${encodedArn}`;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
@@ -82,6 +122,12 @@
     try {
       const resp = await sendToLex(text);
 
+      // Live summary refresh
+      if (resp.sessionState?.intent?.slots) {
+        updateSummary(resp.sessionState.intent.slots);
+      }
+
+      // Show bot messages
       const msgs = resp.messages || [];
       if (msgs.length === 0) {
         bubble('bot', '…');
