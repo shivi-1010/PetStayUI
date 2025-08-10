@@ -31,8 +31,6 @@ window.PETSTAY_CONFIG = {
     LOCALE_ID: 'en_US',
     BOT_ALIAS_NAME : 'prod',
     BOT_NAME : 'PetStayChatBot',
-   BOT_VERSION: "3",
-
   }
 };
 

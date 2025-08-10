@@ -1,7 +1,7 @@
 // ai-booking-lex.js (photo-upload enabled, CustomPayload/ImageResponseCard supported)
 (function () {
   // --- DOM refs ---
-  const logEl   = document.getElementById('chat-log');
+  const logEl = document.getElementById('chat-log');
   const inputEl = document.getElementById('chat-text');
   const sendBtn = document.getElementById('chat-send');
 
@@ -53,7 +53,7 @@
   async function uploadPetPhotoViaAPI(file, speciesRaw) {
     const species = speciesRaw?.trim()
       ? speciesRaw.trim().charAt(0).toUpperCase() + speciesRaw.trim().slice(1).toLowerCase()
-      : 'Dog'; // safe default if species not filled yet
+      : 'Dog'; // default if not filled yet
 
     const res = await fetch(window.PETSTAY_CONFIG.PET_PHOTO_UPLOAD_URL, {
       method: "POST",
@@ -133,7 +133,7 @@
     }
   }
 
-  // Poll booking status until ready
+  // Poll booking status until ready (for step-functions-first flow)
   async function pollBookingStatus(executionArn, maxAttempts = 8, delayMs = 1500) {
     if (!executionArn) return null;
     const encodedArn = encodeURIComponent(executionArn);
@@ -156,12 +156,17 @@
     return null;
   }
 
-  // --- UI renderers for structured Lex messages ---
+  // --- UI renderers ---
   function renderButtons(items) {
+    // Wrap buttons in a bot "bubble" for consistent layout
+    const wrap = document.createElement('div');
+    wrap.className = 'msg bot';
+
     const row = document.createElement('div');
     row.style.display = 'flex';
     row.style.flexWrap = 'wrap';
     row.style.gap = '8px';
+
     items.forEach(it => {
       const btn = document.createElement('button');
       btn.className = 'btn';
@@ -179,7 +184,9 @@
       };
       row.appendChild(btn);
     });
-    logEl.appendChild(row);
+
+    wrap.appendChild(row);
+    logEl.appendChild(wrap);
     logEl.scrollTop = logEl.scrollHeight;
   }
 
@@ -192,7 +199,7 @@
       return;
     }
 
-    // ImageResponseCard
+    // Top-level ImageResponseCard
     if (type === 'ImageResponseCard' && m.imageResponseCard) {
       const { title, subtitle, buttons } = m.imageResponseCard;
       if (title) bubble('bot', subtitle ? `${title}\n${subtitle}` : title);
@@ -205,13 +212,30 @@
       return;
     }
 
-    // CustomPayload (supports Messenger-style "template/button" + generic {text,buttons})
+    // CustomPayload (can contain an embedded imageResponseCard or generic options)
     if (type === 'CustomPayload') {
-      let p = null;
-      try { p = JSON.parse(m.content || '{}'); } catch {}
-      if (!p) { bubble('bot', m.content || ''); return; }
+      let p;
+      try { p = JSON.parse(m.content || '{}'); } catch {
+        bubble('bot', m.content || '');
+        return;
+      }
 
-      // Messenger-style
+      // 1) Embedded ImageResponseCard (your Welcome payload shape)
+      const card = (p.contentType === 'ImageResponseCard' && p.imageResponseCard)
+        ? p.imageResponseCard
+        : p.imageResponseCard;
+      if (card) {
+        if (card.title) bubble('bot', card.title + (card.subtitle ? `\n${card.subtitle}` : ''));
+        const items = (card.buttons || []).map(b => ({
+          label: b.text || b.value || 'Choose',
+          value: b.value || b.text || 'Choose'
+        }));
+        if (items.length) renderButtons(items);
+
+        return;
+      }
+
+      // 2) Messenger-style "template/button"
       if (p?.type === 'template' && p.payload?.template_type === 'button') {
         const text = p.payload.text || '';
         if (text) bubble('bot', text);
@@ -223,19 +247,15 @@
         return;
       }
 
-      // Generic { text, buttons|actions|suggestions|options }
+      // 3) Generic { text, buttons|options|actions|suggestions }
       if (p.text) bubble('bot', p.text);
-      const opts = p.buttons || p.actions || p.suggestions || p.options;
+      const opts = p.buttons || p.options || p.actions || p.suggestions;
       if (Array.isArray(opts)) {
         renderButtons(opts.map(o => ({
           label: o.text || o.title || o.label || o.value || 'Select',
           value: o.value || o.intent || o.text || o.title || 'Select'
         })));
-        return;
       }
-
-      // Fallback: show raw text
-      bubble('bot', m.content || '');
       return;
     }
 
@@ -376,18 +396,50 @@
   });
 
   // --- Ensure AWS creds ready, then trigger Welcome so buttons show immediately ---
+  // --- Ensure AWS creds ready, then trigger Welcome so buttons show immediately ---
   (async () => {
     try {
       if (AWS.config.credentials?.get) {
         await new Promise((res, rej) => AWS.config.credentials.get(err => err ? rej(err) : res()));
       }
-      // Kick off welcome turn (ensure your WelcomeIntent handles a generic greeting like "hi")
-      const resp = await sendToLex('hi');
+      const statusEl = document.getElementById('status');
+      if (statusEl) statusEl.textContent = 'Connected';
+
+      // Try: force context to WelcomeIntent on first turn
+      const resp = await lexV2.recognizeText({
+        botId: LEX.BOT_ID,
+        botAliasId: LEX.BOT_ALIAS_ID,
+        localeId: LEX.LOCALE_ID || 'en_US',
+        sessionId,
+        text: ".", // minimal token; not shown to user
+        sessionState: {
+          intent: {
+            name: "WelcomeIntent",
+            state: "InProgress",
+            // slots: {} // (optional) prefill if you want
+          },
+          dialogAction: { type: "ElicitIntent" } // keeps it in welcome phase
+        }
+      }).promise();
+
       handleLexTurn(resp);
     } catch (e) {
-      console.error('Init welcome failed:', e);
-      // Optional: static fallback
-      bubble('bot', 'Hi! I can create a booking right here in chat.');
+      console.error('Init welcome (forced intent) failed:', e);
+      // Fallback: use your existing utterance like "hi"
+      try {
+        const resp2 = await lexV2.recognizeText({
+          botId: LEX.BOT_ID,
+          botAliasId: LEX.BOT_ALIAS_ID,
+          localeId: LEX.LOCALE_ID || 'en_US',
+          sessionId,
+          text: "hi"
+        }).promise();
+        handleLexTurn(resp2);
+      } catch (e2) {
+        console.error('Init fallback failed:', e2);
+        bubble('bot', 'Hi! I can create a booking right here in chat.');
+      }
     }
   })();
+
 })();
