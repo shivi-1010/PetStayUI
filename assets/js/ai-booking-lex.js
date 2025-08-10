@@ -437,59 +437,32 @@
     if (e.key === 'Enter') handleUserSend();
   });
 
-  // --- Ensure AWS creds ready, then trigger Welcome so buttons show immediately ---
-  (async () => {
-    try {
-      if (AWS.config.credentials?.get) {
-        await new Promise((res, rej) => AWS.config.credentials.get(err => {
-          if (err) {
-            console.error("Cognito credentials error:", err);
-            rej(err);
-          } else {
-            console.log("AWS credentials resolved:", AWS.config.credentials);
-            res();
-          }
-        }));
-      }
-      const statusEl = document.getElementById('status');
-      if (statusEl) statusEl.textContent = 'Connected';
-
-      // Try: force context to WelcomeIntent on first turn
-      const initParams = {
-        botId: LEX.BOT_ID,
-        botAliasId: LEX.BOT_ALIAS_ID,
-        localeId: LEX.LOCALE_ID || 'en_US',
-        sessionId,
-        text: ".", // minimal token; not shown to user
-        sessionState: {
-          intent: {
-            name: "WelcomeIntent",
-            state: "InProgress"
-          },
-          dialogAction: { type: "ElicitIntent" }
-        }
-      };
-      console.log("Initial recognizeText (force WelcomeIntent):", initParams);
-      const resp = await lexV2.recognizeText(initParams).promise();
-      handleLexTurn(resp);
-    } catch (e) {
-      console.error('Init welcome (forced intent) failed:', e);
-      // Fallback: use a simple utterance like "hi"
-      try {
-        const initParams2 = {
-          botId: LEX.BOT_ID,
-          botAliasId: LEX.BOT_ALIAS_ID,
-          localeId: LEX.LOCALE_ID || 'en_US',
-          sessionId,
-          text: "hi"
-        };
-        console.log("Initial recognizeText (fallback 'hi'):", initParams2);
-        const resp2 = await lexV2.recognizeText(initParams2).promise();
-        handleLexTurn(resp2);
-      } catch (e2) {
-        console.error('Init fallback failed:', e2);
-        bubble('bot', 'Hi! I can create a booking right here in chat.');
-      }
+// --- Ensure AWS creds ready, then trigger Welcome so buttons show immediately ---
+(async () => {
+  try {
+    if (AWS.config.credentials?.get) {
+      await new Promise((res, rej) => AWS.config.credentials.get(err => {
+        if (err) { console.error("Cognito credentials error:", err); rej(err); }
+        else { console.log("AWS credentials resolved:", AWS.config.credentials); res(); }
+      }));
     }
-  })();
+    const statusEl = document.getElementById('status');
+    if (statusEl) statusEl.textContent = 'Connected';
+
+    // Send an utterance that maps to WelcomeIntent (make sure it's in sample utterances)
+    const resp = await lexV2.recognizeText({
+      botId: LEX.BOT_ID,
+      botAliasId: LEX.BOT_ALIAS_ID,
+      localeId: LEX.LOCALE_ID || 'en_US',
+      sessionId,
+      text: "hi"       // or "welcome", "start", etc.
+    }).promise();
+
+    handleLexTurn(resp);
+  } catch (e) {
+    console.error('Init welcome failed:', e);
+    bubble('bot', 'Hi! I can create a booking right here in chat.');
+  }
+})();
+
 })();
