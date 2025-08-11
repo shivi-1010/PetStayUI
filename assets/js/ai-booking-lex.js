@@ -32,6 +32,9 @@
   // Track terminal outcome
   let lastOutcome = null; // 'success' | 'pending' | 'failed' | null
 
+  // Track last uploaded pet photo key (for upload flow)
+  let lastUploadedPetPhotoKey = null; // S3 object key
+
   // --- Helpers ---
   function bubble(who, text) {
     const msg = document.createElement('div');
@@ -89,50 +92,59 @@
   function updateSummary(_) {}
 
   // --- Photo upload flow (used by buttons AND typed 'upload') ---
-  async function startPhotoUploadFlow() {
-    const picker = document.getElementById('chat-photo');
-    if (!picker) {
-      console.warn("No #chat-photo input found.");
-      bubble('bot', 'Upload is not available right now.');
-      setBusy(false);
-      return;
-    }
-
-    picker.onchange = async () => {
-      const file = picker.files?.[0];
-      picker.value = '';
-      if (!file) { setBusy(false); return; }
-
-      try {
-        const species =
-          lastSlots?.petSpecies?.value?.interpretedValue ||
-          lastSlots?.petSpecies?.value?.originalValue || '';
-
-        bubble('bot', 'Uploading your photo…');
-        const key = await uploadPetPhotoViaAPI(file, species);
-        bubble('bot', 'Photo uploaded successfully!');
-
-        // Set slot locally and notify Lex
-        const newSlots = withSlot(lastSlots || {}, 'petPhotoKey', key);
-        lastSlots = newSlots;
-
-        startProgressUI();
-        const resp2 = await sendToLex('photo uploaded', newSlots);
-        stopProgressUI();
-        handleLexTurn(resp2);
-      } catch (err) {
-        stopProgressUI();
-        console.error("Upload flow error:", err);
-        bubble('bot', 'Sorry—the upload failed. Please try again.');
-      } finally {
-        setBusy(false);
-        inputEl.focus();
-      }
-    };
-
-    // open system file picker
-    picker.click();
+async function startPhotoUploadFlow() {
+  const picker = document.getElementById('chat-photo');
+  if (!picker) {
+    console.warn("No #chat-photo input found.");
+    bubble('bot', 'Upload is not available right now.');
+    setBusy(false);
+    return;
   }
+
+  picker.onchange = async () => {
+    const file = picker.files?.[0];
+    picker.value = '';
+    if (!file) { setBusy(false); return; }
+
+    try {
+      const species =
+        lastSlots?.petSpecies?.value?.interpretedValue ||
+        lastSlots?.petSpecies?.value?.originalValue || '';
+
+      bubble('bot', 'Uploading your photo…');
+      const key = await uploadPetPhotoViaAPI(file, species);
+      bubble('bot', 'Photo uploaded successfully!');
+
+      // remember the key for the next Lex request
+      lastUploadedPetPhotoKey = key;
+
+      // Also reflect it into the local slot (nice to have; Lex may ignore client-side slot overrides)
+      const newSlots = withSlot(lastSlots || {}, 'petPhotoKey', key);
+      lastSlots = newSlots;
+
+      startProgressUI();
+      // IMPORTANT: send the key to Lex as a sessionAttribute
+      const resp2 = await sendToLex('photo uploaded', newSlots, {
+        LastUploadedPetPhotoKey: key,
+        // optional mirror, in case your Lambda checks both names
+        petPhotoKey: key
+      });
+      stopProgressUI();
+      handleLexTurn(resp2);
+    } catch (err) {
+      stopProgressUI();
+      console.error("Upload flow error:", err);
+      bubble('bot', 'Sorry—the upload failed. Please try again.');
+    } finally {
+      setBusy(false);
+      inputEl.focus();
+    }
+  };
+
+  // open system file picker
+  picker.click();
+}
+
 
   // Poll booking status (pending flow)
   async function pollBookingStatus(executionArn, maxAttempts = 8, delayMs = 1500) {
@@ -365,29 +377,44 @@ if (state === 'Failed' && lastOutcome !== 'success' && lastOutcome !== 'pending'
   }
 
   // --- Lex I/O ---
-  async function sendToLex(text, overrideSlots) {
-    const params = {
-      botId: LEX.BOT_ID,
-      botAliasId: LEX.BOT_ALIAS_ID,
-      localeId: LEX.LOCALE_ID || 'en_US',
-      sessionId,
-      text
+async function sendToLex(text, overrideSlots, extraSessionAttrs) {
+  const params = {
+    botId: LEX.BOT_ID,
+    botAliasId: LEX.BOT_ALIAS_ID,
+    localeId: LEX.LOCALE_ID || 'en_US',
+    sessionId,
+    text
+  };
+
+  // Always send sessionAttributes if we have them (this is what your Lambda reads)
+  const sessionAttributes = {
+    ...(extraSessionAttrs || {}),
+  };
+  // If you want to always include the last remembered key, uncomment:
+  // if (lastUploadedPetPhotoKey && !sessionAttributes.LastUploadedPetPhotoKey) {
+  //   sessionAttributes.LastUploadedPetPhotoKey = lastUploadedPetPhotoKey;
+  // }
+
+  if (lastIntentName && (overrideSlots || lastSlots)) {
+    params.sessionState = {
+      intent: { name: lastIntentName, slots: overrideSlots || lastSlots },
+      sessionAttributes
     };
-
-    if (lastIntentName && (overrideSlots || lastSlots)) {
-      params.sessionState = { intent: { name: lastIntentName, slots: overrideSlots || lastSlots } };
-    }
-
-    console.log("Sending to Lex:", params);
-    try {
-      const r = await lexV2.recognizeText(params).promise();
-      console.log("Received from Lex:", r);
-      return r;
-    } catch (err) {
-      console.error("Lex recognizeText error:", err, { params });
-      throw err;
-    }
+  } else if (Object.keys(sessionAttributes).length > 0) {
+    params.sessionState = { sessionAttributes };
   }
+
+  console.log("Sending to Lex:", params);
+  try {
+    const r = await lexV2.recognizeText(params).promise();
+    console.log("Received from Lex:", r);
+    return r;
+  } catch (err) {
+    console.error("Lex recognizeText error:", err, { params });
+    throw err;
+  }
+}
+
 
   // --- User send handler ---
   async function handleUserSend() {
