@@ -6,87 +6,76 @@
   <title>PetStay — Book via Chat</title>
   <meta name="color-scheme" content="dark light" />
 
-  <!-- AWS SDK (Lex V2 client) -->
+  <!-- AWS SDK (Lex V2 client is included here) -->
   <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1488.0.min.js"></script>
 
-  <!-- Your global config -->
+  <!-- Your global config: must define window.PETSTAY_CONFIG.LEX {...} -->
   <script src="/assets/js/config.js"></script>
+  <!-- Your custom styles -->
+  <link rel="stylesheet" href="../assets/css/customer.css" />
 
-  <style>
-    /* Reset & full screen */
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: system-ui, sans-serif;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #chat-log {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1rem;
-      background: #f8f8f8;
-    }
-
-    .msg {
-      padding: 0.6rem 0.9rem;
-      margin: 0.3rem 0;
-      border-radius: 12px;
-      max-width: 75%;
-      word-wrap: break-word;
-    }
-    .msg.user {
-      background: #007aff;
-      color: white;
-      align-self: flex-end;
-    }
-    .msg.bot {
-      background: #e5e5ea;
-      color: black;
-      align-self: flex-start;
-    }
-
-    .inputbar {
-      display: flex;
-      border-top: 1px solid #ccc;
-    }
-    .inputbar input {
-      flex: 1;
-      border: none;
-      padding: 0.8rem;
-      font-size: 1rem;
-      outline: none;
-    }
-    .inputbar button {
-      border: none;
-      background: #007aff;
-      color: white;
-      padding: 0 1.2rem;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .inputbar button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  </style>
 </head>
 <body>
-  <!-- Chat log -->
-  <div id="chat-log" aria-live="polite" aria-label="Chat transcript"></div>
+  <div class="container">
+    <div class="grid">
+      <section class="card chat">
+        <header class="card-header">
+          <span class="dot" aria-hidden="true"></span>
+          <div class="title">PetStay — Book via Chat</div>
+          <!-- <div class="subtitle">I’ll collect the details and create your booking.</div> -->
+          <!-- <span class="pill" style="margin-left:auto;">Beta</span> -->
+        </header>
 
-  <!-- Input bar -->
-  <div class="inputbar">
-    <input id="chat-text" type="text" placeholder="Type your reply…" autocomplete="off" />
-    <button id="chat-send" class="btn">Send</button>
+        <div id="chat-log" class="log" aria-live="polite" aria-label="Chat transcript"></div>
+
+        <div class="inputbar">
+          <input id="chat-text" type="text" placeholder="Type your reply… (or 'cancel')" autocomplete="off" />
+          <button id="chat-send" class="btn">Send</button>
+        </div>
+      </section>
+
+      <aside class="card side">
+        <!-- <header class="card-header">
+          <div class="title">Assistant</div>
+          <div class="subtitle">Fewer clicks. Faster booking.</div>
+        </header> -->
+
+        <!-- <div class="panel">
+          <h4>Quick Tips</h4>
+          <ul class="tips">
+            <li>Type <strong>skip</strong> for optional questions.</li>
+            <li>Type <strong>upload</strong> when I ask for a pet photo.</li>
+            <li>Type <strong>cancel</strong> to stop anytime.</li>
+          </ul>
+        </div> -->
+
+        <div class="panel" style="padding-top:0">
+          <h4>Status</h4>
+          <div id="status" class="muted">Connecting…</div>
+        </div>
+
+        <!-- <div class="panel" style="padding-top:0">
+          <h4>Live Summary</h4>
+          <div class="summary">
+            <div class="summary-row"><span>Owner</span><span id="sOwner" class="pill">—</span></div>
+            <div class="summary-row"><span>Email</span><span id="sEmail" class="pill">—</span></div>
+            <div class="summary-row"><span>Phone</span><span id="sPhone" class="pill">—</span></div>
+            <div class="summary-row"><span>Pet</span><span id="sPet" class="pill">—</span></div>
+            <div class="summary-row"><span>Breed</span><span id="sBreed" class="pill">—</span></div>
+            <div class="summary-row"><span>Age</span><span id="sAge" class="pill">—</span></div>
+            <div class="summary-row"><span>Dates</span><span id="sDates" class="pill">—</span></div>
+            <div class="summary-row"><span>Arrival</span><span id="sArrival" class="pill">—</span></div>
+            <div class="summary-row"><span>Photo</span><span id="sPhoto" class="pill">No</span></div>
+          </div>
+        </div> -->
+      </aside>
+
+      
+    </div>
   </div>
-
-  <!-- Hidden file input for photo uploads -->
-  <input id="chat-photo" type="file" accept="image/jpeg,image/png" style="display:none" />
-
-  <!-- Lex client logic -->
+<!-- Hidden file input for photo uploads -->
+<input id="chat-photo" type="file" accept="image/jpeg,image/png" style="display:none" />
+  <!-- Your Lex client logic -->
   <script src="/assets/js/ai-booking-lex.js"></script>
 </body>
 </html>
