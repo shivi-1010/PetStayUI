@@ -323,10 +323,15 @@
     if (msgs.length > 0) msgs.forEach(renderLexMessage);
 
     // Failure surface
-    if (state === 'Failed' && lastOutcome !== 'success' && lastOutcome !== 'pending') {
-      bubble('bot', "Sorry, something went wrong creating your booking. Please try again in a moment.");
-      lastOutcome = 'failed';
-    }
+// Only surface failure if Lex didn't send any message AND we haven't seen success/pending
+if (state === 'Failed' && lastOutcome !== 'success' && lastOutcome !== 'pending') {
+  const hasLexText = (resp.messages || []).length > 0;
+  if (!hasLexText) {
+    bubble('bot', "Sorry, something went wrong creating your booking. Please try again in a moment.");
+  }
+  lastOutcome = 'failed';
+}
+
 
     // Completion / redirect
     const bookingId = attrs.BookingID;
