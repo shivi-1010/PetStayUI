@@ -386,22 +386,29 @@ async function sendToLex(text, overrideSlots, extraSessionAttrs) {
     text
   };
 
-  // Always send sessionAttributes if we have them (this is what your Lambda reads)
-  const sessionAttributes = {
-    ...(extraSessionAttrs || {}),
-  };
-  // If you want to always include the last remembered key, uncomment:
-  // if (lastUploadedPetPhotoKey && !sessionAttributes.LastUploadedPetPhotoKey) {
-  //   sessionAttributes.LastUploadedPetPhotoKey = lastUploadedPetPhotoKey;
-  // }
+  // Build session attributes
+  const sessionAttributes = { ...(extraSessionAttrs || {}) };
 
-  if (lastIntentName && (overrideSlots || lastSlots)) {
-    params.sessionState = {
-      intent: { name: lastIntentName, slots: overrideSlots || lastSlots },
-      sessionAttributes
-    };
-  } else if (Object.keys(sessionAttributes).length > 0) {
-    params.sessionState = { sessionAttributes };
+  // Always include the last uploaded key so Lambda can use it (even if slot is stale)
+  if (lastUploadedPetPhotoKey && !sessionAttributes.LastUploadedPetPhotoKey) {
+    sessionAttributes.LastUploadedPetPhotoKey = lastUploadedPetPhotoKey;
+  }
+
+  // Start sessionState with sessionAttributes if we have any
+  if (Object.keys(sessionAttributes).length > 0) {
+    params.sessionState = { ...(params.sessionState || {}), sessionAttributes };
+  }
+
+  // Prefer overrideSlots when provided (e.g., immediately after upload).
+  // If we don't yet have an intent name from Lex, force the known one.
+  if (overrideSlots) {
+    const intentName = lastIntentName || 'PetStayBooking';
+    params.sessionState = params.sessionState || {};
+    params.sessionState.intent = { name: intentName, slots: overrideSlots };
+  } else if (lastIntentName && lastSlots) {
+    // Otherwise, reuse the last known slots/intent
+    params.sessionState = params.sessionState || {};
+    params.sessionState.intent = { name: lastIntentName, slots: lastSlots };
   }
 
   console.log("Sending to Lex:", params);
@@ -414,7 +421,6 @@ async function sendToLex(text, overrideSlots, extraSessionAttrs) {
     throw err;
   }
 }
-
 
   // --- User send handler ---
   async function handleUserSend() {
