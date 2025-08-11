@@ -56,30 +56,20 @@
     return new Promise(r => setTimeout(r, ms));
   }
 
-  // --- Progress UI (simulates Lex Fulfillment Updates with RecognizeText) ---
-  let progressTimer = null;
-  let progressBubble = null;
+  // --- Progress UI disabled ---
+let progressTimer = null;
+let progressBubble = null;
 
-  function startProgressUI() {
-    stopProgressUI();
-    // mirrors: “Fulfillment started → Message”
-    progressBubble = bubble('bot', "Thanks! I’ve got everything. Creating your booking now…");
-    // mirrors: “Periodic update → Message” every 10s (match your Lex console settings)
-    progressTimer = setInterval(() => {
-      if (progressBubble) {
-        progressBubble.textContent = "Still working—this usually takes a few seconds…";
-      }
-    }, 10000);
-  }
+function startProgressUI() {
+  // Progress UI disabled — do nothing
+}
 
-  function stopProgressUI() {
-    if (progressTimer) clearInterval(progressTimer);
-    progressTimer = null;
-    if (progressBubble?.parentNode) {
-      progressBubble.parentNode.removeChild(progressBubble); // remove transient bubble so final messages take focus
-    }
-    progressBubble = null;
-  }
+function stopProgressUI() {
+  // Progress UI disabled — just clear any timers
+  if (progressTimer) clearInterval(progressTimer);
+  progressTimer = null;
+  progressBubble = null;
+}
 
   // Build a Lex-style slot object with a value
   function withSlot(slots, name, interpretedValue) {
@@ -124,64 +114,11 @@
   }
 
   // Update Live Summary from Lex slots
-  function updateSummary(slots) {
-    if (!slots) return;
+// Update Live Summary from Lex slots — disabled
+function updateSummary(slots) {
+  // Live Summary UI updates disabled — do nothing
+}
 
-    const requiredSlots = [
-      'petOwnerName', 'email', 'phoneNumber',
-      'petName', 'checkInDate', 'checkOutDate'
-    ];
-
-    const val = name => {
-      const s = slots[name];
-      if (!s || !s.value) return '';
-      return s.value.interpretedValue || s.value.originalValue || '';
-    };
-
-    const setPill = (id, slotName, displayValue) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-
-      const value = displayValue !== undefined ? displayValue : val(slotName);
-      el.textContent = value || '—';
-
-      el.classList.remove('ok', 'warn', 'err');
-
-      if (value) {
-        el.classList.add('ok');
-      } else if (slots[slotName] && slots[slotName].value === null) {
-        el.classList.add('warn'); // skipped
-      } else if (requiredSlots.includes(slotName)) {
-        el.classList.add('err');  // required but missing
-      }
-    };
-
-    setPill('sOwner', 'petOwnerName');
-    setPill('sEmail', 'email');
-    setPill('sPhone', 'phoneNumber');
-    setPill('sPet', 'petName', val('petName') + (val('petSpecies') ? ` (${val('petSpecies')})` : ''));
-    setPill('sBreed', 'petBreed');
-    setPill('sAge', 'petAge');
-    if (val('checkInDate') || val('checkOutDate')) {
-      setPill('sDates', 'checkInDate', `${val('checkInDate')} → ${val('checkOutDate')}`);
-    } else {
-      setPill('sDates', 'checkInDate');
-    }
-    setPill('sArrival', 'arrivalTime');
-
-    // Photo special case
-    const hasPhoto = !!val('petPhotoKey');
-    const photoEl = document.getElementById('sPhoto');
-    if (photoEl) {
-      photoEl.textContent = hasPhoto ? 'Yes' : 'No';
-      photoEl.classList.remove('ok', 'warn', 'err');
-      if (hasPhoto) {
-        photoEl.classList.add('ok');
-      } else if (slots.petPhotoKey && slots.petPhotoKey.value === null) {
-        photoEl.classList.add('warn');
-      }
-    }
-  }
 
   // Poll booking status until ready (for step-functions-first flow)
   async function pollBookingStatus(executionArn, maxAttempts = 8, delayMs = 1500) {
