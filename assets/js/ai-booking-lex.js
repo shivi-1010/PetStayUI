@@ -359,7 +359,7 @@ if (state === 'Failed' && lastOutcome !== 'success' && lastOutcome !== 'pending'
         window.location.assign(`/customer/booking-success.html?bookingId=${encodeURIComponent(bookingId)}`);
       } else if (pendingId) {
         console.log("[pending] executionArn →", pendingId);
-        bubble('bot', 'One moment while I confirm your booking…');
+        // bubble('bot', 'One moment while I confirm your booking…');
         pollBookingStatus(pendingId, 8, 1500).then(finalId => {
           console.log("[pending] final bookingId:", finalId);
           if (finalId) {
