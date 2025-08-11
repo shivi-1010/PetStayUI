@@ -142,7 +142,8 @@
       sessionStorage.setItem("fromLogin", "1");
 
       //Use only static URI that is whitelisted in Cognito console
-      const redirectUri = `${window.location.origin}/checkin.html`;
+      // const redirectUri = `${window.location.origin}/checkin.html`;
+      const redirectUri = window.PETSTAY_CONFIG.REDIRECT_SIGN_IN_URL;
 
       // Construct login URL with static redirectUri
       const loginURL = `https://${window.PETSTAY_CONFIG.COGNITO_DOMAIN}/login` +
