@@ -1,12 +1,8 @@
-// ai-booking-lex.js (photo-upload enabled, CustomPayload/ImageResponseCard supported + DEBUG LOGS + Progress UI + Outcome Guard)
+// ai-booking-lex.js — FULL VERSION with photo upload (buttons + typed), CustomPayload, logs
 (function () {
   // --- Global error logging ---
-  window.addEventListener("error", e => {
-    console.error("Global error:", e.error || e.message, e);
-  });
-  window.addEventListener("unhandledrejection", e => {
-    console.error("Unhandled promise rejection:", e.reason, e);
-  });
+  window.addEventListener("error", e => console.error("Global error:", e.error || e.message, e));
+  window.addEventListener("unhandledrejection", e => console.error("Unhandled promise rejection:", e.reason, e));
 
   // --- DOM refs ---
   const logEl = document.getElementById('chat-log');
@@ -29,13 +25,12 @@
   const sessionId = 'web-' + Math.random().toString(36).slice(2);
   console.log("Session ID:", sessionId);
 
-  // Track latest intent and slots so we can set/override slots (e.g., petPhotoKey)
+  // Track latest intent/slots
   let lastIntentName = null;
   let lastSlots = null;
 
-  // Track terminal outcome of the current booking attempt
-  // 'success' | 'pending' | 'failed' | null
-  let lastOutcome = null;
+  // Track terminal outcome
+  let lastOutcome = null; // 'success' | 'pending' | 'failed' | null
 
   // --- Helpers ---
   function bubble(who, text) {
@@ -44,46 +39,27 @@
     msg.textContent = text;
     logEl.appendChild(msg);
     logEl.scrollTop = logEl.scrollHeight;
-    return msg; // return node so we can update/remove it
+    return msg;
   }
+  function setBusy(b) { inputEl.disabled = b; sendBtn.disabled = b; }
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-  function setBusy(b) {
-    inputEl.disabled = b;
-    sendBtn.disabled = b;
-  }
-
-  function sleep(ms) {
-    return new Promise(r => setTimeout(r, ms));
-  }
-
-  // --- Progress UI disabled ---
-let progressTimer = null;
-let progressBubble = null;
-
-function startProgressUI() {
-  // Progress UI disabled — do nothing
-}
-
-function stopProgressUI() {
-  // Progress UI disabled — just clear any timers
-  if (progressTimer) clearInterval(progressTimer);
-  progressTimer = null;
-  progressBubble = null;
-}
+  // Progress UI (disabled)
+  let progressTimer = null;
+  let progressBubble = null;
+  function startProgressUI() {}
+  function stopProgressUI() { if (progressTimer) clearInterval(progressTimer); progressTimer = null; progressBubble = null; }
 
   // Build a Lex-style slot object with a value
   function withSlot(slots, name, interpretedValue) {
-    return {
-      ...(slots || {}),
-      [name]: { value: { interpretedValue } }
-    };
+    return { ...(slots || {}), [name]: { value: { interpretedValue } } };
   }
 
-  // Reuse the form's upload flow: ask API for presigned URL -> PUT to S3 -> return key
+  // --- Upload to S3 via your presigned URL API ---
   async function uploadPetPhotoViaAPI(file, speciesRaw) {
     const species = speciesRaw?.trim()
       ? speciesRaw.trim().charAt(0).toUpperCase() + speciesRaw.trim().slice(1).toLowerCase()
-      : 'Dog'; // default if not filled yet
+      : 'Dog'; // default
 
     console.log("Requesting upload URL:", { species, type: file.type });
     const res = await fetch(window.PETSTAY_CONFIG.PET_PHOTO_UPLOAD_URL, {
@@ -99,11 +75,7 @@ function stopProgressUI() {
     const { uploadUrl, key } = await res.json();
     console.log("Got upload URL + key:", { key, uploadUrlLen: (uploadUrl || "").length });
 
-    const put = await fetch(uploadUrl, {
-      method: "PUT",
-      headers: { "Content-Type": file.type },
-      body: file
-    });
+    const put = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
     if (!put.ok) {
       const txt = await put.text().catch(() => "");
       console.error("Failed to upload to S3:", put.status, txt);
@@ -113,14 +85,56 @@ function stopProgressUI() {
     return key; // S3 object key
   }
 
-  // Update Live Summary from Lex slots
-// Update Live Summary from Lex slots — disabled
-function updateSummary(slots) {
-  // Live Summary UI updates disabled — do nothing
-}
+  // Live summary disabled
+  function updateSummary(_) {}
 
+  // --- Photo upload flow (used by buttons AND typed 'upload') ---
+  async function startPhotoUploadFlow() {
+    const picker = document.getElementById('chat-photo');
+    if (!picker) {
+      console.warn("No #chat-photo input found.");
+      bubble('bot', 'Upload is not available right now.');
+      setBusy(false);
+      return;
+    }
 
-  // Poll booking status until ready (for step-functions-first flow)
+    picker.onchange = async () => {
+      const file = picker.files?.[0];
+      picker.value = '';
+      if (!file) { setBusy(false); return; }
+
+      try {
+        const species =
+          lastSlots?.petSpecies?.value?.interpretedValue ||
+          lastSlots?.petSpecies?.value?.originalValue || '';
+
+        bubble('bot', 'Uploading your photo…');
+        const key = await uploadPetPhotoViaAPI(file, species);
+        bubble('bot', 'Photo uploaded successfully!');
+
+        // Set slot locally and notify Lex
+        const newSlots = withSlot(lastSlots || {}, 'petPhotoKey', key);
+        lastSlots = newSlots;
+
+        startProgressUI();
+        const resp2 = await sendToLex('photo uploaded', newSlots);
+        stopProgressUI();
+        handleLexTurn(resp2);
+      } catch (err) {
+        stopProgressUI();
+        console.error("Upload flow error:", err);
+        bubble('bot', 'Sorry—the upload failed. Please try again.');
+      } finally {
+        setBusy(false);
+        inputEl.focus();
+      }
+    };
+
+    // open system file picker
+    picker.click();
+  }
+
+  // Poll booking status (pending flow)
   async function pollBookingStatus(executionArn, maxAttempts = 8, delayMs = 1500) {
     if (!executionArn) return null;
     const encodedArn = encodeURIComponent(executionArn);
@@ -149,7 +163,6 @@ function updateSummary(slots) {
 
   // --- UI renderers ---
   function renderButtons(items) {
-    // Wrap buttons in a bot "bubble" for consistent layout
     const wrap = document.createElement('div');
     wrap.className = 'msg bot';
 
@@ -165,16 +178,23 @@ function updateSummary(slots) {
       btn.onclick = async () => {
         console.log("Button clicked:", it);
         bubble('user', it.label);
+
+        // Intercept "upload" buttons from CustomPayload
+        if ((it.value || '').toLowerCase() === 'upload') {
+          setBusy(true);
+          await startPhotoUploadFlow();
+          return; // don't send 'upload' to Lex
+        }
+
         setBusy(true);
         try {
-          startProgressUI(); // simulate fulfillment updates during button-triggered turns
+          startProgressUI();
           const resp = await sendToLex(it.value);
           stopProgressUI();
           handleLexTurn(resp);
         } catch (e) {
           stopProgressUI();
           console.error(e);
-          // Only show error if no success/pending outcome has been seen
           if (lastOutcome !== 'success' && lastOutcome !== 'pending') {
             bubble('bot', 'We hit a connection hiccup. Please try again in a moment.');
             lastOutcome = 'failed';
@@ -193,13 +213,26 @@ function updateSummary(slots) {
     const type = m.contentType || 'PlainText';
     console.log("Render message:", { type, m });
 
-    // Plain text
+    // Legacy responseCard support (optional)
+    if (m.responseCard?.genericAttachments?.length) {
+      m.responseCard.genericAttachments.forEach(att => {
+        if (att.title) bubble('bot', att.subTitle ? `${att.title}\n${att.subTitle}` : att.title);
+        const btns = Array.isArray(att.buttons) ? att.buttons : [];
+        if (btns.length) {
+          renderButtons(btns.map(b => ({
+            label: b.text || b.value || 'Choose',
+            value: b.value || b.text || 'Choose'
+          })));
+        }
+      });
+      return;
+    }
+
     if (type === 'PlainText') {
       bubble('bot', m.content || '');
       return;
     }
 
-    // Top-level ImageResponseCard
     if (type === 'ImageResponseCard' && m.imageResponseCard) {
       const { title, subtitle, buttons } = m.imageResponseCard;
       if (title) bubble('bot', subtitle ? `${title}\n${subtitle}` : title);
@@ -212,7 +245,6 @@ function updateSummary(slots) {
       return;
     }
 
-    // CustomPayload (can contain an embedded imageResponseCard or generic options)
     if (type === 'CustomPayload') {
       let p;
       try { p = JSON.parse(m.content || '{}'); } catch (err) {
@@ -221,12 +253,11 @@ function updateSummary(slots) {
         return;
       }
 
-      // 1) Embedded ImageResponseCard (your Welcome payload shape)
+      // Embedded ImageResponseCard
       const card = (p.contentType === 'ImageResponseCard' && p.imageResponseCard)
         ? p.imageResponseCard
         : p.imageResponseCard;
       if (card) {
-        console.log("Rendering embedded ImageResponseCard:", card);
         if (card.title) bubble('bot', card.title + (card.subtitle ? `\n${card.subtitle}` : ''));
         const items = (card.buttons || []).map(b => ({
           label: b.text || b.value || 'Choose',
@@ -236,7 +267,7 @@ function updateSummary(slots) {
         return;
       }
 
-      // 2) Messenger-style "template/button"
+      // Messenger-style button template
       if (p?.type === 'template' && p.payload?.template_type === 'button') {
         const text = p.payload.text || '';
         if (text) bubble('bot', text);
@@ -248,7 +279,7 @@ function updateSummary(slots) {
         return;
       }
 
-      // 3) Generic { text, buttons|options|actions|suggestions }
+      // Generic { text, options/buttons }
       if (p.text) bubble('bot', p.text);
       const opts = p.buttons || p.options || p.actions || p.suggestions;
       if (Array.isArray(opts)) {
@@ -260,7 +291,6 @@ function updateSummary(slots) {
       return;
     }
 
-    // Unknown → fallback
     bubble('bot', m.content || '');
   }
 
@@ -274,12 +304,12 @@ function updateSummary(slots) {
     }
     console.log("Session snapshot:", { lastIntentName, lastSlots });
 
-    // Live summary
+    // Live summary (disabled)
     if (resp.sessionState?.intent?.slots) {
       updateSummary(resp.sessionState.intent.slots);
     }
 
-    // -------- outcome guard (set outcome BEFORE rendering failure text) --------
+    // Outcome guard
     const ss = resp.sessionState || {};
     const attrs = ss.sessionAttributes || {};
     const state = ss.intent?.state;
@@ -288,11 +318,11 @@ function updateSummary(slots) {
       lastOutcome = attrs.BookingID ? 'success' : 'pending';
     }
 
-    // Render all messages — if Lex is quiet, let progress UI cover it (no "…")
+    // Render messages
     const msgs = resp.messages || [];
     if (msgs.length > 0) msgs.forEach(renderLexMessage);
 
-    // Only surface failure if we haven't already seen success/pending
+    // Failure surface
     if (state === 'Failed' && lastOutcome !== 'success' && lastOutcome !== 'pending') {
       bubble('bot', "Sorry, something went wrong creating your booking. Please try again in a moment.");
       lastOutcome = 'failed';
@@ -304,22 +334,27 @@ function updateSummary(slots) {
     const ownerName = attrs.OwnerName || '';
 
     if (ss.intent && ss.intent.state === 'Fulfilled') {
-      console.log("Fulfilled with attributes:", attrs);
+      console.log("[turn] Fulfilled with attributes:", attrs);
       if (ownerName) sessionStorage.setItem('OwnerName', ownerName);
       if (bookingId) {
+        console.log("[redirect] bookingId →", bookingId);
         sessionStorage.setItem('BookingID', bookingId);
-        window.location.href = `/customer/booking-success.html?bookingId=${encodeURIComponent(bookingId)}`;
+        window.location.assign(`/customer/booking-success.html?bookingId=${encodeURIComponent(bookingId)}`);
       } else if (pendingId) {
+        console.log("[pending] executionArn →", pendingId);
         bubble('bot', 'One moment while I confirm your booking…');
         pollBookingStatus(pendingId, 8, 1500).then(finalId => {
-          console.log("Final bookingId after poll:", finalId);
+          console.log("[pending] final bookingId:", finalId);
           if (finalId) {
             sessionStorage.setItem('BookingID', finalId);
-            window.location.href = `/customer/booking-success.html?bookingId=${encodeURIComponent(finalId)}`;
+            window.location.assign(`/customer/booking-success.html?bookingId=${encodeURIComponent(finalId)}`);
           } else {
+            console.warn("[pending] still processing after polls");
             bubble('bot', 'Your booking is still processing. You’ll receive an email with details shortly.');
           }
         });
+      } else {
+        console.warn("[turn] Fulfilled but no BookingID/PendingBookingID.");
       }
     }
   }
@@ -335,12 +370,7 @@ function updateSummary(slots) {
     };
 
     if (lastIntentName && (overrideSlots || lastSlots)) {
-      params.sessionState = {
-        intent: {
-          name: lastIntentName,
-          slots: overrideSlots || lastSlots
-        }
-      };
+      params.sessionState = { intent: { name: lastIntentName, slots: overrideSlots || lastSlots } };
     }
 
     console.log("Sending to Lex:", params);
@@ -349,17 +379,16 @@ function updateSummary(slots) {
       console.log("Received from Lex:", r);
       return r;
     } catch (err) {
-      // Log helpful context
       console.error("Lex recognizeText error:", err, { params });
       throw err;
     }
   }
 
+  // --- User send handler ---
   async function handleUserSend() {
     const text = (inputEl.value || '').trim();
     if (!text) return;
 
-    // If user types anything after a terminal outcome, assume a fresh attempt
     if (lastOutcome === 'success' || lastOutcome === 'failed') {
       lastOutcome = null;
     }
@@ -368,68 +397,21 @@ function updateSummary(slots) {
     inputEl.value = '';
     setBusy(true);
 
-    // Special command: upload photo
+    // Intercept typed 'upload'
     if (text.toLowerCase() === 'upload') {
-      const picker = document.getElementById('chat-photo');
-      if (!picker) {
-        console.warn("No #chat-photo input found.");
-        bubble('bot', 'Upload is not available right now.');
-        setBusy(false);
-        return;
-      }
-
-      picker.onchange = async () => {
-        const file = picker.files?.[0];
-        picker.value = '';
-        if (!file) { setBusy(false); return; }
-
-        try {
-          const species =
-            lastSlots?.petSpecies?.value?.interpretedValue ||
-            lastSlots?.petSpecies?.value?.originalValue || '';
-
-          bubble('bot', 'Uploading your photo…');
-          const key = await uploadPetPhotoViaAPI(file, species);
-          bubble('bot', 'Photo uploaded successfully!');
-
-          const newSlots = withSlot(lastSlots || {}, 'petPhotoKey', key);
-          lastSlots = newSlots;
-
-          // Notify Lex that photo is available, with friendly progress UI
-          const resp2 = await (async () => {
-            startProgressUI();
-            try {
-              return await sendToLex('photo uploaded', newSlots);
-            } finally {
-              stopProgressUI();
-            }
-          })();
-          handleLexTurn(resp2);
-        } catch (err) {
-          stopProgressUI();
-          console.error("Upload flow error:", err);
-          bubble('bot', 'Sorry—the upload failed. Please try again.');
-        } finally {
-          setBusy(false);
-          inputEl.focus();
-        }
-      };
-
-      // open system file picker
-      picker.click();
-      return; // don't send "upload" text to Lex
+      await startPhotoUploadFlow();
+      return;
     }
 
     // Normal Lex turn
     try {
-      startProgressUI(); // show friendly progress while Lambda runs
+      startProgressUI();
       const resp = await sendToLex(text);
       stopProgressUI();
       handleLexTurn(resp);
     } catch (err) {
       stopProgressUI();
       console.error('Lex error (user send):', err);
-      // Only show an error if we haven't already gotten a success/pending signal
       if (lastOutcome !== 'success' && lastOutcome !== 'pending') {
         bubble('bot', 'We hit a connection hiccup. Please try again in a moment.');
         lastOutcome = 'failed';
@@ -442,11 +424,9 @@ function updateSummary(slots) {
 
   // --- Wire events ---
   sendBtn?.addEventListener('click', handleUserSend);
-  inputEl?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleUserSend();
-  });
+  inputEl?.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleUserSend(); });
 
-  // --- Ensure AWS creds ready, then trigger Welcome so buttons show immediately ---
+  // --- Init welcome ---
   (async () => {
     try {
       if (AWS.config.credentials?.get) {
@@ -458,13 +438,12 @@ function updateSummary(slots) {
       const statusEl = document.getElementById('status');
       if (statusEl) statusEl.textContent = 'Connected';
 
-      // Send an utterance that maps to WelcomeIntent (make sure it's in sample utterances)
       const resp = await lexV2.recognizeText({
         botId: LEX.BOT_ID,
         botAliasId: LEX.BOT_ALIAS_ID,
         localeId: LEX.LOCALE_ID || 'en_US',
         sessionId,
-        text: "hi"       // or "welcome", "start", etc.
+        text: "hi"
       }).promise();
 
       handleLexTurn(resp);
@@ -473,5 +452,4 @@ function updateSummary(slots) {
       bubble('bot', 'Hi! I can create a booking right here in chat.');
     }
   })();
-
 })();
