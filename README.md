@@ -1,4 +1,4 @@
-# Project README
+#  Event-Driven Serverless Pet Stay Booking Management System
 
 ## Overview
 This project is an event‑driven serverless application that manages a Pet Stay booking system on AWS. It uses fully managed services to ensure scalability, high availability and reduced operational overhead. The system allows users to interact through a chatbot and website, while backend logic is orchestrated through serverless functions and event‑based processing.
