@@ -33,10 +33,13 @@ The application follows a three‑tier architecture consisting of web, applicati
 Users access the static website hosted by Amplify and interact with the chatbot powered by Lex V2. The chatbot collects booking details and invokes Lambda functions via API Gateway. Step Functions manages the booking flow while EventBridge emits events for other services to react. Booking information is stored in DynamoDB and users receive confirmation.
 
 **Login Credentials**
+
 - **Admin Username:** petstayteam@outlook.com  
   **Password:** PetStay@987654321
+
 - **Staff Username:** petstayteam@gmail.com  
   **Password:** PetStay@987654321
+
 Users access the static website hosted by Amplify and interact with the chatbot powered by Lex V2. The chatbot collects booking details and invokes Lambda functions via API Gateway. Step Functions manages the booking flow while EventBridge emits events for other services to react. Booking information is stored in DynamoDB and users receive confirmation.
 
 
