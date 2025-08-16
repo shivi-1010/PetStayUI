@@ -1,0 +1,162 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CloudFormation template for EventBridge Event bus",
+  "Resources": {
+    "Rule1a600e77": {
+      "Type": "AWS::Events::Rule",
+      "DependsOn": ["EventBusbece412e"],
+      "Properties": {
+        "Name": "BookingCancelledRule",
+        "EventPattern": "{\"source\":[\"PetStay.Booking\"],\"detail-type\":[\"BookingCancelled\"]}",
+        "State": "ENABLED",
+        "Description": "Status Cancelled",
+        "EventBusName": "PetStayBus",
+        "Targets": [{
+          "Id": "Id9b5eab7b-171c-4dc4-b7bf-fbabbae2a55e",
+          "Arn": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:AdminDashboardHandler"
+          },
+          "RoleArn": "arn:aws:iam::941377135801:role/service-role/AdminDashboardHandler-role-5x3fg1co"
+        }]
+      }
+    },
+    "Rule65de8f6e": {
+      "Type": "AWS::Events::Rule",
+      "DependsOn": ["EventBusbece412e"],
+      "Properties": {
+        "Name": "BookingCheckedInRule",
+        "EventPattern": "{\"source\":[\"PetStay.Booking\"],\"detail-type\":[\"BookingCheckedIn\"]}",
+        "State": "ENABLED",
+        "Description": "Status Checked-In",
+        "EventBusName": "PetStayBus",
+        "Targets": [{
+          "Id": "Id8221c294-7769-4cc7-840b-b04517ee63a5",
+          "Arn": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:AdminDashboardHandler"
+          },
+          "RoleArn": "arn:aws:iam::941377135801:role/service-role/AdminDashboardHandler-role-5x3fg1co"
+        }]
+      }
+    },
+    "Rule6de76ec9": {
+      "Type": "AWS::Events::Rule",
+      "DependsOn": ["EventBusbece412e"],
+      "Properties": {
+        "Name": "BookingCheckedOutRule",
+        "EventPattern": "{\"source\":[\"PetStay.Booking\"],\"detail-type\":[\"BookingCheckedOut\"]}",
+        "State": "ENABLED",
+        "Description": "Status Checked-Out",
+        "EventBusName": "PetStayBus",
+        "Targets": [{
+          "Id": "Id7a8b44b9-5fb1-493a-bd2f-d274e8827672",
+          "Arn": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:AdminDashboardHandler"
+          },
+          "RoleArn": "arn:aws:iam::941377135801:role/service-role/AdminDashboardHandler-role-5x3fg1co"
+        }]
+      }
+    },
+    "Rule71bb4f92": {
+      "Type": "AWS::Events::Rule",
+      "DependsOn": ["EventBusbece412e"],
+      "Properties": {
+        "Name": "BookingConfirmedRule",
+        "EventPattern": "{\"source\":[\"PetStay.Booking\"],\"detail-type\":[\"BookingConfirmed\"]}",
+        "State": "ENABLED",
+        "Description": "Status Confirmed",
+        "EventBusName": "PetStayBus",
+        "Targets": [{
+          "Id": "Id61393a8f-de22-4678-bdec-f5cae21b25ed",
+          "Arn": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:AdminDashboardHandler"
+          },
+          "RoleArn": "arn:aws:iam::941377135801:role/service-role/AdminDashboardHandler-role-5x3fg1co"
+        }]
+      }
+    },
+    "Ruledc8b6d9b": {
+      "Type": "AWS::Events::Rule",
+      "DependsOn": ["EventBusbece412e"],
+      "Properties": {
+        "Name": "BookingCreatedRule",
+        "EventPattern": "{\"source\":[\"PetStay.Booking\"],\"detail-type\":[\"BookingCreated\"]}",
+        "State": "ENABLED",
+        "Description": "Status Pending",
+        "EventBusName": "PetStayBus",
+        "Targets": [{
+          "Id": "Idc60b312c-61e1-4075-bd96-e3065aa8566e",
+          "Arn": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:AdminDashboardHandler"
+          },
+          "RoleArn": "arn:aws:iam::941377135801:role/service-role/AdminDashboardHandler-role-5x3fg1co"
+        }]
+      }
+    },
+    "Ruledbb5e443": {
+      "Type": "AWS::Events::Rule",
+      "DependsOn": ["EventBusbece412e"],
+      "Properties": {
+        "Name": "BookingRestoredRule",
+        "EventPattern": "{\"source\":[\"PetStay.Booking\"],\"detail-type\":[\"BookingRestored\"]}",
+        "State": "ENABLED",
+        "Description": "Status Restore",
+        "EventBusName": "PetStayBus",
+        "Targets": [{
+          "Id": "Id0d414886-a48c-4383-b194-d6f56c74565d",
+          "Arn": {
+            "Fn::Sub": "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:AdminDashboardHandler"
+          },
+          "RoleArn": "arn:aws:iam::941377135801:role/service-role/AdminDashboardHandler-role-5x3fg1co"
+        }]
+      }
+    },
+    "EventBusbece412e": {
+      "Type": "AWS::Events::EventBus",
+      "Properties": {
+        "Name": "PetStayBus",
+        "Description": "event bridge and event rules logs",
+        "LogConfig": {
+          "IncludeDetail": "FULL",
+          "Level": "ERROR"
+        }
+      }
+    },
+    "DeliverySource0bac4a63": {
+      "Type": "AWS::Logs::DeliverySource",
+      "DependsOn": "EventBusbece412e",
+      "Properties": {
+        "Name": "EventBusSource-PetStayBus-ERROR_LOGS",
+        "LogType": "ERROR_LOGS",
+        "ResourceArn": "arn:aws:events:us-east-1:941377135801:event-bus/PetStayBus"
+      }
+    },
+    "DeliveryDestination667af2f5": {
+      "Type": "AWS::Logs::DeliveryDestination",
+      "Properties": {
+        "Name": "EventsDeliveryDestination-551048164",
+        "DestinationResourceArn": {
+          "Ref": "CloudWatchLogsDestinationArn"
+        }
+      }
+    },
+    "Delivery55312c68": {
+      "Type": "AWS::Logs::Delivery",
+      "DependsOn": ["DeliverySource0bac4a63", "DeliveryDestination667af2f5"],
+      "Properties": {
+        "DeliverySourceName": {
+          "Ref": "DeliverySource0bac4a63"
+        },
+        "DeliveryDestinationArn": {
+          "Fn::GetAtt": ["DeliveryDestination667af2f5", "Arn"]
+        }
+      }
+    }
+  },
+  "Parameters": {
+    "CloudWatchLogsDestinationArn": {
+      "Type": "String",
+      "Description": "ARN of the CloudWatchLogs destination for log delivery",
+      "Default": "arn:aws:logs:us-east-1:941377135801:log-group:/aws/vendedlogs/events/event-bus/PetStayBus"
+    }
+  }
+}

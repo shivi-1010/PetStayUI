@@ -1,0 +1,12 @@
+petstayteam@gmail.com
+petstayteam@outlook.com
+PetStay@987654321
+
+NOTES :
+
+
+to enable ai chatbot features 
+go to index.html and index.js page you will see commented green line for manual booking 
+so just incase you won't be able to do AI chatbot , you can just simple uncomment new-booking.html file from both and comment it to AI-chatbot.html file in both. same in booking-success page.
+
+rest will be same.
