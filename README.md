@@ -18,17 +18,6 @@ The application follows a three‑tier architecture consisting of web, applicati
 - **Amazon EventBridge** – Publishes booking events to allow loosely‑coupled integrations.
 - **Amazon DynamoDB** – Stores booking data with high availability.
 
-
-## Deployment Instructions
-1. Clone the GitHub repository containing the frontend code.
-2. Connect the repository to AWS Amplify and enable automatic builds and deployments.
-3. Configure Amazon Cognito User Pool and Identity Pool in the AWS Console.
-4. Deploy the API using Amazon API Gateway and link it to Lambda functions.
-5. Upload the Lex V2 chatbot intents and connect them to Lambda via Identity Pool.
-6. Create the Step Functions workflow to orchestrate bookings and configure EventBridge rules.
-7. Create DynamoDB tables for storing booking information.
-
-
 ## Usage
 Users access the static website hosted by Amplify and interact with the chatbot powered by Lex V2. The chatbot collects booking details and invokes Lambda functions via API Gateway. Step Functions manages the booking flow while EventBridge emits events for other services to react. Booking information is stored in DynamoDB and users receive confirmation.
 
