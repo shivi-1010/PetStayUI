@@ -40,8 +40,6 @@ Users access the static website hosted by Amplify and interact with the chatbot 
 - **Staff Username:** petstayteam@gmail.com  
   **Password:** PetStay@987654321
 
-Users access the static website hosted by Amplify and interact with the chatbot powered by Lex V2. The chatbot collects booking details and invokes Lambda functions via API Gateway. Step Functions manages the booking flow while EventBridge emits events for other services to react. Booking information is stored in DynamoDB and users receive confirmation.
-
 
 ## Conclusion
 By leveraging managed AWS services, this serverless and event‑driven architecture eliminates server maintenance and provides automatic scalability, security and disaster recovery. The system demonstrates an efficient and modern approach to building cloud applications.
